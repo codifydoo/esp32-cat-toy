@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Design spec</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#17161E}
+</style>
+</helmet>
+<div style="width: 1800px; height: 6300px; box-sizing: border-box; padding: 80px; background: #17161E; color: #EDEAF5; font-family: 'Nunito', system-ui, sans-serif; display: flex; flex-direction: column; gap: 72px;">
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 56px; font-weight: 600;">Design spec</div>
+<div style="font-size: 22px; color: #A9A5BF; max-width: 1400px;">Round AMOLED 466 × 466, 1.75 in (44 mm, about 10.5 px per mm). LVGL 9 on ESP32-S3. Everything here is flat vector: fills, strokes of 3 px or more, opacity, no blur, glass or shadows.</div>
+</div>
+
+<div style="display: grid; grid-template-columns: 520px minmax(0, 1fr); gap: 64px;">
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Screen geometry</div>
+<svg width="520" height="520" viewBox="-27 -27 520 520" aria-label="Menu layout with touch targets" role="img">
+<rect x="-27" y="-27" width="520" height="520" fill="#17161E"></rect>
+<circle cx="233" cy="233" r="233" fill="#000000"></circle>
+<circle cx="233" cy="233" r="220" fill="none" stroke="#FFB547" stroke-width="3" stroke-dasharray="10 8"></circle>
+<circle cx="233" cy="97" r="75" fill="#FF9F43" fill-opacity="0.18" stroke="#FF9F43" stroke-width="3"></circle>
+<circle cx="233" cy="262" r="120" fill="#FF5FA2" fill-opacity="0.18" stroke="#FF5FA2" stroke-width="3"></circle>
+<rect x="14" y="172" width="90" height="180" rx="12" fill="#4FD8FF" fill-opacity="0.14" stroke="#4FD8FF" stroke-width="3"></rect>
+<rect x="362" y="172" width="90" height="180" rx="12" fill="#4FD8FF" fill-opacity="0.14" stroke="#4FD8FF" stroke-width="3"></rect>
+<circle cx="411" cy="130" r="12" fill="#FFFFFF" fill-opacity="0.35"></circle>
+<path d="M205 429 A204 204 0 0 0 261 429" fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="3" stroke-dasharray="3 9"></path>
+<text x="233" y="102" fill="#FFD6A8" font-size="18" font-family="Nunito" text-anchor="middle">cat 150</text>
+<text x="233" y="268" fill="#FFC2DC" font-size="20" font-family="Nunito" text-anchor="middle">app icon 240</text>
+<text x="59" y="268" fill="#BDEFFF" font-size="16" font-family="Nunito" text-anchor="middle">edge 90×180</text>
+<text x="407" y="268" fill="#BDEFFF" font-size="16" font-family="Nunito" text-anchor="middle">edge 90×180</text>
+<text x="233" y="418" fill="#FFFFFF" font-size="15" font-family="Nunito" text-anchor="middle">dots on r 204</text>
+<text x="400" y="100" fill="#FFFFFF" font-size="15" font-family="Nunito" text-anchor="middle">paw hint</text>
+<text x="233" y="486" fill="#FFB547" font-size="16" font-family="Nunito" text-anchor="middle">safe circle 440 (r 220)</text>
+</svg>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px; padding-top: 58px;">
+<sc-for list="{{geo}}" as="gi" hint-placeholder-count="8">
+<div style="display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; padding: 12px 0; border-bottom: 1px solid #2E2C3A;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 600;">{{gi.k}}</div>
+<div style="font-size: 18px; line-height: 1.5; color: #CFCBE0;">{{gi.v}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 22px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Color tokens</div>
+<sc-for list="{{colorGroups}}" as="cg" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start;">
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 600;">{{cg.name}}</div>
+<div style="font-size: 14px; line-height: 1.4; color: #8A86A0;">{{cg.note}}</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px;">
+<sc-for list="{{cg.items}}" as="ct" hint-placeholder-count="7">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 14px; background: #000000; border: 2px solid #2A2836;">
+<div style="height: 56px; border-radius: 10px; background: {{ct.hex}}; opacity: {{ct.op}}; border: 2px solid #2E2C3A;"></div>
+<div style="font-size: 14px; font-weight: 700; color: #EDEAF5;">{{ct.name}}</div>
+<div style="font-size: 13px; color: #A9A5BF; font-family: ui-monospace, Menlo, monospace;">{{ct.label}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 22px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Icon set</div>
+<div style="display: flex; gap: 40px;">
+<sc-for list="{{appIcons}}" as="ai" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 10px; align-items: center; width: 220px;">
+<dc-import name="AppIcon" app="{{ai.id}}" size="200" hint-size="200px,200px"></dc-import>
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 600;">{{ai.name}}</div>
+<div style="font-size: 15px; color: #A9A5BF; text-align: center;">{{ai.say}}</div>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 16px; margin-top: 12px;">
+<sc-for list="{{uiIcons}}" as="ui" hint-placeholder-count="18">
+<div style="display: flex; flex-direction: column; gap: 8px; align-items: center; padding: 16px 8px; border-radius: 16px; background: #000000; border: 2px solid #2A2836;">
+<svg width="64" height="64" viewBox="0 0 48 48" aria-hidden="true">
+<path d="{{ui.fill}}" fill="{{ui.fc}}"></path>
+<path d="{{ui.stroke}}" fill="none" stroke="{{ui.sc}}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<div style="font-size: 14px; font-weight: 700; text-align: center;">{{ui.name}}</div>
+<div style="font-size: 12px; color: #8A86A0; text-align: center;">{{ui.size}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px;">
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Touch targets</div>
+<sc-for list="{{targets}}" as="tg" hint-placeholder-count="10">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 110px 90px; gap: 16px; padding: 10px 0; border-bottom: 1px solid #2E2C3A; align-items: baseline;">
+<div style="font-size: 18px;">{{tg.k}}</div>
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 600; color: {{tg.c}};">{{tg.px}}</div>
+<div style="font-size: 16px; color: #A9A5BF;">{{tg.mm}}</div>
+</div>
+</sc-for>
+<div style="font-size: 16px; line-height: 1.5; color: #A9A5BF;">Her fingertip covers about 126 px. Kid targets are 150 px minimum and 220 px or more for primary actions, at least 10 px apart, and never within 12 px of the visible rim (touch there is unreliable on round glass).</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Gestures and sensors</div>
+<sc-for list="{{gestures}}" as="gs" hint-placeholder-count="8">
+<div style="display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; padding: 10px 0; border-bottom: 1px solid #2E2C3A;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 19px; font-weight: 600;">{{gs.k}}</div>
+<div style="font-size: 17px; line-height: 1.45; color: #CFCBE0;">{{gs.v}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Motion</div>
+<div style="display: grid; grid-template-columns: 300px 150px 260px minmax(0, 1fr); gap: 16px; padding: 8px 0; border-bottom: 2px solid #3A3850; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #A9A5BF;">
+<div>Moment</div><div>Duration</div><div>Easing (LVGL path)</div><div>Notes</div>
+</div>
+<sc-for list="{{motion}}" as="mo" hint-placeholder-count="14">
+<div style="display: grid; grid-template-columns: 300px 150px 260px minmax(0, 1fr); gap: 16px; padding: 10px 0; border-bottom: 1px solid #2E2C3A; align-items: baseline;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 19px; font-weight: 600;">{{mo.k}}</div>
+<div style="font-size: 17px; color: #FFC76B;">{{mo.d}}</div>
+<div style="font-size: 16px; color: #BDEFFF; font-family: ui-monospace, Menlo, monospace;">{{mo.e}}</div>
+<div style="font-size: 17px; line-height: 1.45; color: #CFCBE0;">{{mo.n}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px;">
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Burn-in and power</div>
+<sc-for list="{{burn}}" as="bu" hint-placeholder-count="7">
+<div style="display: flex; gap: 14px; padding: 8px 0; border-bottom: 1px solid #2E2C3A;">
+<div style="width: 10px; height: 10px; margin-top: 9px; border-radius: 50%; background: #FFB547; flex-shrink: 0;"></div>
+<div style="font-size: 18px; line-height: 1.5; color: #CFCBE0;">{{bu}}</div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Carousel with 20+ apps</div>
+<div style="display: flex; flex-direction: column; gap: 18px; padding: 24px; border-radius: 18px; background: #000000; border: 2px solid #2A2836;">
+<sc-for list="{{dotDemos}}" as="dd" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 20px;">
+<div style="width: 180px; font-size: 16px; color: #A9A5BF;">{{dd.label}}</div>
+<div style="display: flex; align-items: center; gap: 14px;">
+<sc-for list="{{dd.dots}}" as="dt" hint-placeholder-count="7">
+<div style="width: {{dt.s}}px; height: {{dt.s}}px; border-radius: 50%; background: {{dt.c}}; opacity: {{dt.o}};"></div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="font-size: 17px; line-height: 1.5; color: #CFCBE0;">At most 7 dots on the bottom arc (r 204, 7° apart). With more apps the window slides with the current app; a smaller 8 px dot at either end means more apps that way. Swiping wraps around, so she never hits a dead end. Parents hide apps they don't want in the loop.</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Sound map</div>
+<div style="font-size: 17px; color: #A9A5BF;">Voice lines are Croatian, recorded in a playful voice (English in brackets). All output passes the parent volume cap; night screens are also capped at 30 %.</div>
+<div style="display: grid; grid-template-columns: 240px 300px 420px minmax(0, 1fr); gap: 16px; padding: 8px 0; border-bottom: 2px solid #3A3850; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #A9A5BF;">
+<div>Screen</div><div>Trigger</div><div>Sound</div><div>Voice line</div>
+</div>
+<sc-for list="{{sounds}}" as="so" hint-placeholder-count="20">
+<div style="display: grid; grid-template-columns: 240px 300px 420px minmax(0, 1fr); gap: 16px; padding: 9px 0; border-bottom: 1px solid #2E2C3A; align-items: baseline;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 18px; font-weight: 600; color: {{so.c}};">{{so.s}}</div>
+<div style="font-size: 17px;">{{so.t}}</div>
+<div style="font-size: 17px; color: #CFCBE0;">{{so.fx}}</div>
+<div style="font-size: 17px; color: #FFC76B;">{{so.v}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Parent area type</div>
+<div style="font-size: 18px; line-height: 1.5; color: #CFCBE0;">Fredoka (SIL OFL) converted with lv_font_conv, 4 bpp, ASCII plus Č Ć Đ Š Ž. Sizes: 17 px values and hints, 20 px labels and buttons, 22 px titles, 46 px times, 54 px volume. Text #F2EFFA on #1E1D2A tiles with #3A3850 borders; values in #FFC76B. No text anywhere on child screens.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1800,"height":6300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const geo = [
+      { k: 'Visible area', v: 'Inscribed circle, r 233. Everything important sits inside r 220 (440 px); only decoration touches the outer 13 px.' },
+      { k: 'Center', v: '(233, 233). Radial layouts (page dots, piano ring, sleep stars) use this center.' },
+      { k: 'Menu cat', v: '180 px, top at y 20, behind the icon; two paw ellipses are drawn over the icon rim so the cat reads as peeking.' },
+      { k: 'Menu icon', v: '240 px circle centered at (233, 262). Tap to open.' },
+      { k: 'Page dots', v: 'On the bottom arc, r 204. Active 18 px in the app color, others 12 px white at 35 %.' },
+      { k: 'Chevrons', v: 'x 36 and 430, white at 30 %, 7 px stroke. The edge zones behind them also change the app on tap.' },
+      { k: 'Home hint', v: '24 px paw at white 30 %, at 2 o’clock (r 206, −30°), pointing at the physical Home button. Hidden at night and in the parent area.' },
+      { k: 'Min detail', v: 'No stroke or gap below 3 px at final size. The cat is never drawn below 100 px.' }
+    ];
+    const C = (name, hex, label, op) => ({ name: name, hex: hex, label: label || hex, op: op === undefined ? 1 : op });
+    const colorGroups = [
+      { name: 'Base', note: 'Black is pixels off. Everything glows on it.', items: [C('bg', '#000000'), C('cream', '#FFF6E6'), C('hint', '#FFFFFF', '#FFF @ 30%', 0.3), C('dot-idle', '#FFFFFF', '#FFF @ 35%', 0.35), C('mouth', '#3A0F1E'), C('tongue', '#FF7F9E'), C('blush', '#FF7FA0', '#FF7FA0 @ 75%', 0.75)] },
+      { name: 'App colors', note: 'Icon fill and matching ring (darker).', items: [C('voices', '#FF5FA2', '#FF5FA2 / #9E1F5C'), C('pet', '#FFB547', '#FFB547 / #9A5A00'), C('draw', '#8A7BFF', '#8A7BFF / #3F2FA8'), C('yarn', '#2FC4A0', '#2FC4A0 / #0E6B55'), C('clock', '#3D7BFF', '#3D7BFF / #16378F'), C('piano', '#FF7A45', '#FF7A45 / #9A3510')] },
+      { name: 'Voices', note: 'Costume accent: dotted ring and playback waves.', items: [C('mouse', '#FF8FC8'), C('lion', '#FFB020'), C('robot', '#4FD8FF'), C('cave', '#9C7BFF'), C('listen', '#FF3B5C'), C('listen-ring', '#8A0F26'), C('played', '#5A2340')] },
+      { name: 'Piano pitches', note: 'C major pentatonic. Fur / outline.', items: [C('C5', '#FF5A5A', '#FF5A5A / #6E1616'), C('D5', '#FF9F3A', '#FF9F3A / #6B3A06'), C('E5', '#FFD84A', '#FFD84A / #6B5400'), C('G5', '#5CD67A', '#5CD67A / #1D5A2B'), C('A5', '#5AA8FF', '#5AA8FF / #173F74')] },
+      { name: 'Rainbow brush', note: 'Magic paws, confetti. Step every 3 dots.', items: [C('r1', '#FF5A5A'), C('r2', '#FF9F3A'), C('r3', '#FFD84A'), C('r4', '#5CD67A'), C('r5', '#4FD8FF'), C('r6', '#5A8CFF'), C('r7', '#B07CFF')] },
+      { name: 'Scene', note: 'Night stays at 30 to 45 % opacity.', items: [C('star', '#FFE58A'), C('sun', '#FFC83A'), C('hill', '#3FCB6A'), C('fish', '#3FB6FF'), C('ball', '#FFD84A'), C('yarn', '#FF7FB0'), C('basket', '#C98B4A')] },
+      { name: 'System', note: 'Battery and parent area.', items: [C('batt-low', '#FF4D4D'), C('charge', '#5CD67A'), C('p-surface', '#1E1D2A'), C('p-border', '#3A3850'), C('p-text', '#F2EFFA'), C('p-muted', '#A9A5BF'), C('p-value', '#FFC76B')] }
+    ];
+    const appIcons = [
+      { id: 0, name: 'Silly voices', say: '"Smiješni glasovi"' },
+      { id: 1, name: 'Pet the cat', say: '"Maži macu"' },
+      { id: 2, name: 'Magic paws', say: '"Čarobne šapice"' },
+      { id: 3, name: 'Yarn roll', say: '"Klupko"' },
+      { id: 4, name: 'Sleepy clock', say: '"Pospani sat"' },
+      { id: 5, name: 'Meow piano', say: '"Mijau klavir"' }
+    ];
+    const circ = (x, y, r) => 'M' + (x - r) + ' ' + y + ' a' + r + ' ' + r + ' 0 1 0 ' + (2 * r) + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + (-2 * r) + ' 0 Z ';
+    const star = (x, y, r) => 'M' + x + ' ' + (y - r) + ' Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + ' Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + ' Z ';
+    const paw = 'M13 33 Q13 22 24 22 Q35 22 35 33 Q35 40 24 40 Q13 40 13 33 Z ' + circ(10, 19, 5) + circ(18.5, 11, 5) + circ(29.5, 11, 5) + circ(38, 19, 5);
+    const I = (name, size, fill, fc, stroke, sc) => ({ name: name, size: size, fill: fill || '', fc: fc || 'none', stroke: stroke || '', sc: sc || '#FFFFFF' });
+    const uiIcons = [
+      I('Home paw hint', '24 px · 30 %', paw, '#FFFFFF'),
+      I('Chevron', '24 × 48 · 30 %', '', '', 'M30 8 L16 24 L30 40', '#B8B6C8'),
+      I('Page dot', '12 / 18 / 8 px', circ(14, 24, 6) + circ(34, 24, 9), '#FFB547'),
+      I('Mic', '220 button', 'M18 6 Q24 6 24 6 Q30 6 30 12 L30 24 Q30 30 24 30 Q18 30 18 24 L18 12 Q18 6 24 6 Z', '#FFF6E6', 'M12 22 Q12 36 24 36 Q36 36 36 22 M24 36 L24 42 M17 43 L31 43', '#FFF6E6'),
+      I('Fish', '150 button', 'M6 24 Q20 10 34 24 Q20 38 6 24 Z M33 24 L44 14 L44 34 Z', '#6FD3FF'),
+      I('Rainbow brush', '150 button', '', '', 'M8 34 A16 16 0 0 1 40 34 M16 34 A8 8 0 0 1 32 34', '#FF5A5A'),
+      I('Paw brush', '150 button', paw, '#FFB0C8'),
+      I('Paw print', '34 px, tinted', paw, '#5CD67A'),
+      I('Heart', '34 px', 'M24 42 C8 32 4 22 9 14 C14 7 22 9 24 16 C26 9 34 7 39 14 C44 22 40 32 24 42 Z', '#FF7FB0'),
+      I('Star', '22 / 26 px', star(24, 24, 18), '#FFE58A'),
+      I('Moon', '96 px', 'M30 6 A18 18 0 1 0 42 30 A14 14 0 1 1 30 6 Z', '#FFE58A'),
+      I('Sun', '220 incl. rays', circ(24, 24, 12), '#FFC83A', 'M24 4 L24 8 M24 40 L24 44 M4 24 L8 24 M40 24 L44 24 M10 10 L13 13 M35 35 L38 38 M10 38 L13 35 M35 13 L38 10', '#FFC83A'),
+      I('Music note', '100 px', 'M26 8 Q36 10 38 20 Q32 15 26 15 Z ' + circ(20, 36, 7), '#FFFFFF', 'M26 8 L26 36', '#FFFFFF'),
+      I('Battery low', '72 × 38', 'M9 20 L14 20 L14 28 L9 28 Z', '#FF4D4D', 'M5 15 L39 15 L39 33 L5 33 Z M43 21 L43 27', '#FF4D4D'),
+      I('Charging', '72 × 38', 'M26 12 L18 25 L24 25 L20 36 L30 22 L24 22 Z', '#5CD67A', 'M5 15 L39 15 L39 33 L5 33 Z', '#5CD67A'),
+      I('Bowl', '160 × 88', 'M6 20 L42 20 Q40 38 24 38 Q8 38 6 20 Z', '#5A6B8A'),
+      I('Yarn ball', '64 px', circ(24, 24, 18), '#FF7FB0', 'M10 20 Q24 14 38 22 M8 29 Q24 23 40 31', '#B8356F'),
+      I('Basket', '120 × 96', 'M6 18 L42 18 L37 40 L11 40 Z', '#C98B4A', 'M18 20 L20 38 M30 20 L28 38', '#6B3A0C')
+    ];
+    const targets = [
+      { k: 'Menu app icon (primary)', px: '240 px', mm: '22.9 mm', c: '#5CD67A' },
+      { k: 'Parrot mic (primary)', px: '220 px', mm: '21.0 mm', c: '#5CD67A' },
+      { k: 'Pet: the cat itself (tap / rub)', px: '230 px', mm: '21.9 mm', c: '#5CD67A' },
+      { k: 'Parrot: the cat (change costume)', px: '170 px', mm: '16.2 mm', c: '#FFC76B' },
+      { k: 'Pick-a-cat pads', px: '156 px', mm: '14.9 mm', c: '#FFC76B' },
+      { k: 'Fish, brush switch, piano cats', px: '150 px', mm: '14.3 mm', c: '#FFC76B' },
+      { k: 'Menu cat (meow / parent hold)', px: '150 px', mm: '14.3 mm', c: '#FFC76B' },
+      { k: 'Menu edge zones (backup to swipe)', px: '90 × 180', mm: '8.6 × 17 mm', c: '#A9A5BF' },
+      { k: 'Parent tiles (adults)', px: '140 px', mm: '13.3 mm', c: '#A9A5BF' },
+      { k: 'Parent − / + buttons (adults)', px: '76–84 px', mm: '7.2–8 mm', c: '#A9A5BF' }
+    ];
+    const gestures = [
+      { k: 'Tap', v: 'Down and up within 20 px of movement. Fires on release.' },
+      { k: 'Swipe', v: 'Horizontal travel of 60 px or more, at least 1.5× the vertical travel, within 400 ms. Menu only.' },
+      { k: 'Rub', v: 'Pressed on the cat and 150 px or more of total finger travel. Giggle fires once per press.' },
+      { k: 'Draw', v: 'Drag anywhere on the canvas. New dot every 7 px, new paw print every 40 px.' },
+      { k: 'Shake', v: 'Acceleration above 2.2 g for 3 samples within 300 ms, then a 1.5 s lockout.' },
+      { k: 'Tilt', v: '8° dead zone. Roll speed grows with angle up to 25°, capped at 240 px/s.' },
+      { k: 'Parent hold', v: 'Continuous 5 s press on the menu cat. Silent for 1 s, then a faint ring. Adults only; she never needs it.' },
+      { k: 'Home button', v: 'Always the menu, from anywhere, except the bedtime lock. Power button toggles the screen.' },
+      { k: 'Microphones', v: 'Record 16 kHz mono. Auto-stop after 1.2 s under the noise floor or at 5 s.' }
+    ];
+    const motion = [
+      { k: 'Menu swipe', d: '280 ms', e: 'lv_anim_path_ease_out', n: 'Icon slides a full 466 px. The cat stays and turns to the new icon; its meow starts 120 ms in.' },
+      { k: 'New icon settle', d: '320 ms', e: 'lv_anim_path_overshoot', n: 'Scale 0.9 to 1.0 with a small overshoot.' },
+      { k: 'Open app', d: '220 + 180 ms', e: 'ease_in, then ease_out', n: 'Icon zooms to 1.9× and fades; the app fades in.' },
+      { k: 'Home', d: '200 ms', e: 'lv_anim_path_ease_out', n: 'Reverse of open; icon returns to center.' },
+      { k: 'Cat idle bob', d: '2.4 s loop', e: 'lv_anim_path_ease_in_out', n: '4 px up and down. Blink every 3 to 6 s (random), 3 frames at 12 fps.' },
+      { k: 'Talking', d: 'while audio plays', e: 'frame swap', n: '3 mouth frames at 8 fps, picked by the audio envelope (quiet = A, medium = B, loud = C).' },
+      { k: 'Listening', d: '1 s loop / 5 s', e: 'ease_out / linear', n: 'Red pulse ring; white countdown arc drains over 5 s.' },
+      { k: 'Purr and hearts', d: '1.2 s', e: 'lv_anim_path_ease_out', n: 'Hearts rise 44 px and fade; purr lines at 6 fps.' },
+      { k: 'Dizzy', d: '600 ms swing, 2 s total', e: 'lv_anim_path_ease_in_out', n: '±7° wobble, stars orbit once every 1.6 s.' },
+      { k: 'Broom sweep', d: '1.6 s', e: 'lv_anim_path_ease_in_out', n: 'Three swings of ±60 px, drawing fades to 30 %, then clears.' },
+      { k: 'Piano bounce', d: '400 ms', e: 'lv_anim_path_bounce', n: 'Up 22 px, down, small rebound of 6 px.' },
+      { k: 'Confetti', d: '1.6 s', e: 'lv_anim_path_ease_in', n: '24 pieces, staggered 0 to 1.4 s, 540° spin while falling.' },
+      { k: 'Sunrise', d: '4 s', e: 'lv_anim_path_ease_in_out', n: 'Sun rises 110 px; backlight goes 10 % to 100 % at the same time.' },
+      { k: 'Menu dim', d: '600 ms', e: 'lv_anim_path_linear', n: 'After 20 s idle to 35 %. Cat sleeps at 60 s, screen off at 120 s.' },
+      { k: 'Night twinkle', d: '3 s per star', e: 'lv_anim_path_ease_in_out', n: 'Random phase per star, opacity 30 % to 100 %.' }
+    ];
+    const burn = [
+      'Nothing static and above 50 % brightness stays in one place longer than 60 s.',
+      'Menu dims to 35 % after 20 s without touch, the cat falls asleep at 60 s, the panel turns off at 120 s.',
+      'Static layers (paw hint, chevrons, page dots) shift by up to ±4 px every 60 s.',
+      'The cat is never fully still: bob, blink, tail and breathing loops run on every screen.',
+      'Night light and bedtime run at 30 to 45 % opacity; bedtime turns the panel off after 30 s and shows the sleeping cat for 5 s on touch.',
+      'Big color fills (icons, mic, fish) breathe by 2.5 % so their edges never sit on the same pixels.',
+      'Morning is the only full-brightness scene, and it returns to the menu after 60 s.'
+    ];
+    const mk = (n, idx) => {
+      const MAXD = 7; let lo = 0, hi = n - 1;
+      if (n > MAXD) { lo = Math.max(0, Math.min(n - MAXD, idx - 3)); hi = lo + MAXD - 1; }
+      const out = [];
+      for (let i = lo; i <= hi; i++) {
+        const active = i === idx;
+        const edge = n > MAXD && ((i === lo && lo > 0) || (i === hi && hi < n - 1));
+        out.push({ s: active ? 18 : edge ? 8 : 12, c: active ? '#FFB547' : '#FFFFFF', o: active ? 1 : 0.35 });
+      }
+      return out;
+    };
+    const dotDemos = [
+      { label: '6 apps, app 2', dots: mk(6, 1) },
+      { label: '24 apps, app 1', dots: mk(24, 0) },
+      { label: '24 apps, app 11', dots: mk(24, 10) },
+      { label: '24 apps, app 24', dots: mk(24, 23) }
+    ];
+    const S = (s, t, fx, v, c) => ({ s: s, t: t, fx: fx, v: v, c: c || '#EDEAF5' });
+    const sounds = [
+      S('Boot', 'Power on / wake', 'Stretch "mrrrow", rising chime', 'Bok! (Hi!)', '#FFB547'),
+      S('Menu', 'Swipe', 'Soft whoosh, then a meow', 'App name, e.g. "Maži macu"', '#FFB547'),
+      S('Menu', 'Tap the cat', 'Short meow', 'Repeats the app name', '#FFB547'),
+      S('Menu', 'Tap the icon', 'Pop', 'Idemo! (Let’s go!)', '#FFB547'),
+      S('Anywhere', 'Home button', 'Short descending "mew"', '—', '#FFB547'),
+      S('Silly voices', 'Tap mic / stop', 'Blip up / blip down', '—', '#FF5FA2'),
+      S('Silly voices', 'Playback', 'Her recording through the costume effect', 'Her own words', '#FF5FA2'),
+      S('Silly voices', 'Tap the cat', 'Costume sting: squeak / roar / beep-boop / echo', 'Bok! in the new voice', '#FF5FA2'),
+      S('Pet the cat', 'Tap / rub', 'Purr loop 1.5 s / giggle', 'Hihihi!', '#FFB547'),
+      S('Pet the cat', 'Shake / tilt', '"Wheee" and boing / tiny bell ticks', '—', '#FFB547'),
+      S('Pet the cat', 'Fish', 'Crunch crunch', 'Njam! (Yum!)', '#FFB547'),
+      S('Magic paws', 'Drawing', 'Sparkle tick, max 8 per second / soft "pat" per print', '—', '#8A7BFF'),
+      S('Magic paws', 'Shake', 'Broom swish', 'Čisto! (All clean!)', '#8A7BFF'),
+      S('Yarn roll', 'Rolling / basket', 'Soft rumble with speed / fanfare', 'Bravo!', '#2FC4A0'),
+      S('Sleepy clock', 'Tap at night', 'Whisper, capped at 30 %', 'Pssst… spavaj (Shh, sleep)', '#3D7BFF'),
+      S('Sleepy clock', 'Wake-up time', 'Rising 4-note chime, happy meow', 'Dobro jutro! (Good morning!)', '#3D7BFF'),
+      S('Meow piano', 'Tap a cat', 'Pitched meow C5 D5 E5 G5 A5', '—', '#FF7A45'),
+      S('Low battery', 'Below 10 %', 'Sleepy yawn', 'Gladna sam… (I’m hungry…)', '#5CD67A'),
+      S('Charging', 'Plugged in', 'Munching loop 2 s', 'Njam njam!', '#5CD67A'),
+      S('Bedtime lock', 'Any touch', 'Silent (one soft snore per minute at most)', '—', '#5CD67A'),
+      S('Parent area', 'Any', 'UI clicks only', '—', '#A9A5BF')
+    ];
+    return { geo: geo, colorGroups: colorGroups, appIcons: appIcons, uiIcons: uiIcons, targets: targets, gestures: gestures, motion: motion, burn: burn, dotDemos: dotDemos, sounds: sounds };
+  }
+}
+</script>
+</body>
+</html>

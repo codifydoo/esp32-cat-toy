@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Round screen</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 466px; height: 466px; position: relative; overflow: hidden; border-radius: 50%; background: #000000; touch-action: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; color: #F2EFFA;" onPointerDown="{{rootDown}}" onPointerUp="{{rootUp}}">
+<div style="position: absolute; left: 0px; top: 0px; width: 466px; height: 466px; opacity: {{sceneOp}}; transition: opacity 600ms ease;">
+
+<sc-if value="{{v.boot}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: 33px; top: 33px; pointer-events: none;" width="400" height="400" viewBox="0 0 400 400" aria-hidden="true">
+<circle class="boot-ring" cx="200" cy="200" r="150" fill="none" stroke="#FFB547" stroke-width="6"></circle>
+<circle class="boot-ring" style="animation-delay: 1s;" cx="200" cy="200" r="150" fill="none" stroke="#FF5FA2" stroke-width="6"></circle>
+</svg>
+<div style="position: absolute; left: 103px; top: 92px; width: 260px; height: 273px;">
+<dc-import name="Cat" expression="yawn" variant="{{variant}}" size="260" animate="{{anim}}" hint-size="260px,273px"></dc-import>
+</div>
+</sc-if>
+
+<sc-if value="{{v.pick}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{picks}}" as="p" hint-placeholder-count="3">
+<button aria-label="{{p.label}}" onClick="{{p.tap}}" style="position: absolute; left: {{p.bx}}px; top: {{p.by}}px; width: 156px; height: 156px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;">
+<svg style="position: absolute; left: 0px; top: 0px;" width="156" height="156" viewBox="0 0 156 156" aria-hidden="true">
+<circle cx="78" cy="78" r="72" fill="{{p.pad}}" stroke="{{p.fur}}" stroke-width="{{p.sw}}"></circle>
+</svg>
+<div style="position: absolute; left: 13px; top: 8px; width: 130px; height: 137px;">
+<dc-import name="Cat" expression="{{p.expr}}" variant="{{p.v}}" size="130" animate="{{anim}}" hint-size="130px,137px"></dc-import>
+</div>
+</button>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{v.menu}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; left: 143px; top: 20px; width: 180px; height: 189px;">
+<dc-import name="Cat" expression="{{menuExpr}}" variant="{{variant}}" size="180" animate="{{anim}}" hint-size="180px,189px"></dc-import>
+</div>
+<sc-if value="{{holdShow}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: 133px; top: 12px; pointer-events: none;" width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
+<circle cx="100" cy="100" r="92" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{holdDash}} 600" transform="rotate(-90 100 100)"></circle>
+</svg>
+</sc-if>
+<button aria-label="Cat: tap to hear the app name" onPointerDown="{{catDown}}" onPointerUp="{{catUp}}" onPointerLeave="{{catUp}}" onClick="{{catTap}}" style="position: absolute; left: 158px; top: 22px; width: 150px; height: 150px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;"></button>
+<button aria-label="Open app" onClick="{{openApp}}" class="{{iconCls}}" style="position: absolute; left: 113px; top: 142px; width: 240px; height: 240px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;">
+<dc-import name="AppIcon" app="{{appId}}" size="240" hint-size="240px,240px"></dc-import>
+</button>
+<svg style="position: absolute; left: 175px; top: 126px; pointer-events: none;" width="116" height="36" viewBox="0 0 116 36" aria-hidden="true">
+<ellipse cx="30" cy="18" rx="22" ry="14" fill="{{vc.fur}}" stroke="{{vc.line}}" stroke-width="5"></ellipse>
+<ellipse cx="86" cy="18" rx="22" ry="14" fill="{{vc.fur}}" stroke="{{vc.line}}" stroke-width="5"></ellipse>
+</svg>
+<svg style="position: absolute; left: 0px; top: 0px; pointer-events: none;" width="466" height="466" viewBox="0 0 466 466" aria-hidden="true">
+<path d="M54 238 L36 262 L54 286 M412 238 L430 262 L412 286" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<button aria-label="Previous app" onClick="{{prevApp}}" style="position: absolute; left: 14px; top: 172px; width: 90px; height: 180px; border: none; padding: 0; background: transparent; cursor: pointer;"></button>
+<button aria-label="Next app" onClick="{{nextApp}}" style="position: absolute; left: 362px; top: 172px; width: 90px; height: 180px; border: none; padding: 0; background: transparent; cursor: pointer;"></button>
+<sc-for list="{{dots}}" as="d" hint-placeholder-count="6">
+<div style="position: absolute; left: {{d.x}}px; top: {{d.y}}px; width: {{d.s}}px; height: {{d.s}}px; border-radius: 50%; background: {{d.c}}; opacity: {{d.o}}; pointer-events: none;"></div>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{v.parrot}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{pr.cave}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: 0px; top: 0px; pointer-events: none;" width="466" height="466" viewBox="0 0 466 466" aria-hidden="true">
+<path d="M80 250 L80 160 Q80 36 233 36 Q386 36 386 160 L386 250" fill="none" stroke="#3B2F5C" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M80 250 L80 160 Q80 36 233 36 Q386 36 386 160 L386 250" fill="none" stroke="#5A4A8A" stroke-width="10" stroke-linecap="round" stroke-dasharray="16 30"></path>
+</svg>
+</sc-if>
+<svg class="spin-slow" style="position: absolute; left: 123px; top: 14px; pointer-events: none;" width="220" height="220" viewBox="0 0 220 220" aria-hidden="true">
+<circle cx="110" cy="110" r="102" fill="none" stroke="{{pr.accent}}" stroke-width="7" stroke-linecap="round" stroke-dasharray="0.1 22"></circle>
+</svg>
+<div style="position: absolute; left: 143px; top: 28px; width: 180px; height: 189px;">
+<dc-import name="Cat" expression="{{pr.expr}}" variant="{{variant}}" costume="{{pr.costume}}" size="180" animate="{{anim}}" hint-size="180px,189px"></dc-import>
+</div>
+<sc-if value="{{pr.play}}" hint-placeholder-val="{{ false }}">
+<svg class="wave-pulse" style="position: absolute; left: 0px; top: 0px; pointer-events: none;" width="466" height="466" viewBox="0 0 466 466" aria-hidden="true">
+<path d="M310 88 Q328 120 310 152 M332 70 Q360 120 332 170 M156 88 Q138 120 156 152 M134 70 Q106 120 134 170" fill="none" stroke="{{pr.accent}}" stroke-width="8" stroke-linecap="round"></path>
+</svg>
+</sc-if>
+<button aria-label="Change costume and voice" onClick="{{costumeTap}}" style="position: absolute; left: 148px; top: 38px; width: 170px; height: 170px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;"></button>
+<button aria-label="Record my voice" onClick="{{micTap}}" style="position: absolute; left: 123px; top: 232px; width: 220px; height: 220px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;">
+<svg style="position: absolute; left: 0px; top: 0px; overflow: visible;" width="220" height="220" viewBox="0 0 220 220" aria-hidden="true">
+<circle class="pulse-ring" cx="110" cy="110" r="100" fill="none" stroke="#FF3B5C" stroke-width="6" display="{{pr.listenShow}}"></circle>
+<circle cx="110" cy="110" r="94" fill="{{pr.micFill}}" stroke="{{pr.micRing}}" stroke-width="10"></circle>
+<circle cx="110" cy="110" r="104" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{pr.dash}} 700" transform="rotate(-90 110 110)" display="{{pr.listenShow}}"></circle>
+<g opacity="{{pr.glyphOp}}">
+<path d="M68 100 Q68 148 110 148 Q152 148 152 100" fill="none" stroke="#FFF6E6" stroke-width="11" stroke-linecap="round"></path>
+<path d="M110 148 L110 168 M84 172 L136 172" fill="none" stroke="#FFF6E6" stroke-width="11" stroke-linecap="round"></path>
+<rect x="88" y="42" width="44" height="80" rx="22" fill="#FFF6E6" stroke="{{pr.micRing}}" stroke-width="7"></rect>
+</g>
+</svg>
+</button>
+</sc-if>
+
+<sc-if value="{{v.pet}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 108px; top: 24px; width: 250px; height: 263px;">
+<dc-import name="Cat" expression="{{pt.expr}}" variant="{{variant}}" size="250" look-x="{{pt.lx}}" look-y="{{pt.ly}}" animate="{{anim}}" hint-size="250px,263px"></dc-import>
+</div>
+<sc-if value="{{pt.hearts}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{hearts}}" as="hh" hint-placeholder-count="3">
+<svg class="float-up" style="position: absolute; left: {{hh.x}}px; top: {{hh.y}}px; animation-delay: {{hh.d}}ms; pointer-events: none;" width="34" height="34" viewBox="0 0 30 30" aria-hidden="true">
+<path d="M15 27 C4 19 1 12 4 7 C7 2 13 3 15 8 C17 3 23 2 26 7 C29 12 26 19 15 27 Z" fill="#FF7FB0"></path>
+</svg>
+</sc-for>
+</sc-if>
+<sc-if value="{{pt.tilt}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: {{pt.bx}}px; top: {{pt.by}}px; pointer-events: none; transition: left 300ms ease-out, top 300ms ease-out;" width="48" height="48" viewBox="0 0 48 48" aria-hidden="true">
+<circle cx="24" cy="24" r="20" fill="#FFD84A" stroke="#9A7A00" stroke-width="5"></circle>
+<path d="M14 18 Q24 8 34 18" fill="none" stroke="#FFF6B0" stroke-width="4" stroke-linecap="round"></path>
+</svg>
+</sc-if>
+<button aria-label="Pet the cat: tap or rub" onPointerDown="{{petDown}}" onPointerMove="{{petMove}}" onPointerUp="{{petUp}}" style="position: absolute; left: 118px; top: 40px; width: 230px; height: 230px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: grab; touch-action: none;"></button>
+<button aria-label="Feed a fish" onClick="{{fishTap}}" style="position: absolute; left: 158px; top: 298px; width: 150px; height: 150px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;">
+<svg style="position: absolute; left: 0px; top: 0px;" width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
+<circle cx="75" cy="75" r="68" fill="#3FB6FF" stroke="#0F5A85" stroke-width="10" opacity="{{pt.fishOp}}"></circle>
+<path d="M30 75 Q64 42 100 75 Q64 108 30 75 Z" fill="#FFF6E6" stroke="#0F5A85" stroke-width="6" stroke-linejoin="round"></path>
+<path d="M98 75 L122 54 L122 96 Z" fill="#FFF6E6" stroke="#0F5A85" stroke-width="6" stroke-linejoin="round"></path>
+<circle cx="50" cy="70" r="6" fill="#0F5A85"></circle>
+</svg>
+</button>
+</sc-if>
+
+<sc-if value="{{v.draw}}" hint-placeholder-val="{{ false }}">
+<div onPointerDown="{{drawDown}}" onPointerMove="{{drawMove}}" onPointerUp="{{drawUp}}" style="position: absolute; left: 0px; top: 0px; width: 466px; height: 466px; cursor: crosshair; touch-action: none;">
+<sc-for list="{{dr.dots}}" as="p" hint-placeholder-count="0">
+<div style="position: absolute; left: {{p.gx}}px; top: {{p.gy}}px; width: 30px; height: 30px; border-radius: 50%; background: {{p.c}}; opacity: 0.28; pointer-events: none;"></div>
+</sc-for>
+<sc-for list="{{dr.dots}}" as="p" hint-placeholder-count="0">
+<div style="position: absolute; left: {{p.x}}px; top: {{p.y}}px; width: 16px; height: 16px; border-radius: 50%; background: {{p.c}}; pointer-events: none;"></div>
+</sc-for>
+<sc-for list="{{dr.paws}}" as="p" hint-placeholder-count="0">
+<svg style="position: absolute; left: {{p.x}}px; top: {{p.y}}px; transform: rotate({{p.r}}deg); pointer-events: none;" width="34" height="34" viewBox="0 0 24 24" aria-hidden="true">
+<path d="{{p.d}}" fill="{{p.c}}"></path>
+</svg>
+</sc-for>
+<sc-if value="{{dr.empty}}" hint-placeholder-val="{{ false }}">
+<svg class="twinkle" style="position: absolute; left: 153px; top: 120px; pointer-events: none;" width="160" height="120" viewBox="0 0 160 120" aria-hidden="true">
+<circle cx="20" cy="90" r="8" fill="#FF5A5A"></circle>
+<circle cx="46" cy="66" r="8" fill="#FF9F3A"></circle>
+<circle cx="76" cy="54" r="8" fill="#FFD84A"></circle>
+<circle cx="106" cy="60" r="8" fill="#5CD67A"></circle>
+<circle cx="132" cy="80" r="8" fill="#4FD8FF"></circle>
+</svg>
+</sc-if>
+<button aria-label="Switch brush" onPointerDown="{{stop}}" onClick="{{toolTap}}" style="position: absolute; left: 158px; top: 300px; width: 150px; height: 150px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;">
+<svg style="position: absolute; left: 0px; top: 0px;" width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
+<circle cx="75" cy="75" r="70" fill="#000000" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="6"></circle>
+<g display="{{dr.rainbowShow}}">
+<path d="M35 95 A40 40 0 0 1 115 95" fill="none" stroke="#FF5A5A" stroke-width="12" stroke-linecap="round"></path>
+<path d="M53 95 A22 22 0 0 1 97 95" fill="none" stroke="#FFD84A" stroke-width="12" stroke-linecap="round"></path>
+<circle cx="75" cy="95" r="6" fill="#5CE0FF"></circle>
+</g>
+<g display="{{dr.pawShow}}">
+<ellipse cx="75" cy="88" rx="22" ry="18" fill="#FFB0C8"></ellipse>
+<circle cx="48" cy="62" r="9" fill="#FFB0C8"></circle>
+<circle cx="65" cy="48" r="9" fill="#FFB0C8"></circle>
+<circle cx="85" cy="48" r="9" fill="#FFB0C8"></circle>
+<circle cx="102" cy="62" r="9" fill="#FFB0C8"></circle>
+</g>
+</svg>
+</button>
+</div>
+</sc-if>
+
+<sc-if value="{{v.erase}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0px; top: 0px; width: 466px; height: 466px; opacity: 0.3;">
+<sc-for list="{{dr.dots}}" as="p" hint-placeholder-count="0">
+<div style="position: absolute; left: {{p.x}}px; top: {{p.y}}px; width: 16px; height: 16px; border-radius: 50%; background: {{p.c}};"></div>
+</sc-for>
+<sc-for list="{{dr.paws}}" as="p" hint-placeholder-count="0">
+<svg style="position: absolute; left: {{p.x}}px; top: {{p.y}}px; transform: rotate({{p.r}}deg);" width="34" height="34" viewBox="0 0 24 24" aria-hidden="true">
+<path d="{{p.d}}" fill="{{p.c}}"></path>
+</svg>
+</sc-for>
+</div>
+<div class="sweep-x" style="position: absolute; left: 133px; top: 196px; width: 200px; height: 210px;">
+<dc-import name="Cat" expression="sweep" variant="{{variant}}" size="200" animate="{{anim}}" hint-size="200px,210px"></dc-import>
+</div>
+<svg class="twinkle" style="position: absolute; left: 100px; top: 360px; pointer-events: none;" width="266" height="60" viewBox="0 0 266 60" aria-hidden="true">
+<circle cx="20" cy="40" r="14" fill="#8A8AA0"></circle>
+<circle cx="44" cy="28" r="10" fill="#8A8AA0"></circle>
+<circle cx="230" cy="36" r="14" fill="#8A8AA0"></circle>
+<circle cx="250" cy="20" r="9" fill="#8A8AA0"></circle>
+</svg>
+</sc-if>
+
+<sc-if value="{{v.yarn}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: {{yn.bx}}px; top: {{yn.by}}px; pointer-events: none;" width="120" height="96" viewBox="0 0 120 96" aria-hidden="true">
+<path d="M8 30 L112 30 L98 90 L22 90 Z" fill="#C98B4A" stroke="#6B3A0C" stroke-width="6" stroke-linejoin="round"></path>
+<path d="M36 32 L42 88 M60 32 L60 88 M84 32 L78 88 M14 54 L106 54 M18 72 L102 72" fill="none" stroke="#6B3A0C" stroke-width="4"></path>
+<path d="M6 30 L114 30" fill="none" stroke="#E6A865" stroke-width="10" stroke-linecap="round"></path>
+</svg>
+<div style="position: absolute; left: {{yn.cx}}px; top: {{yn.cy}}px; width: 120px; height: 126px; transition: left 400ms ease-out, top 400ms ease-out;">
+<dc-import name="Cat" expression="surprised" variant="{{variant}}" size="120" look-x="{{yn.lx}}" look-y="{{yn.ly}}" animate="{{anim}}" hint-size="120px,126px"></dc-import>
+</div>
+<div class="yarn-roll" style="position: absolute; left: {{yn.x}}px; top: {{yn.y}}px; width: 64px; height: 64px; transition: left 300ms ease-out, top 300ms ease-out;">
+<svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+<circle cx="32" cy="32" r="27" fill="#FF7FB0" stroke="#A8326A" stroke-width="5"></circle>
+<path d="M10 26 Q32 16 54 30 M8 38 Q32 28 56 42 M22 9 Q42 30 34 58" fill="none" stroke="#B8356F" stroke-width="4" stroke-linecap="round"></path>
+</svg>
+</div>
+<sc-if value="{{yn.hint}}" hint-placeholder-val="{{ false }}">
+<svg class="cat-wobble" style="position: absolute; left: 203px; top: 386px; pointer-events: none;" width="60" height="44" viewBox="0 0 60 44" aria-hidden="true">
+<rect x="6" y="10" width="48" height="24" rx="12" fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="5"></rect>
+<circle cx="30" cy="22" r="5" fill="#FF7FB0"></circle>
+</svg>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{v.yarnwin}}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{confetti}}" as="k" hint-placeholder-count="0">
+<div class="confetti" style="position: absolute; left: {{k.x}}px; top: -30px; width: 12px; height: 22px; border-radius: 3px; background: {{k.c}}; animation-delay: {{k.d}}ms; pointer-events: none;"></div>
+</sc-for>
+<div style="position: absolute; left: 123px; top: 58px; width: 220px; height: 231px;">
+<dc-import name="Cat" expression="proud" variant="{{variant}}" size="220" animate="{{anim}}" hint-size="220px,231px"></dc-import>
+</div>
+<svg style="position: absolute; left: 173px; top: 296px; pointer-events: none;" width="120" height="110" viewBox="0 0 120 110" aria-hidden="true">
+<circle cx="60" cy="38" r="26" fill="#FF7FB0" stroke="#A8326A" stroke-width="5"></circle>
+<path d="M8 44 L112 44 L98 104 L22 104 Z" fill="#C98B4A" stroke="#6B3A0C" stroke-width="6" stroke-linejoin="round"></path>
+<path d="M36 46 L42 102 M60 46 L60 102 M84 46 L78 102 M14 68 L106 68 M18 86 L102 86" fill="none" stroke="#6B3A0C" stroke-width="4"></path>
+<path d="M6 44 L114 44" fill="none" stroke="#E6A865" stroke-width="10" stroke-linecap="round"></path>
+</svg>
+</sc-if>
+
+<sc-if value="{{v.clock}}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ck.night}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0px; top: 0px; width: 466px; height: 466px; opacity: 0.45;">
+<svg style="position: absolute; left: 70px; top: 66px;" width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+<circle cx="48" cy="48" r="40" fill="#FFE58A"></circle>
+<circle cx="68" cy="34" r="34" fill="#000000"></circle>
+</svg>
+<sc-for list="{{nightStars}}" as="s" hint-placeholder-count="0">
+<svg class="twinkle" style="position: absolute; left: {{s.x}}px; top: {{s.y}}px; animation-delay: {{s.d}}ms;" width="22" height="22" viewBox="0 0 20 20" aria-hidden="true">
+<path d="M10 0 Q10 10 20 10 Q10 10 10 20 Q10 10 0 10 Q10 10 10 0 Z" fill="#FFE58A"></path>
+</svg>
+</sc-for>
+<div style="position: absolute; left: 128px; top: 170px; width: 210px; height: 221px;">
+<dc-import name="Cat" expression="{{ck.expr}}" variant="{{variant}}" size="210" animate="{{anim}}" hint-size="210px,221px"></dc-import>
+</div>
+<sc-for list="{{ck.progress}}" as="s" hint-placeholder-count="5">
+<svg style="position: absolute; left: {{s.x}}px; top: {{s.y}}px;" width="26" height="26" viewBox="0 0 20 20" aria-hidden="true">
+<path d="M10 1 Q10 10 19 10 Q10 10 10 19 Q10 10 1 10 Q10 10 10 1 Z" fill="{{s.fill}}" stroke="{{s.stroke}}" stroke-width="2"></path>
+</svg>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ck.morning}}" hint-placeholder-val="{{ false }}">
+<div class="sun-rise" style="position: absolute; left: 123px; top: 2px; width: 220px; height: 220px;">
+<svg class="spin-slow" style="position: absolute; left: 0px; top: 0px;" width="220" height="220" viewBox="0 0 220 220" aria-hidden="true">
+<path d="{{sunRays}}" fill="none" stroke="#FFC83A" stroke-width="10" stroke-linecap="round"></path>
+</svg>
+<svg style="position: absolute; left: 0px; top: 0px;" width="220" height="220" viewBox="0 0 220 220" aria-hidden="true">
+<circle cx="110" cy="110" r="60" fill="#FFC83A" stroke="#D98A00" stroke-width="6"></circle>
+</svg>
+</div>
+<svg style="position: absolute; left: 0px; top: 0px; pointer-events: none;" width="466" height="466" viewBox="0 0 466 466" aria-hidden="true">
+<path d="M0 404 Q116 346 233 396 Q350 346 466 404 L466 466 L0 466 Z" fill="#3FCB6A" stroke="#1D7A3A" stroke-width="6" stroke-linejoin="round"></path>
+</svg>
+<div style="position: absolute; left: 133px; top: 196px; width: 200px; height: 210px;">
+<dc-import name="Cat" expression="proud" variant="{{variant}}" size="200" animate="{{anim}}" hint-size="200px,210px"></dc-import>
+</div>
+</sc-if>
+<button aria-label="Tap the sleeping cat" onClick="{{clockTap}}" style="position: absolute; left: 0px; top: 0px; width: 466px; height: 466px; border: none; padding: 0; background: transparent; cursor: pointer;"></button>
+</sc-if>
+
+<sc-if value="{{v.piano}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: 183px; top: 183px; pointer-events: none;" width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+<circle cx="50" cy="50" r="44" fill="none" stroke="{{pn.cc}}" stroke-opacity="0.6" stroke-width="6" stroke-dasharray="0.1 14" stroke-linecap="round"></circle>
+<path d="M58 26 L58 62" fill="none" stroke="{{pn.cc}}" stroke-width="7" stroke-linecap="round"></path>
+<ellipse cx="48" cy="64" rx="12" ry="9" fill="{{pn.cc}}"></ellipse>
+<path d="M58 26 Q74 30 76 46 Q68 38 58 38 Z" fill="{{pn.cc}}"></path>
+</svg>
+<sc-for list="{{keys}}" as="k" hint-placeholder-count="5">
+<button aria-label="{{k.label}}" onClick="{{k.tap}}" style="position: absolute; left: {{k.bx}}px; top: {{k.by}}px; width: 150px; height: 150px; border-radius: 50%; border: none; padding: 0; background: transparent; cursor: pointer;">
+<svg style="position: absolute; left: 0px; top: 0px;" width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
+<circle cx="75" cy="75" r="70" fill="{{k.pad}}" stroke="{{k.color}}" stroke-width="5" stroke-opacity="0.7"></circle>
+</svg>
+<div class="{{k.cls}}" style="position: absolute; left: 7px; top: 2px; width: 136px; height: 143px;">
+<dc-import name="Cat" expression="{{k.expr}}" fur="{{k.color}}" line="{{k.line}}" size="136" animate="{{anim}}" hint-size="136px,143px"></dc-import>
+</div>
+</button>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{v.lowbatt}}" hint-placeholder-val="{{ false }}">
+<svg class="blink-slow" style="position: absolute; left: 197px; top: 26px; pointer-events: none;" width="72" height="38" viewBox="0 0 72 38" aria-hidden="true">
+<rect x="4" y="4" width="56" height="30" rx="7" fill="none" stroke="#FF4D4D" stroke-width="5"></rect>
+<rect x="62" y="13" width="7" height="12" rx="2" fill="#FF4D4D"></rect>
+<rect x="11" y="11" width="10" height="16" rx="3" fill="#FF4D4D"></rect>
+</svg>
+<div style="position: absolute; left: 123px; top: 76px; width: 220px; height: 231px;">
+<dc-import name="Cat" expression="sleepy" variant="{{variant}}" size="220" animate="{{anim}}" hint-size="220px,231px"></dc-import>
+</div>
+<svg style="position: absolute; left: 153px; top: 316px; pointer-events: none;" width="160" height="88" viewBox="0 0 160 88" aria-hidden="true">
+<path d="M8 30 L152 30 Q142 84 80 84 Q18 84 8 30 Z" fill="#5A6B8A" stroke="#25324A" stroke-width="6" stroke-linejoin="round"></path>
+<ellipse cx="80" cy="30" rx="74" ry="12" fill="#7F8FB0" stroke="#25324A" stroke-width="5"></ellipse>
+<ellipse cx="80" cy="31" rx="58" ry="6" fill="#2A3346"></ellipse>
+</svg>
+</sc-if>
+
+<sc-if value="{{v.charging}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: 197px; top: 26px; pointer-events: none;" width="72" height="38" viewBox="0 0 72 38" aria-hidden="true">
+<rect x="4" y="4" width="56" height="30" rx="7" fill="none" stroke="#5CD67A" stroke-width="5"></rect>
+<rect x="62" y="13" width="7" height="12" rx="2" fill="#5CD67A"></rect>
+<rect class="charge-fill" x="11" y="11" width="42" height="16" rx="3" fill="#5CD67A"></rect>
+<path d="M36 6 L26 20 L34 20 L30 32 L42 16 L34 16 Z" fill="#FFF6E6" stroke="#1D5A2B" stroke-width="2" stroke-linejoin="round"></path>
+</svg>
+<div style="position: absolute; left: 123px; top: 76px; width: 220px; height: 231px;">
+<dc-import name="Cat" expression="eating" variant="{{variant}}" size="220" animate="{{anim}}" hint-size="220px,231px"></dc-import>
+</div>
+<svg style="position: absolute; left: 153px; top: 304px; pointer-events: none;" width="160" height="100" viewBox="0 0 160 100" aria-hidden="true">
+<circle cx="44" cy="36" r="11" fill="#D98A4A" stroke="#7A3A10" stroke-width="4"></circle>
+<circle cx="66" cy="28" r="11" fill="#D98A4A" stroke="#7A3A10" stroke-width="4"></circle>
+<circle cx="90" cy="28" r="11" fill="#D98A4A" stroke="#7A3A10" stroke-width="4"></circle>
+<circle cx="114" cy="36" r="11" fill="#D98A4A" stroke="#7A3A10" stroke-width="4"></circle>
+<circle cx="78" cy="18" r="11" fill="#D98A4A" stroke="#7A3A10" stroke-width="4"></circle>
+<path d="M8 42 L152 42 Q142 96 80 96 Q18 96 8 42 Z" fill="#5A6B8A" stroke="#25324A" stroke-width="6" stroke-linejoin="round"></path>
+</svg>
+</sc-if>
+
+<sc-if value="{{v.bedtime}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0px; top: 0px; width: 466px; height: 466px; opacity: 0.3;">
+<svg style="position: absolute; left: 290px; top: 56px;" width="84" height="84" viewBox="0 0 96 96" aria-hidden="true">
+<circle cx="48" cy="48" r="40" fill="#FFE58A"></circle>
+<circle cx="68" cy="34" r="34" fill="#000000"></circle>
+</svg>
+<div style="position: absolute; left: 113px; top: 126px; width: 240px; height: 252px;">
+<dc-import name="Cat" expression="sleeping" variant="{{variant}}" size="240" animate="{{anim}}" hint-size="240px,252px"></dc-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{v.phome}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 133px; top: 46px; width: 200px; text-align: center; font-size: 22px; font-weight: 500; color: #A9A5BF;">Parents</div>
+<sc-for list="{{tiles}}" as="t" hint-placeholder-count="4">
+<button aria-label="{{t.label}}" onClick="{{t.tap}}" style="position: absolute; left: {{t.x}}px; top: {{t.y}}px; width: 140px; height: 140px; border-radius: 50%; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; box-sizing: border-box;">
+<svg width="36" height="36" viewBox="0 0 24 24" aria-hidden="true">
+<path d="{{t.icon}}" fill="none" stroke="#F2EFFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span style="font-size: 20px; font-weight: 600;">{{t.label}}</span>
+<span style="font-size: 17px; font-weight: 500; color: #FFC76B;">{{t.value}}</span>
+</button>
+</sc-for>
+<div style="position: absolute; left: 197px; top: 197px; width: 72px; height: 72px; border-radius: 50%; border: 3px solid #5CD67A; background: #000000; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 600; color: #BDF5C9; box-sizing: border-box;">{{batteryTxt}}</div>
+<div style="position: absolute; left: 113px; top: 398px; width: 240px; text-align: center; font-size: 17px; color: #A9A5BF;">Home button exits</div>
+</sc-if>
+
+<sc-if value="{{v.pvolume}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{backTap}}" style="position: absolute; left: 158px; top: 34px; width: 150px; height: 52px; border-radius: 26px; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 500; cursor: pointer;">‹ Parents</button>
+<div style="position: absolute; left: 133px; top: 98px; width: 200px; text-align: center; font-size: 20px; color: #A9A5BF;">Max volume</div>
+<svg style="position: absolute; left: 103px; top: 124px; pointer-events: none;" width="260" height="260" viewBox="0 0 260 260" aria-hidden="true">
+<path d="{{vol.track}}" fill="none" stroke="#2A2838" stroke-width="22" stroke-linecap="round"></path>
+<path d="{{vol.arc}}" fill="none" stroke="#FFB547" stroke-width="22" stroke-linecap="round"></path>
+</svg>
+<div style="position: absolute; left: 153px; top: 222px; width: 160px; text-align: center; font-size: 54px; font-weight: 600; line-height: 1;">{{vol.txt}}</div>
+<button aria-label="Lower max volume" onClick="{{volDown}}" style="position: absolute; left: 106px; top: 332px; width: 84px; height: 84px; border-radius: 50%; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 40px; cursor: pointer;">−</button>
+<button aria-label="Raise max volume" onClick="{{volUp}}" style="position: absolute; left: 276px; top: 332px; width: 84px; height: 84px; border-radius: 50%; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 40px; cursor: pointer;">+</button>
+</sc-if>
+
+<sc-if value="{{v.ptimes}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{backTap}}" style="position: absolute; left: 158px; top: 34px; width: 150px; height: 52px; border-radius: 26px; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 500; cursor: pointer;">‹ Parents</button>
+<sc-for list="{{times}}" as="r" hint-placeholder-count="2">
+<div style="position: absolute; left: 113px; top: {{r.ly}}px; width: 240px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; color: #A9A5BF;">
+<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="{{r.icon}}" fill="none" stroke="#FFC76B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>{{r.label}}</span>
+</div>
+<div style="position: absolute; left: 153px; top: {{r.ty}}px; width: 160px; text-align: center; font-size: 46px; font-weight: 600; line-height: 1;">{{r.txt}}</div>
+<button aria-label="{{r.minusLabel}}" onClick="{{r.minus}}" style="position: absolute; left: 70px; top: {{r.by}}px; width: 76px; height: 76px; border-radius: 50%; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 36px; cursor: pointer;">−</button>
+<button aria-label="{{r.plusLabel}}" onClick="{{r.plus}}" style="position: absolute; left: 320px; top: {{r.by}}px; width: 76px; height: 76px; border-radius: 50%; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 36px; cursor: pointer;">+</button>
+</sc-for>
+<div style="position: absolute; left: 118px; top: 350px; width: 230px; text-align: center; font-size: 16px; line-height: 1.3; color: #A9A5BF;">Outside these hours the toy sleeps</div>
+</sc-if>
+
+<sc-if value="{{v.papps}}" hint-placeholder-val="{{ false }}">
+<button onClick="{{backTap}}" style="position: absolute; left: 158px; top: 34px; width: 150px; height: 52px; border-radius: 26px; border: 3px solid #3A3850; background: #1E1D2A; color: #F2EFFA; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 500; cursor: pointer;">‹ Parents</button>
+<div style="position: absolute; left: 133px; top: 96px; width: 200px; text-align: center; font-size: 20px; color: #A9A5BF;">Show apps</div>
+<sc-for list="{{appTiles}}" as="a" hint-placeholder-count="6">
+<button aria-label="{{a.aria}}" onClick="{{a.tap}}" style="position: absolute; left: {{a.x}}px; top: {{a.y}}px; width: 100px; height: 126px; border: none; padding: 0; background: transparent; color: #F2EFFA; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: 'Fredoka', 'Trebuchet MS', sans-serif;">
+<div style="position: relative; width: 96px; height: 96px; opacity: {{a.op}};">
+<dc-import name="AppIcon" app="{{a.id}}" size="96" hint-size="96px,96px"></dc-import>
+</div>
+<span style="font-size: 17px; font-weight: 500; color: {{a.tc}};">{{a.label}}</span>
+<sc-if value="{{a.off}}" hint-placeholder-val="{{ false }}">
+<svg style="position: absolute; left: 66px; top: -2px;" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+<circle cx="17" cy="17" r="15" fill="#1E1D2A" stroke="#FF6B6B" stroke-width="3"></circle>
+<path d="M9 17 Q17 9 25 17 Q17 25 9 17 Z M10 24 L24 10" fill="none" stroke="#FF6B6B" stroke-width="2.5" stroke-linecap="round"></path>
+</svg>
+</sc-if>
+</button>
+</sc-for>
+</sc-if>
+
+</div>
+<sc-if value="{{showPaw}}" hint-placeholder-val="{{ true }}">
+<svg style="position: absolute; left: 399px; top: 118px; opacity: 0.3; transform: rotate(60deg); pointer-events: none;" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+<path d="{{pawD}}" fill="#FFFFFF"></path>
+</svg>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"cfg":{"editor":null},"act":{"editor":null},"$preview":{"width":466,"height":466}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const cfg = this.props.cfg || {};
+    const g = this.g || (this.g = {});
+    const view = cfg.view || 'menu';
+    const act = (t, p) => { const f = this.props.act; if (typeof f === 'function') f(t, p); };
+    const V = { orange: { fur: '#FF9F43', line: '#6B2E0A' }, grey: { fur: '#A9B6C9', line: '#2C3547' }, tux: { fur: '#3B3B52', line: '#C9CDEB' } };
+    const variant = V[cfg.variant] ? cfg.variant : 'orange';
+    const vc = V[variant];
+    const APPS = [
+      { react: 'talking', color: '#FF5FA2', label: 'Voices' },
+      { react: 'happy', color: '#FFB547', label: 'Pet' },
+      { react: 'surprised', color: '#8A7BFF', label: 'Draw' },
+      { react: 'listening', color: '#2FC4A0', label: 'Yarn' },
+      { react: 'sleepy', color: '#3D7BFF', label: 'Clock' },
+      { react: 'laughing', color: '#FF7A45', label: 'Piano' }
+    ];
+    const apps = cfg.apps && cfg.apps.length ? cfg.apps : [0, 1, 2, 3, 4, 5];
+    const n = apps.length;
+    const idx = Math.max(0, Math.min(n - 1, cfg.idx || 0));
+    const appId = apps[idx];
+    const anim = cfg.anim === false ? false : true;
+    const circ = (x, y, r) => 'M' + (x - r) + ' ' + y + ' a' + r + ' ' + r + ' 0 1 0 ' + (2 * r) + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + (-2 * r) + ' 0 Z ';
+    const pawD = 'M6.5 16.5 Q6.5 11 12 11 Q17.5 11 17.5 16.5 Q17.5 20 12 20 Q6.5 20 6.5 16.5 Z ' + circ(5, 9.5, 2.4) + circ(9.3, 5.6, 2.4) + circ(14.7, 5.6, 2.4) + circ(19, 9.5, 2.4);
+    const pos = (e) => { const r = e.currentTarget.getBoundingClientRect(); const k = r.width / 466 || 1; return { x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k }; };
+    const fmt = (m) => { const hh = Math.floor(m / 60), mm = m % 60; return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm; };
+    const views = ['boot', 'pick', 'menu', 'parrot', 'pet', 'draw', 'erase', 'yarn', 'yarnwin', 'clock', 'piano', 'lowbatt', 'charging', 'bedtime', 'phome', 'pvolume', 'ptimes', 'papps'];
+    const vkey = view.replace('-', '');
+    const v = {};
+    views.forEach((k) => { v[k] = k === vkey; });
+
+    const rootDown = (e) => { const r = e.currentTarget.getBoundingClientRect(); g.sx = e.clientX; g.sy = e.clientY; g.k = r.width / 466 || 1; g.swiped = false; };
+    const rootUp = (e) => {
+      if (g.sx === undefined) return;
+      const dx = (e.clientX - g.sx) / g.k, dy = (e.clientY - g.sy) / g.k;
+      g.sx = undefined;
+      if (view === 'menu' && Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) { g.swiped = true; act('swipe', dx < 0 ? 1 : -1); }
+    };
+    const guard = (fn) => () => { if (g.swiped) { g.swiped = false; return; } fn(); };
+
+    const dots = [];
+    const MAXD = 7;
+    let lo = 0, hi = n - 1;
+    if (n > MAXD) { lo = Math.max(0, Math.min(n - MAXD, idx - 3)); hi = lo + MAXD - 1; }
+    const cnt = hi - lo + 1;
+    for (let i = lo; i <= hi; i++) {
+      const kk = i - lo - (cnt - 1) / 2;
+      const a = (90 - kk * 7) * Math.PI / 180;
+      const cx = 233 + 204 * Math.cos(a), cy = 233 + 204 * Math.sin(a);
+      const active = i === idx;
+      const edge = n > MAXD && ((i === lo && lo > 0) || (i === hi && hi < n - 1));
+      const s = active ? 18 : edge ? 8 : 12;
+      dots.push({ x: (cx - s / 2).toFixed(1), y: (cy - s / 2).toFixed(1), s: s, c: active ? APPS[appId].color : '#FFFFFF', o: active ? 1 : 0.35 });
+    }
+    const hold = cfg.hold || 0;
+    const menuExpr = hold > 0.2 ? 'surprised' : cfg.dim ? 'sleepy' : cfg.talking ? 'talking' : APPS[appId].react;
+
+    const costumes = ['mouse', 'lion', 'robot', 'miner'];
+    const accents = ['#FF8FC8', '#FFB020', '#4FD8FF', '#9C7BFF'];
+    const ci = (cfg.costume || 0) % 4;
+    const ps = cfg.parrot || 'idle';
+    const pr = {
+      costume: costumes[ci], accent: accents[ci], cave: ci === 3,
+      expr: ps === 'listen' ? 'listening' : ps === 'play' ? 'talking' : 'happy',
+      play: ps === 'play', listenShow: ps === 'listen' ? 'inline' : 'none',
+      micFill: ps === 'listen' ? '#FF3B5C' : ps === 'play' ? '#5A2340' : '#FF5FA2',
+      micRing: ps === 'listen' ? '#8A0F26' : '#9E1F5C',
+      glyphOp: ps === 'play' ? 0.4 : 1,
+      dash: (653 * (cfg.listen === undefined ? 0.6 : cfg.listen)).toFixed(1)
+    };
+
+    const petS = cfg.pet || 'idle';
+    const ball = cfg.ball || { x: 330, y: 110 };
+    const bdx = ball.x - 233, bdy = ball.y - 130;
+    const bl = Math.max(1, Math.sqrt(bdx * bdx + bdy * bdy));
+    const pt = {
+      expr: { idle: 'happy', purr: 'purring', giggle: 'laughing', dizzy: 'dizzy', tilt: 'happy', eat: 'eating' }[petS] || 'happy',
+      hearts: petS === 'giggle' || petS === 'purr',
+      tilt: petS === 'tilt',
+      bx: ball.x - 24, by: ball.y - 24,
+      lx: petS === 'tilt' ? (bdx / bl).toFixed(2) : 0,
+      ly: petS === 'tilt' ? (bdy / bl).toFixed(2) : 0,
+      fishOp: petS === 'eat' ? 0.5 : 1
+    };
+    const hearts = [{ x: 96, y: 70, d: 0 }, { x: 336, y: 60, d: 350 }, { x: 350, y: 190, d: 700 }, { x: 80, y: 200, d: 1000 }];
+
+    const rawDots = cfg.dots || [];
+    const rawPaws = cfg.paws || [];
+    const dr = {
+      dots: rawDots.map((p) => ({ x: p.x - 8, y: p.y - 8, gx: p.x - 15, gy: p.y - 15, c: p.c })),
+      paws: rawPaws.map((p) => ({ x: p.x - 17, y: p.y - 17, r: p.r, c: p.c, d: pawD })),
+      empty: !rawDots.length && !rawPaws.length,
+      rainbowShow: cfg.tool === 'paws' ? 'none' : 'inline',
+      pawShow: cfg.tool === 'paws' ? 'inline' : 'none'
+    };
+
+    const baskets = [[330, 318], [136, 318], [330, 150], [136, 150]];
+    const bk = baskets[(cfg.basket || 0) % 4];
+    const yp = cfg.yarn || { x: 180, y: 250 };
+    let ddx = 233 - yp.x, ddy = 233 - yp.y;
+    let dl = Math.sqrt(ddx * ddx + ddy * ddy);
+    if (dl < 30) { ddx = 0; ddy = -1; dl = 1; }
+    const ccx = yp.x + (ddx / dl) * 92, ccy = yp.y + (ddy / dl) * 92;
+    const yn = {
+      bx: bk[0] - 60, by: bk[1] - 48,
+      x: yp.x - 32, y: yp.y - 32,
+      cx: (ccx - 60).toFixed(0), cy: (ccy - 63).toFixed(0),
+      lx: (-(ddx / dl)).toFixed(2), ly: (-(ddy / dl)).toFixed(2),
+      hint: !!cfg.yarnHint
+    };
+    const cols = ['#FF5A5A', '#FF9F3A', '#FFD84A', '#5CD67A', '#4FD8FF', '#5A8CFF', '#B07CFF'];
+    const confetti = [];
+    for (let i = 0; i < 24; i++) confetti.push({ x: 60 + ((i * 53) % 346), c: cols[i % 7], d: (i * 97) % 1400 });
+
+    const cs = cfg.clock || 'night';
+    const lit = cfg.stars === undefined ? 3 : cfg.stars;
+    const progress = [];
+    for (let i = 0; i < 5; i++) {
+      const a = (90 + (i - 2) * 12) * Math.PI / 180;
+      progress.push({ x: (233 - 200 * Math.cos(a) - 13).toFixed(1), y: (233 + 200 * Math.sin(a) - 13).toFixed(1), fill: i < lit ? '#FFE58A' : 'none', stroke: i < lit ? '#FFE58A' : '#6B6B8A' });
+    }
+    const ck = { night: cs !== 'morning', morning: cs === 'morning', expr: cs === 'shh' ? 'shh' : 'sleeping' };
+    const nightStars = [[300, 70, 0], [360, 120, 800], [390, 196, 1600], [252, 44, 400], [196, 96, 1200], [96, 200, 2000], [70, 268, 600], [380, 276, 1400], [170, 150, 2400]].map((s) => ({ x: s[0], y: s[1], d: s[2] }));
+    let rays = '';
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      rays += 'M' + (110 + 74 * Math.cos(a)).toFixed(1) + ' ' + (110 + 74 * Math.sin(a)).toFixed(1) + ' L' + (110 + 98 * Math.cos(a)).toFixed(1) + ' ' + (110 + 98 * Math.sin(a)).toFixed(1) + ' ';
+    }
+
+    const KEYS = [
+      { color: '#FF5A5A', line: '#6E1616', note: 'C' },
+      { color: '#FF9F3A', line: '#6B3A06', note: 'D' },
+      { color: '#FFD84A', line: '#6B5400', note: 'E' },
+      { color: '#5CD67A', line: '#1D5A2B', note: 'G' },
+      { color: '#5AA8FF', line: '#173F74', note: 'A' }
+    ];
+    const sing = cfg.sing === undefined ? -1 : cfg.sing;
+    const keys = KEYS.map((k, i) => {
+      const a = (-90 + i * 72) * Math.PI / 180;
+      const cx = 233 + 140 * Math.cos(a), cy = 233 + 140 * Math.sin(a);
+      return {
+        bx: (cx - 75).toFixed(1), by: (cy - 75).toFixed(1), color: k.color, line: k.line,
+        pad: i === sing ? k.color + '40' : '#00000000',
+        expr: i === sing ? 'singing' : 'happy', cls: i === sing ? 'bounce' : '',
+        label: 'Cat that sings ' + k.note, tap: () => act('piano', i)
+      };
+    });
+    const pn = { cc: sing >= 0 ? KEYS[sing].color : '#FFFFFF' };
+
+    const cel = cfg.celebrate === undefined ? -1 : cfg.celebrate;
+    const PICK = [['orange', 233, 128, 'Orange tabby'], ['grey', 143, 300, 'Grey'], ['tux', 323, 300, 'Black and white']];
+    const picks = PICK.map((p) => ({
+      v: p[0], bx: p[1] - 78, by: p[2] - 78, label: p[3], fur: V[p[0]].fur,
+      sw: p[0] === variant ? 10 : 5, pad: p[0] === variant ? V[p[0]].fur + '30' : '#00000000',
+      expr: cel >= 0 && p[0] === variant ? 'proud' : 'happy',
+      tap: () => act('pick', p[0])
+    }));
+
+    const hidden = cfg.hidden || [];
+    const ICON = {
+      vol: 'M4 9 L8 9 L13 5 L13 19 L8 15 L4 15 Z M16.5 9 Q18.5 12 16.5 15 M19 6.5 Q22.5 12 19 17.5',
+      moon: 'M20 14.5 A8.5 8.5 0 1 1 9.5 4 A7 7 0 0 0 20 14.5 Z',
+      sun: 'M12 8 A4 4 0 1 1 11.99 8 Z M12 2 L12 4 M12 20 L12 22 M2 12 L4 12 M20 12 L22 12 M5 5 L6.5 6.5 M17.5 17.5 L19 19 M5 19 L6.5 17.5 M17.5 6.5 L19 5',
+      grid: 'M4 4 H10 V10 H4 Z M14 4 H20 V10 H14 Z M4 14 H10 V20 H4 Z M14 14 H20 V20 H14 Z',
+      cat: 'M5 20 L5 8.5 L7.5 3.5 L10.5 7 L13.5 7 L16.5 3.5 L19 8.5 L19 20 Z M9.5 12.5 L9.5 13.5 M14.5 12.5 L14.5 13.5'
+    };
+    const catNames = { orange: 'Orange', grey: 'Grey', tux: 'Tuxedo' };
+    const tiles = [
+      { x: 88, y: 88, label: 'Volume', value: (cfg.volume || 60) + '%', icon: ICON.vol, tap: () => act('pnav', 'p-volume') },
+      { x: 238, y: 88, label: 'Sleep', value: fmt(cfg.bed === undefined ? 1170 : cfg.bed), icon: ICON.moon, tap: () => act('pnav', 'p-times') },
+      { x: 88, y: 238, label: 'Apps', value: (6 - hidden.length) + ' of 6', icon: ICON.grid, tap: () => act('pnav', 'p-apps') },
+      { x: 238, y: 238, label: 'Cat', value: catNames[variant], icon: ICON.cat, tap: () => act('pcat') }
+    ];
+    const vol = cfg.volume || 60;
+    const arcPath = (frac) => {
+      const a0 = 135 * Math.PI / 180, a1 = (135 + 270 * frac) * Math.PI / 180;
+      const r = 110, c = 130;
+      const x0 = c + r * Math.cos(a0), y0 = c + r * Math.sin(a0), x1 = c + r * Math.cos(a1), y1 = c + r * Math.sin(a1);
+      return 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + (270 * frac > 180 ? 1 : 0) + ' 1 ' + x1.toFixed(1) + ' ' + y1.toFixed(1);
+    };
+    const times = [
+      { ly: 104, ty: 136, by: 118, icon: ICON.moon, label: 'Bedtime', txt: fmt(cfg.bed === undefined ? 1170 : cfg.bed), minusLabel: 'Bedtime earlier', plusLabel: 'Bedtime later', minus: () => act('ptime', { k: 'bed', d: -15 }), plus: () => act('ptime', { k: 'bed', d: 15 }) },
+      { ly: 226, ty: 258, by: 240, icon: ICON.sun, label: 'Wake up', txt: fmt(cfg.wake === undefined ? 420 : cfg.wake), minusLabel: 'Wake up earlier', plusLabel: 'Wake up later', minus: () => act('ptime', { k: 'wake', d: -15 }), plus: () => act('ptime', { k: 'wake', d: 15 }) }
+    ];
+    const appTiles = APPS.map((a, i) => {
+      const off = hidden.indexOf(i) >= 0;
+      return { id: i, x: [83, 183, 283][i % 3], y: i < 3 ? 128 : 252, label: a.label, op: off ? 0.3 : 1, tc: off ? '#77738C' : '#F2EFFA', off: off, aria: (off ? 'Show ' : 'Hide ') + a.label, tap: () => act('papp', i) };
+    });
+
+    const night = view === 'bedtime' || (view === 'clock' && cs !== 'morning');
+    return {
+      v: v, variant: variant, vc: vc, anim: anim, pawD: pawD,
+      sceneOp: cfg.dim ? 0.35 : 1,
+      showPaw: !night && ['boot', 'phome', 'pvolume', 'ptimes', 'papps'].indexOf(vkey) < 0,
+      rootDown: rootDown, rootUp: rootUp,
+      menuExpr: menuExpr, appId: appId, dots: dots,
+      holdShow: hold > 0.2, holdDash: (578 * Math.max(0, (hold - 0.2) / 0.8)).toFixed(1),
+      iconCls: cfg.dim ? '' : 'icon-breathe',
+      catDown: () => act('holdStart'), catUp: () => act('holdEnd'), catTap: guard(() => act('catTap')),
+      openApp: guard(() => act('open')), prevApp: () => act('swipe', -1), nextApp: () => act('swipe', 1),
+      pr: pr, costumeTap: () => act('costume'), micTap: () => act('mic'),
+      pt: pt, hearts: hearts,
+      petDown: (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {} const p = pos(e); g.rub = { x: p.x, y: p.y, d: 0, fired: false }; },
+      petMove: (e) => { if (!g.rub) return; const p = pos(e); g.rub.d += Math.hypot(p.x - g.rub.x, p.y - g.rub.y); g.rub.x = p.x; g.rub.y = p.y; if (g.rub.d > 150 && !g.rub.fired) { g.rub.fired = true; act('rub'); } },
+      petUp: () => { if (g.rub && g.rub.d < 25) act('petTap'); g.rub = null; },
+      fishTap: () => act('fish'),
+      dr: dr,
+      drawDown: (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {} g.drawing = true; const p = pos(e); act('draw', { x: p.x, y: p.y, start: true }); },
+      drawMove: (e) => { if (!g.drawing) return; const p = pos(e); act('draw', { x: p.x, y: p.y }); },
+      drawUp: () => { g.drawing = false; },
+      stop: (e) => { e.stopPropagation(); },
+      toolTap: () => act('tool'),
+      yn: yn, confetti: confetti,
+      ck: ck, nightStars: nightStars, sunRays: rays, clockTap: () => act('clockTap'),
+      keys: keys, pn: pn,
+      picks: picks,
+      tiles: tiles, batteryTxt: (cfg.battery || 72) + '%',
+      backTap: () => act('pnav', 'p-home'),
+      vol: { track: arcPath(1), arc: arcPath(Math.max(0.02, vol / 100)), txt: vol + '%' },
+      volDown: () => act('pvol', -10), volUp: () => act('pvol', 10),
+      times: times, appTiles: appTiles
+    };
+  }
+}
+</script>
+</body>
+</html>

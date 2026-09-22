@@ -1,0 +1,14 @@
+{"v":3,"createdOnFiles":{"v":1,"at":"2026-09-22T20:06:57Z"},"title":"Cat toy · round screen UI","launch":{"view":"canvas"},"pages":[],
+"boards":{
+"Main.dc.html":{"x":0,"y":0,"w":1240,"h":800,"title":"Clickable prototype","is_interactive":true},
+"CatSheet.dc.html":{"x":1320,"y":0,"w":2800,"h":1900,"title":"Cat character sheet"},
+"Spec.dc.html":{"x":4200,"y":0,"w":1800,"h":6300,"title":"Design spec"},
+"Assets.dc.html":{"x":6080,"y":0,"w":1600,"h":5400,"title":"Asset list"},
+"Screen.dc.html":{"x":0,"y":920,"w":466,"h":466,"title":"Component · Screen"},
+"Cat.dc.html":{"x":546,"y":920,"w":200,"h":210,"title":"Component · Cat"},
+"AppIcon.dc.html":{"x":826,"y":920,"w":240,"h":240,"title":"Component · App icon"},
+"Screens.dc.html":{"x":0,"y":2020,"w":3236,"h":4720,"title":"All screens and states"}
+},
+"order":["Main.dc.html","CatSheet.dc.html","Spec.dc.html","Assets.dc.html","Screen.dc.html","Cat.dc.html","AppIcon.dc.html","Screens.dc.html"],
+"notes":{"t1":{"x":0,"y":-300,"text":"Cat toy · round screen UI","kind":"title1","maxW":7680}},
+"designSystems":[]}

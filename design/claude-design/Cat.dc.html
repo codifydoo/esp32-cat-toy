@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cat mascot</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: {{w}}px; height: {{h}}px; position: relative;">
+<svg viewBox="0 0 200 210" width="{{w}}" height="{{h}}" style="display: block; overflow: visible;" aria-hidden="true">
+<g class="{{bobClass}}">
+<path d="{{maneD}}" fill="#D9822B" stroke="#6B3A0C" stroke-width="6" stroke-linejoin="round" display="{{show.mane}}"></path>
+<g class="{{tailClass}}">
+<path d="M146 184 Q194 186 186 146 Q182 128 166 134" fill="none" stroke="{{c.line}}" stroke-width="22" stroke-linecap="round"></path>
+<path d="M146 184 Q194 186 186 146 Q182 128 166 134" fill="none" stroke="{{c.fur}}" stroke-width="12" stroke-linecap="round"></path>
+</g>
+<ellipse cx="100" cy="178" rx="54" ry="28" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="6"></ellipse>
+<ellipse cx="100" cy="184" rx="{{bellyRx}}" ry="16" fill="{{c.muzzle}}"></ellipse>
+<g display="{{show.ears}}">
+<path d="{{ears.l}}" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="6" stroke-linejoin="round"></path>
+<path d="{{ears.r}}" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="6" stroke-linejoin="round"></path>
+<path d="{{ears.li}}" fill="{{c.ear}}"></path>
+<path d="{{ears.ri}}" fill="{{c.ear}}"></path>
+</g>
+<g display="{{show.mouse}}">
+<circle cx="42" cy="46" r="36" fill="#C9C9D8" stroke="{{c.line}}" stroke-width="6"></circle>
+<circle cx="42" cy="46" r="21" fill="#FFA6C9"></circle>
+<circle cx="158" cy="46" r="36" fill="#C9C9D8" stroke="{{c.line}}" stroke-width="6"></circle>
+<circle cx="158" cy="46" r="21" fill="#FFA6C9"></circle>
+</g>
+<g display="{{show.lionEars}}">
+<circle cx="54" cy="60" r="16" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="6"></circle>
+<circle cx="146" cy="60" r="16" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="6"></circle>
+</g>
+<ellipse cx="100" cy="108" rx="74" ry="62" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="6"></ellipse>
+<path d="M100 50 L100 64 M85 53 L88 65 M115 53 L112 65 M29 100 L44 104 M31 114 L44 114 M171 100 L156 104 M169 114 L156 114" fill="none" stroke="{{c.stripe}}" stroke-width="6" stroke-linecap="round" display="{{show.stripes}}"></path>
+<path d="M100 64 Q90 92 82 114 Q100 106 118 114 Q110 92 100 64 Z" fill="{{c.muzzle}}" display="{{show.blaze}}"></path>
+<ellipse cx="100" cy="130" rx="34" ry="21" fill="{{c.muzzle}}"></ellipse>
+<g display="{{show.blush}}">
+<ellipse cx="52" cy="126" rx="11" ry="7" fill="#FF7FA0" opacity="0.75"></ellipse>
+<ellipse cx="148" cy="126" rx="11" ry="7" fill="#FF7FA0" opacity="0.75"></ellipse>
+</g>
+<g class="{{blinkClass}}" display="{{show.openEyes}}">
+<circle cx="72" cy="104" r="{{eye.r}}" fill="{{c.iris}}" stroke="{{c.line}}" stroke-width="4"></circle>
+<circle cx="128" cy="104" r="{{eye.r}}" fill="{{c.iris}}" stroke="{{c.line}}" stroke-width="4"></circle>
+<circle cx="{{eye.lpx}}" cy="{{eye.py}}" r="{{eye.pr}}" fill="#140C1C"></circle>
+<circle cx="{{eye.rpx}}" cy="{{eye.py}}" r="{{eye.pr}}" fill="#140C1C"></circle>
+<circle cx="{{eye.lhx}}" cy="{{eye.hy}}" r="{{eye.hr}}" fill="#FFFFFF"></circle>
+<circle cx="{{eye.rhx}}" cy="{{eye.hy}}" r="{{eye.hr}}" fill="#FFFFFF"></circle>
+</g>
+<path d="{{eyeLineD}}" fill="none" stroke="{{c.line}}" stroke-width="7" stroke-linecap="round" display="{{show.lineEyes}}"></path>
+<g display="{{show.halfEyes}}">
+<path d="M58 104 L86 104 Q86 119 72 119 Q58 119 58 104 Z M114 104 L142 104 Q142 119 128 119 Q114 119 114 104 Z" fill="{{c.iris}}" stroke="{{c.line}}" stroke-width="4" stroke-linejoin="round"></path>
+<path d="M54 103 L90 103 M110 103 L146 103" fill="none" stroke="{{c.line}}" stroke-width="7" stroke-linecap="round"></path>
+</g>
+<path d="{{spiralD}}" fill="none" stroke="{{c.line}}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" display="{{show.spiral}}"></path>
+<path d="M93 118 L107 118 L100 126 Z" fill="{{c.nose}}" stroke="{{c.line}}" stroke-width="3" stroke-linejoin="round"></path>
+<path d="M38 120 L62 125 M38 134 L62 132 M162 120 L138 125 M162 134 L138 132" fill="none" stroke="{{c.line}}" stroke-width="4" stroke-linecap="round"></path>
+<path d="{{m.lineD}}" class="{{m.lineCls}}" display="{{m.lineShow}}" fill="none" stroke="{{c.line}}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<g class="{{m.fillCls}}" display="{{m.fillShow}}">
+<path d="{{m.fillD}}" fill="#3A0F1E" stroke="{{c.line}}" stroke-width="4" stroke-linejoin="round"></path>
+<path d="{{m.tongueD}}" fill="#FF7F9E" display="{{m.tongueShow}}"></path>
+</g>
+<g class="{{m.cCls}}" display="{{m.cShow}}">
+<path d="M80 126 Q100 162 120 126 Q100 131 80 126 Z" fill="#3A0F1E" stroke="{{c.line}}" stroke-width="4" stroke-linejoin="round"></path>
+<path d="M90 138 Q100 133 110 138 Q100 144 90 138 Z" fill="#FF7F9E"></path>
+</g>
+<g display="{{show.fish}}">
+<path d="M62 166 Q90 144 118 166 Q90 188 62 166 Z" fill="#6FD3FF" stroke="#0F5A85" stroke-width="5" stroke-linejoin="round"></path>
+<path d="M116 166 L138 150 L138 182 Z" fill="#6FD3FF" stroke="#0F5A85" stroke-width="5" stroke-linejoin="round"></path>
+<circle cx="76" cy="162" r="4" fill="#0F5A85"></circle>
+</g>
+<g display="{{show.broom}}">
+<path d="M170 38 L120 180" fill="none" stroke="#A8692E" stroke-width="9" stroke-linecap="round"></path>
+<path d="M100 172 L142 184 L134 207 L88 195 Z" fill="#FFD27A" stroke="#7A4A10" stroke-width="5" stroke-linejoin="round"></path>
+<path d="M104 190 L100 200 M117 194 L113 204 M129 197 L125 206" fill="none" stroke="#7A4A10" stroke-width="4" stroke-linecap="round"></path>
+</g>
+<g display="{{show.paws}}">
+<ellipse cx="{{pw.ax}}" cy="{{pw.ay}}" rx="{{pw.ar}}" ry="{{pw.aq}}" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="5"></ellipse>
+<ellipse cx="{{pw.bx}}" cy="{{pw.by}}" rx="17" ry="13" fill="{{c.fur}}" stroke="{{c.line}}" stroke-width="5"></ellipse>
+</g>
+<g display="{{show.robot}}">
+<path d="M100 12 L100 34" fill="none" stroke="#3A4A66" stroke-width="6" stroke-linecap="round"></path>
+<circle cx="100" cy="12" r="9" fill="#FF5A5A" stroke="#3A4A66" stroke-width="4"></circle>
+<path d="M30 90 Q30 32 100 32 Q170 32 170 90 Z" fill="#C3CFE0" stroke="#3A4A66" stroke-width="6" stroke-linejoin="round"></path>
+<path d="M34 78 L166 78" fill="none" stroke="#7F93B3" stroke-width="8"></path>
+<circle cx="64" cy="56" r="5" fill="#3A4A66"></circle>
+<circle cx="136" cy="56" r="5" fill="#3A4A66"></circle>
+<circle cx="24" cy="112" r="12" fill="#C3CFE0" stroke="#3A4A66" stroke-width="5"></circle>
+<circle cx="176" cy="112" r="12" fill="#C3CFE0" stroke="#3A4A66" stroke-width="5"></circle>
+</g>
+<g display="{{show.miner}}">
+<path d="M40 70 Q42 28 100 28 Q158 28 160 70 Z" fill="#FFC23A" stroke="#6B4A00" stroke-width="6" stroke-linejoin="round"></path>
+<path d="M28 72 L172 72" fill="none" stroke="#E09A10" stroke-width="12" stroke-linecap="round"></path>
+<circle cx="100" cy="46" r="12" fill="#FFF6B0" stroke="#6B4A00" stroke-width="5"></circle>
+</g>
+<g display="{{show.waves}}" fill="none" stroke="#4FD8FF" stroke-width="6" stroke-linecap="round">
+<path d="M180 70 Q189 84 180 98"></path>
+<path d="M192 60 Q206 84 192 108"></path>
+<path d="M20 70 Q11 84 20 98"></path>
+<path d="M8 60 Q-6 84 8 108"></path>
+</g>
+<g display="{{show.purr}}" fill="none" stroke="#FFB0C8" stroke-width="5" stroke-linecap="round">
+<path d="M-2 150 Q4 142 10 150 Q16 158 22 150"></path>
+<path d="M178 150 Q184 142 190 150 Q196 158 202 150"></path>
+<path d="M4 170 Q10 162 16 170"></path>
+<path d="M184 170 Q190 162 196 170"></path>
+</g>
+<g display="{{show.zz}}" class="{{zClass}}" fill="none" stroke="#A9B8FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M150 34 L168 34 L150 52 L168 52"></path>
+<path d="M174 10 L186 10 L174 22 L186 22"></path>
+</g>
+<path d="M156 40 L170 40 L156 54 L170 54" display="{{show.z1}}" class="{{zClass}}" fill="none" stroke="#A9B8FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+<g display="{{show.stars}}" class="{{starClass}}">
+<path d="{{starsD}}" fill="#FFD84A"></path>
+</g>
+<path d="{{sparklesD}}" fill="#FFE58A" display="{{show.sparkles}}"></path>
+<g display="{{show.note}}">
+<path d="M172 8 L172 42" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"></path>
+<ellipse cx="163" cy="44" rx="11" ry="8" fill="#FFFFFF"></ellipse>
+<path d="M172 8 Q188 12 190 28 Q182 20 172 20 Z" fill="#FFFFFF"></path>
+</g>
+<path d="M130 132 Q137 137 130 143 M138 126 Q150 137 138 149" display="{{show.shh}}" fill="none" stroke="#A9B8FF" stroke-width="4" stroke-linecap="round"></path>
+</g>
+</svg>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"expression":{"editor":"enum","options":["happy","laughing","surprised","listening","talking","sleepy","sleeping","dizzy","eating","proud","yawn","purring","singing","shh","sweep"],"default":"happy"},"variant":{"editor":"enum","options":["orange","grey","tux"],"default":"orange"},"costume":{"editor":"enum","options":["none","mouse","lion","robot","miner"],"default":"none"},"size":{"editor":"int","min":100,"max":400,"default":200},"frame":{"editor":"int","min":0,"max":2,"default":0},"animate":{"editor":"boolean","default":true},"lookX":{"editor":null},"lookY":{"editor":null},"fur":{"editor":null},"line":{"editor":null},"$preview":{"width":200,"height":210}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const P = this.props;
+    const VAR = {
+      orange: { fur: '#FF9F43', stripe: '#D9661A', muzzle: '#FFE6C7', line: '#6B2E0A', iris: '#2A1633', nose: '#FF6F91', ear: '#FF9DB5', stripes: true, blaze: false },
+      grey: { fur: '#A9B6C9', stripe: '#7483A0', muzzle: '#EEF2F8', line: '#2C3547', iris: '#1E2233', nose: '#FF7FA0', ear: '#FFB0C4', stripes: true, blaze: false },
+      tux: { fur: '#3B3B52', stripe: '#3B3B52', muzzle: '#F6F6FA', line: '#C9CDEB', iris: '#FFD84A', nose: '#FF7FA0', ear: '#FF9DB5', stripes: false, blaze: true }
+    };
+    const c = Object.assign({}, VAR[P.variant] || VAR.orange);
+    if (P.fur) { c.fur = P.fur; c.stripes = false; c.blaze = false; c.muzzle = '#FFF3E0'; c.iris = '#2A1633'; }
+    if (P.line) c.line = P.line;
+    const EX = {
+      happy: { ears: 'normal', eyes: 'open', mouth: 'w', blush: 1, paws: 'down' },
+      laughing: { ears: 'normal', eyes: 'happy', mouth: 'open', blush: 1, paws: 'down' },
+      surprised: { ears: 'perk', eyes: 'big', mouth: 'o', paws: 'down' },
+      listening: { ears: 'perk', eyes: 'open', look: [0.7, -0.7], mouth: 'small', paws: 'down', x: ['waves'] },
+      talking: { ears: 'normal', eyes: 'open', mouth: 'talk', blush: 1, paws: 'down' },
+      sleepy: { ears: 'droop', eyes: 'half', mouth: 'sleepy', paws: 'down', x: ['z1'] },
+      sleeping: { ears: 'droop', eyes: 'closed', mouth: 'smallw', paws: 'down', x: ['zz'] },
+      dizzy: { ears: 'droop', eyes: 'spiral', mouth: 'wavy', paws: 'down', x: ['stars'] },
+      eating: { ears: 'normal', eyes: 'happy', mouth: 'munch', blush: 1, paws: 'hold', x: ['fish'] },
+      proud: { ears: 'perk', eyes: 'happy', mouth: 'open', blush: 1, paws: 'up', x: ['sparkles'] },
+      yawn: { ears: 'droop', eyes: 'closed', mouth: 'yawn', paws: 'up' },
+      purring: { ears: 'normal', eyes: 'happy', mouth: 'w', blush: 1, paws: 'down', x: ['purr'] },
+      singing: { ears: 'perk', eyes: 'happy', mouth: 'talk', blush: 1, paws: 'down', x: ['note'] },
+      shh: { ears: 'droop', eyes: 'half', mouth: 'osmall', paws: 'mouth', x: ['shh'] },
+      sweep: { ears: 'normal', eyes: 'happy', mouth: 'w', blush: 1, paws: 'broom', x: ['broom'] }
+    };
+    const ex = EX[P.expression] ? P.expression : 'happy';
+    const E = EX[ex];
+    const anim = !(P.animate === false || P.animate === 'false');
+    const w = Number(P.size) || 200;
+    const h = Math.round(w * 1.05);
+    const d = (b) => (b ? 'inline' : 'none');
+    const circ = (x, y, r) => 'M' + (x - r) + ' ' + y + ' a' + r + ' ' + r + ' 0 1 0 ' + (2 * r) + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + (-2 * r) + ' 0 Z';
+    const star4 = (x, y, r) => 'M' + x + ' ' + (y - r) + ' Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y + r) + ' Q' + x + ' ' + y + ' ' + (x - r) + ' ' + y + ' Q' + x + ' ' + y + ' ' + x + ' ' + (y - r) + ' Z ';
+    const spiral = (cx, cy) => {
+      let s = '';
+      for (let i = 0; i <= 44; i++) {
+        const t = (i / 44) * Math.PI * 5;
+        const r = 1 + i * 0.3;
+        s += (i ? 'L' : 'M') + (cx + r * Math.cos(t)).toFixed(1) + ' ' + (cy + r * Math.sin(t)).toFixed(1) + ' ';
+      }
+      return s;
+    };
+    const costume = ['mouse', 'lion', 'robot', 'miner'].indexOf(P.costume) >= 0 ? P.costume : 'none';
+    const EARS = {
+      normal: { l: 'M40 80 L48 22 L92 52 Z', r: 'M160 80 L152 22 L108 52 Z', li: 'M53 66 L56 36 L80 52 Z', ri: 'M147 66 L144 36 L120 52 Z' },
+      perk: { l: 'M44 76 L50 6 L94 50 Z', r: 'M156 76 L150 6 L106 50 Z', li: 'M56 62 L56 24 L82 50 Z', ri: 'M144 62 L144 24 L118 50 Z' },
+      droop: { l: 'M34 96 L20 46 L78 58 Z', r: 'M166 96 L180 46 L122 58 Z', li: 'M40 84 L32 58 L66 62 Z', ri: 'M160 84 L168 58 L134 62 Z' }
+    };
+    const ears = EARS[E.ears] || EARS.normal;
+    const lookX = P.lookX !== undefined && P.lookX !== null && P.lookX !== '' ? Number(P.lookX) : (E.look ? E.look[0] : 0);
+    const lookY = P.lookY !== undefined && P.lookY !== null && P.lookY !== '' ? Number(P.lookY) : (E.look ? E.look[1] : 0);
+    const big = E.eyes === 'big';
+    const er = big ? 17 : 13, pr = big ? 12 : 9, hr = big ? 5 : 4;
+    const ox = Math.max(-1, Math.min(1, lookX || 0)) * 4, oy = Math.max(-1, Math.min(1, lookY || 0)) * 4;
+    const eye = { r: er, pr: pr, hr: hr, lpx: 72 + ox, rpx: 128 + ox, py: 104 + oy, lhx: 76 + ox, rhx: 132 + ox, hy: 99 + oy - (big ? 1 : 0) };
+    let eyeLineD = '';
+    if (E.eyes === 'happy') eyeLineD = 'M60 108 Q72 94 84 108 M116 108 Q128 94 140 108';
+    if (E.eyes === 'closed') eyeLineD = 'M60 102 Q72 114 84 102 M116 102 Q128 114 140 102';
+    const MO = {
+      w: { line: 'M84 128 Q92 138 100 128 Q108 138 116 128' },
+      smallw: { line: 'M90 130 Q95 135 100 130 Q105 135 110 130' },
+      small: { line: 'M92 132 Q100 137 108 132' },
+      sleepy: { line: 'M94 133 Q100 129 106 133' },
+      wavy: { line: 'M82 134 Q88 127 94 134 Q100 141 106 134 Q112 127 118 134' },
+      open: { fill: 'M78 126 Q100 166 122 126 Q100 132 78 126 Z', tongue: 'M88 140 Q100 134 112 140 Q100 148 88 140 Z' },
+      o: { fill: circ(100, 138, 9) },
+      osmall: { fill: circ(100, 136, 5) },
+      munch: { fill: 'M88 128 Q100 144 112 128 Q100 132 88 128 Z' },
+      yawn: { fill: 'M86 128 Q86 170 100 170 Q114 170 114 128 Q100 122 86 128 Z', tongue: 'M90 158 Q100 150 110 158 Q100 166 90 158 Z' }
+    };
+    const m = { lineD: '', lineShow: 'none', lineCls: '', fillD: '', fillShow: 'none', fillCls: '', tongueD: '', tongueShow: 'none', cShow: 'none', cCls: '' };
+    if (E.mouth === 'talk') {
+      const f = Number(P.frame) || 0;
+      m.lineD = MO.w.line;
+      m.fillD = 'M88 128 Q100 146 112 128 Q100 132 88 128 Z';
+      if (anim) {
+        m.lineShow = 'inline'; m.fillShow = 'inline'; m.cShow = 'inline';
+        m.lineCls = 'cat-tA'; m.fillCls = 'cat-tB'; m.cCls = 'cat-tC';
+      } else {
+        m.lineShow = d(f === 0); m.fillShow = d(f === 1); m.cShow = d(f === 2);
+      }
+    } else {
+      const mo = MO[E.mouth] || MO.w;
+      if (mo.line) { m.lineD = mo.line; m.lineShow = 'inline'; }
+      if (mo.fill) { m.fillD = mo.fill; m.fillShow = 'inline'; }
+      if (mo.tongue) { m.tongueD = mo.tongue; m.tongueShow = 'inline'; }
+    }
+    const PW = {
+      down: { ax: 76, ay: 172, bx: 124, by: 172, ar: 17, aq: 13 },
+      up: { ax: 20, ay: 76, bx: 180, by: 76, ar: 16, aq: 13 },
+      hold: { ax: 58, ay: 170, bx: 142, by: 170, ar: 16, aq: 13 },
+      mouth: { ax: 100, ay: 138, bx: 124, by: 172, ar: 21, aq: 16 },
+      broom: { ax: 138, ay: 132, bx: 158, by: 76, ar: 15, aq: 12 }
+    };
+    const pw = PW[E.paws] || PW.down;
+    const xs = E.x || [];
+    let mane = '';
+    for (let i = 0; i < 36; i++) {
+      const a = (i / 36) * Math.PI * 2;
+      const r = i % 2 ? 80 : 100;
+      mane += (i ? 'L' : 'M') + (100 + r * Math.cos(a)).toFixed(1) + ' ' + (110 + r * Math.sin(a) * 0.94).toFixed(1) + ' ';
+    }
+    mane += 'Z';
+    const lineEyes = E.eyes === 'happy' || E.eyes === 'closed';
+    return {
+      w: w, h: h, c: c, ears: ears, eye: eye, eyeLineD: eyeLineD, m: m, pw: pw,
+      maneD: mane,
+      bellyRx: c.blaze ? 34 : 26,
+      spiralD: spiral(72, 104) + spiral(128, 104),
+      starsD: star4(58, 36, 11) + star4(100, 22, 13) + star4(142, 36, 11),
+      sparklesD: star4(22, 28, 12) + star4(178, 22, 14) + star4(186, 120, 9) + star4(14, 124, 9),
+      bobClass: anim ? (ex === 'dizzy' ? 'cat-wobble' : (ex === 'sleeping' || ex === 'sleepy' || ex === 'shh') ? 'cat-breathe' : 'cat-bob') : '',
+      tailClass: anim ? 'cat-tail' : '',
+      blinkClass: anim && (E.eyes === 'open') ? 'cat-blink' : '',
+      zClass: anim ? 'cat-zz' : '',
+      starClass: anim ? 'cat-spin' : '',
+      show: {
+        mane: d(costume === 'lion'),
+        ears: d(costume === 'none' || costume === 'miner'),
+        mouse: d(costume === 'mouse'),
+        lionEars: d(costume === 'lion'),
+        robot: d(costume === 'robot'),
+        miner: d(costume === 'miner'),
+        stripes: d(c.stripes && costume !== 'robot'),
+        blaze: d(c.blaze),
+        blush: d(!!E.blush),
+        openEyes: d(E.eyes === 'open' || big),
+        lineEyes: d(lineEyes),
+        halfEyes: d(E.eyes === 'half'),
+        spiral: d(E.eyes === 'spiral'),
+        paws: d(true),
+        waves: d(xs.indexOf('waves') >= 0),
+        purr: d(xs.indexOf('purr') >= 0),
+        zz: d(xs.indexOf('zz') >= 0),
+        z1: d(xs.indexOf('z1') >= 0),
+        stars: d(xs.indexOf('stars') >= 0),
+        sparkles: d(xs.indexOf('sparkles') >= 0),
+        fish: d(xs.indexOf('fish') >= 0),
+        broom: d(xs.indexOf('broom') >= 0),
+        note: d(xs.indexOf('note') >= 0),
+        shh: d(xs.indexOf('shh') >= 0)
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

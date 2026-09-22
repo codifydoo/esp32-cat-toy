@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Asset list</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#17161E}
+</style>
+</helmet>
+<div style="width: 1600px; height: 5400px; box-sizing: border-box; padding: 80px; background: #17161E; color: #EDEAF5; font-family: 'Nunito', system-ui, sans-serif; display: flex; flex-direction: column; gap: 64px;">
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 56px; font-weight: 600;">Asset list</div>
+<div style="font-size: 22px; color: #A9A5BF; max-width: 1300px;">PNG, 32-bit with transparency, sRGB, not premultiplied. Sizes are exact export sizes in device pixels. Convert with the LVGL image converter to RGB565A8 (3 bytes per pixel).</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;">
+<sc-for list="{{rules}}" as="ru" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 22px; border-radius: 18px; background: #1E1D2A; border: 2px solid #2E2C3A;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 22px; font-weight: 600; color: #FFC76B;">{{ru.k}}</div>
+<div style="font-size: 17px; line-height: 1.5; color: #CFCBE0;">{{ru.v}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Cat animation states</div>
+<div style="font-size: 17px; color: #A9A5BF;">Every state stays within 8 frames and 12 fps. A frame is a set of parts plus an offset, so one frame table serves all three cats.</div>
+<div style="display: grid; grid-template-columns: 220px 90px 80px 90px minmax(0, 1fr); gap: 16px; padding: 8px 0; border-bottom: 2px solid #3A3850; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #A9A5BF;">
+<div>State</div><div>Frames</div><div>fps</div><div>Loop</div><div>What changes per frame</div>
+</div>
+<sc-for list="{{states}}" as="st" hint-placeholder-count="15">
+<div style="display: grid; grid-template-columns: 220px 90px 80px 90px minmax(0, 1fr); gap: 16px; padding: 9px 0; border-bottom: 1px solid #2E2C3A; align-items: baseline;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 19px; font-weight: 600;">{{st.k}}</div>
+<div style="font-size: 18px; color: #FFC76B;">{{st.f}}</div>
+<div style="font-size: 18px; color: #BDEFFF;">{{st.fps}}</div>
+<div style="font-size: 16px; color: #A9A5BF;">{{st.loop}}</div>
+<div style="font-size: 17px; line-height: 1.45; color: #CFCBE0;">{{st.n}}</div>
+</div>
+</sc-for>
+</div>
+
+<sc-for list="{{groups}}" as="gr" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: baseline; gap: 16px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">{{gr.title}}</div>
+<div style="font-size: 17px; color: #A9A5BF;">{{gr.sub}}</div>
+</div>
+<div style="display: grid; grid-template-columns: 380px 150px 80px 80px minmax(0, 1fr); gap: 16px; padding: 8px 0; border-bottom: 2px solid #3A3850; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #A9A5BF;">
+<div>File</div><div>Size (px)</div><div>Frames</div><div>fps</div><div>Notes</div>
+</div>
+<sc-for list="{{gr.rows}}" as="a" hint-placeholder-count="10">
+<div style="display: grid; grid-template-columns: 380px 150px 80px 80px minmax(0, 1fr); gap: 16px; padding: 9px 0; border-bottom: 1px solid #2E2C3A; align-items: baseline;">
+<div style="font-size: 16px; font-family: ui-monospace, Menlo, monospace; color: #EDEAF5;">{{a.f}}</div>
+<div style="font-size: 17px; color: #FFC76B;">{{a.s}}</div>
+<div style="font-size: 17px;">{{a.n}}</div>
+<div style="font-size: 17px; color: #BDEFFF;">{{a.fps}}</div>
+<div style="font-size: 16px; line-height: 1.45; color: #CFCBE0;">{{a.note}}</div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":5400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const rules = [
+      { k: 'Naming', v: 'snake_case, variant in the name ({v} = orange, grey, tux), scale as a suffix: cat_orange_head@M.png. Animation frames as separate files: _f0 … _f7.' },
+      { k: 'Three cat scales', v: 'S = 0.65 (cat 130 px: picker, piano, yarn), M = 1.0 (cat 200 px: menu, parrot, clock, erase), L = 1.3 (cat 260 px: boot, pet, battery, bedtime). Sizes below are M; S and L are the same art at 0.65× and 1.3×, rounded up to even pixels.' },
+      { k: 'Memory', v: 'The cat is built from parts, not full frames. About 430 KB per variant at M, about 1.3 MB across S, M and L, about 4 MB for all three cats in flash. Only the chosen cat is copied into PSRAM.' }
+    ];
+    const states = [
+      { k: 'Happy (idle)', f: 6, fps: 8, loop: 'loop', n: 'Body offset 0, −1, −2, −3, −2, −1 px (bob). Blink inserted every 3–6 s using the eyes_open blink frames.' },
+      { k: 'Laughing', f: 4, fps: 10, loop: 'loop', n: 'Mouth open, tongue up and down by 2 px, body offset ±2 px.' },
+      { k: 'Surprised', f: 3, fps: 12, loop: 'once, hold', n: 'Scale pop 1.0, 1.08, 1.0. Ears switch to perk, eyes to big.' },
+      { k: 'Listening', f: 4, fps: 8, loop: 'loop', n: 'Ears perk with a 2° twitch on alternate frames; sound waves fade in and out.' },
+      { k: 'Talking', f: 3, fps: 8, loop: 'audio', n: 'Mouth talk A / B / C chosen from the playback envelope, not a fixed loop.' },
+      { k: 'Sleepy', f: 4, fps: 4, loop: 'loop', n: 'Half-closed eyes, slow breathing scale 1.0 to 1.03, single z drifting.' },
+      { k: 'Sleeping', f: 6, fps: 4, loop: 'loop', n: 'Closed eyes, breathing scale, zz rising 3 steps and fading.' },
+      { k: 'Dizzy', f: 6, fps: 10, loop: '2 s', n: 'Spiral eyes cycle 4 rotations; LVGL rotates the whole cat ±7°; stars orbit.' },
+      { k: 'Eating', f: 6, fps: 8, loop: 'loop', n: 'Munch mouth 2 frames alternating, fish nudges up 3 px on each bite.' },
+      { k: 'Proud', f: 6, fps: 10, loop: 'loop', n: 'Paws up, body bounces 0 to −8 px, sparkles blink in turn.' },
+      { k: 'Stretch and yawn (boot)', f: 8, fps: 8, loop: 'once', n: 'Paws rise from down to up over 4 frames, yawn mouth opens over 3, then back to happy.' },
+      { k: 'Purring', f: 4, fps: 8, loop: '1.5 s', n: 'Content eyes, purr lines alternate 2 frames, body vibrates ±1 px.' },
+      { k: 'Singing (piano)', f: 4, fps: 10, loop: 'once', n: 'Talk B, C, B, A with the bounce; note pops above the head.' },
+      { k: 'Shh (night tap)', f: 4, fps: 6, loop: 'once, hold', n: 'Paw rises to the mouth over 3 frames, shh marks appear on the 4th.' },
+      { k: 'Sweep (erase)', f: 6, fps: 10, loop: '1.6 s', n: 'Broom angle −12°, −4°, +4°, +12°, +4°, −4°; LVGL also slides the cat ±60 px.' }
+    ];
+    const R = (f, s, n, fps, note) => ({ f: f, s: s, n: n, fps: fps || '—', note: note || '' });
+    const groups = [
+      {
+        title: 'Cat parts', sub: 'Per variant {v}; sizes at M',
+        rows: [
+          R('cat_{v}_body', '120 × 68', 1, '', 'Body ellipse and belly patch. Drawn first.'),
+          R('cat_{v}_tail_f0–f3', '64 × 76', 4, 6, 'Tail wag, pivot at bottom-left (x 0, y 76).'),
+          R('cat_{v}_head', '160 × 136', 1, '', 'Head, muzzle, stripes or blaze, nose and whiskers. No eyes or mouth. Anchor (80, 68) = head center.'),
+          R('cat_{v}_ears_normal / _perk / _droop', '136 × 84', '3', '', 'Both ears in one image, placed behind the head.'),
+          R('cat_{v}_eyes_open_f0–f2', '84 × 36', 3, 12, 'Open, half, shut: the blink.'),
+          R('cat_{v}_eyes_big', '92 × 44', 1, '', 'Surprised.'),
+          R('cat_{v}_eyes_happy / _closed / _half', '90 × 24', 3, '', 'Arcs ^ ^, sleeping u u, sleepy lids.'),
+          R('cat_{v}_eyes_spiral_f0–f3', '90 × 36', 4, 10, 'Dizzy: 0°, 90°, 180°, 270°.'),
+          R('cat_{v}_mouth_w / _smallw / _small / _sleepy / _wavy', '44 × 20', 5, '', 'Line mouths.'),
+          R('cat_{v}_mouth_talk_a / _b / _c', '48 × 40', 3, 8, 'Chosen from the audio envelope.'),
+          R('cat_{v}_mouth_open / _o / _osmall / _yawn', '48 × 48', 4, '', 'Filled mouths with tongue.'),
+          R('cat_{v}_mouth_munch_f0–f1', '48 × 24', 2, 8, 'Eating.'),
+          R('cat_{v}_paw', '40 × 32', 1, '', 'One image, placed twice per pose (down, up, hold, mouth, broom).'),
+          R('cat_blush', '26 × 18', 1, '', 'Shared, drawn at 75 % opacity.')
+        ]
+      },
+      {
+        title: 'Costumes and props', sub: 'Shared by all cats; sizes at M',
+        rows: [
+          R('costume_mouse_ears', '196 × 86', 1, '', 'Replaces the cat ears.'),
+          R('costume_lion_mane_f0–f1', '204 × 204', 2, 6, 'Behind the head; fluffs while talking.'),
+          R('costume_lion_ears', '120 × 36', 1, '', 'Small round ears.'),
+          R('costume_robot_helmet_f0–f1', '152 × 104', 2, 4, 'Antenna ball blinks.'),
+          R('costume_miner_hat_f0–f1', '152 × 56', 2, 4, 'Lamp flickers. Cat ears stay visible.'),
+          R('prop_fish', '80 × 44', 1, '', 'Eating and charging.'),
+          R('prop_broom', '72 × 176', 1, '', 'Sweep; LVGL rotates it ±12°.'),
+          R('fx_waves', '36 × 52', 1, '', 'Listening, mirrored for the left side.'),
+          R('fx_purr_f0–f1', '28 × 14', 2, 8, 'Purring.'),
+          R('fx_zz_f0–f2', '40 × 48', 3, 4, 'Sleeping; single z uses f0.'),
+          R('fx_star4', '28 × 28', 1, '', 'White with alpha; tinted at runtime for dizzy stars, sparkles and night stars.'),
+          R('fx_note', '30 × 44', 1, '', 'Singing.'),
+          R('fx_shh', '24 × 28', 1, '', 'Night whisper marks.')
+        ]
+      },
+      {
+        title: 'Menu and app screens', sub: 'Full size, no scaling',
+        rows: [
+          R('app_voices / _pet / _draw / _yarn / _clock / _piano', '240 × 240', 1, '', 'Menu icons. LVGL scales them to 1.9× on open.'),
+          R('app_*_96', '96 × 96', 1, '', 'Parent “Show apps” grid.'),
+          R('menu_paw_hint', '24 × 24', 1, '', 'White with alpha, shown at 30 %.'),
+          R('menu_chevron', '24 × 48', 1, '', 'Mirrored for the right side.'),
+          R('btn_mic_idle / _listen / _played', '220 × 220', 3, '', 'Pulse ring and countdown arc are lv_arc, not images.'),
+          R('btn_fish / _pressed', '150 × 150', 2, '', ''),
+          R('btn_brush_rainbow / _paw', '150 × 150', 2, '', 'Black disc with a 6 px white ring at 45 %.'),
+          R('brush_paw', '34 × 34', 1, '', 'White with alpha, recolored per print.'),
+          R('pet_ball', '48 × 48', 1, '', 'Tilt target.'),
+          R('fx_heart', '34 × 34', 1, '', 'Floating hearts.'),
+          R('scene_cave_arch', '342 × 250', 1, '', 'Echo costume backdrop, placed at (62, 18).'),
+          R('yarn_ball_f0–f3', '64 × 64', 4, 12, 'Rolling; frame advance follows speed.'),
+          R('yarn_basket / _full', '120 × 96 / 120 × 110', 2, '', ''),
+          R('piano_note', '100 × 100', 1, '', 'Center note, recolored to the last pitch.')
+        ]
+      },
+      {
+        title: 'Clock, battery and system', sub: 'Night assets are drawn at full color and dimmed with opacity',
+        rows: [
+          R('clock_moon', '96 × 96', 1, '', 'Crescent.'),
+          R('clock_star_outline', '26 × 26', 1, '', 'Unlit hour star.'),
+          R('clock_sun', '120 × 120', 1, '', ''),
+          R('clock_sun_rays', '220 × 220', 1, '', 'Rotated slowly with lv_image_set_rotation.'),
+          R('clock_hills', '466 × 120', 1, '', 'Morning ground, bottom aligned.'),
+          R('bowl_empty', '160 × 88', 1, '', 'Low battery.'),
+          R('bowl_full', '160 × 100', 1, '', 'Charging.'),
+          R('battery_low_f0–f1', '72 × 38', 2, 2, 'Red bar blinks.'),
+          R('battery_charge_f0–f3', '72 × 38', 4, 4, 'Fill grows with the bolt on top.'),
+          R('boot_ring', '—', 0, '', 'lv_arc / circle objects, no image.'),
+          R('confetti', '—', 0, '', '24 lv_obj rectangles 12 × 22, radius 3, rainbow tokens.')
+        ]
+      },
+      {
+        title: 'Parent area', sub: 'Adults only; text is a font, not images',
+        rows: [
+          R('parent_icon_volume / _moon / _sun / _grid / _cat', '36 × 36', 5, '', 'Line icons, 3 px stroke, #F2EFFA.'),
+          R('parent_eye_off', '34 × 34', 1, '', 'Hidden-app badge.'),
+          R('font_fredoka_17 / _20 / _22 / _46 / _54', 'lv_font_conv', '—', '', '4 bpp, ASCII plus Č Ć Đ Š Ž, digits and % : ‹ − +.')
+        ]
+      }
+    ];
+    return { rules: rules, states: states, groups: groups };
+  }
+}
+</script>
+</body>
+</html>

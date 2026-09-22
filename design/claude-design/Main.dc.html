@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cat toy prototype</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#121118}
+a{color:#FFB547}a:hover{color:#FFD08A}
+.sim-btn{height:44px;padding:0 14px;border-radius:12px;border:2px solid #3A3850;background:#2A2836;color:#EDEAF5;font-family:'Nunito',system-ui,sans-serif;font-size:15px;font-weight:700;cursor:pointer}
+.sim-btn:hover{border-color:#6A6680}
+.sim-on{background:#FFB547;border-color:#FFB547;color:#1A1206}
+@keyframes catbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes catbreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+@keyframes catwobble{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+@keyframes catblink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(0.1)}}
+@keyframes cattail{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-12deg)}}
+@keyframes tA{0%{opacity:1}33.33%{opacity:0}100%{opacity:0}}
+@keyframes tB{0%{opacity:0}33.33%{opacity:1}66.66%{opacity:0}100%{opacity:0}}
+@keyframes tC{0%{opacity:0}66.66%{opacity:1}100%{opacity:1}}
+@keyframes zz{0%{transform:translate(0,0);opacity:.25}50%{opacity:1}100%{transform:translate(6px,-10px);opacity:.25}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%{transform:scale(.94);opacity:.9}100%{transform:scale(1.1);opacity:0}}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes floatup{0%{transform:translateY(10px);opacity:0}30%{opacity:1}100%{transform:translateY(-44px);opacity:0}}
+@keyframes fall{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(520px) rotate(540deg)}}
+@keyframes sweep{0%,100%{transform:translateX(-60px)}50%{transform:translateX(60px)}}
+@keyframes bounce{0%{transform:translateY(0)}35%{transform:translateY(-22px)}70%{transform:translateY(0)}85%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+@keyframes rise{0%{transform:translateY(110px)}100%{transform:translateY(0)}}
+@keyframes ring{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.25);opacity:0}}
+@keyframes charge{0%{transform:scaleX(.15)}100%{transform:scaleX(1)}}
+@keyframes wave{0%,100%{opacity:.25}50%{opacity:1}}
+.cat-bob{animation:catbob 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.cat-breathe{animation:catbreathe 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.cat-wobble{animation:catwobble .6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 80%}
+.cat-blink{animation:catblink 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+.cat-tail{animation:cattail 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:0% 100%}
+.cat-tA{animation:tA .45s steps(1,end) infinite}
+.cat-tB{animation:tB .45s steps(1,end) infinite}
+.cat-tC{animation:tC .45s steps(1,end) infinite}
+.cat-zz{animation:zz 2.4s ease-in-out infinite}
+.cat-spin{animation:spin 1.6s linear infinite;transform-box:fill-box;transform-origin:50% 50%}
+.pulse-ring{animation:pulse 1s ease-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+.twinkle{animation:twinkle 3s ease-in-out infinite}
+.float-up{animation:floatup 1.2s ease-out infinite}
+.confetti{animation:fall 1.6s ease-in infinite}
+.sweep-x{animation:sweep .55s ease-in-out infinite}
+.bounce{animation:bounce .4s ease-out 1}
+.icon-breathe{animation:breathe 3s ease-in-out infinite}
+.sun-rise{animation:rise 4s ease-in-out 1 both}
+.spin-slow{animation:spin 24s linear infinite}
+.boot-ring{animation:ring 2s ease-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+.charge-fill{animation:charge 2s ease-in-out infinite;transform-box:fill-box;transform-origin:0% 50%}
+.wave-pulse{animation:wave .9s ease-in-out infinite}
+.blink-slow{animation:twinkle 1.6s ease-in-out infinite}
+.yarn-roll{animation:spin 1.2s linear infinite}
+</style>
+</helmet>
+<div style="width: 1240px; height: 800px; position: relative; background: #121118; color: #EDEAF5; font-family: 'Nunito', system-ui, sans-serif; overflow: hidden;">
+<div style="position: absolute; left: 60px; top: 30px; width: 660px; display: flex; flex-direction: column; gap: 6px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 30px; font-weight: 600;">Cat toy · clickable prototype</div>
+<div style="font-size: 15px; color: #A9A5BF;">Swipe the menu, tap the icon to open, press Home to return. Hold the cat for 5 s to reach the parent area.</div>
+</div>
+
+<div style="position: absolute; left: 60px; top: 110px; width: 580px; height: 580px; border-radius: 50%; background: #24222E; border: 3px solid #34313F; box-sizing: border-box;"></div>
+<div style="position: absolute; left: 88px; top: 138px; width: 524px; height: 524px; border-radius: 50%; background: #0A0A0D;"></div>
+<div style="position: absolute; left: 117px; top: 167px; width: 466px; height: 466px;">
+<dc-import name="Screen" cfg="{{cfg}}" act="{{act}}" hint-size="466px,466px"></dc-import>
+<sc-if value="{{screenOff}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0px; top: 0px; width: 466px; height: 466px; border-radius: 50%; background: #000000;"></div>
+</sc-if>
+</div>
+<button aria-label="Home button" onClick="{{home}}" style="position: absolute; left: 578px; top: 222px; width: 64px; height: 64px; border-radius: 50%; background: #3A3846; border: 3px solid #55516A; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;">
+<svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="{{pawD}}" fill="#8C88A6"></path></svg>
+</button>
+<button aria-label="Power button" onClick="{{power}}" style="position: absolute; left: 574px; top: 520px; width: 56px; height: 56px; border-radius: 50%; background: #3A3846; border: 3px solid #55516A; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center;">
+<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 L12 11 M7 6.5 A7.5 7.5 0 1 0 17 6.5" fill="none" stroke="#8C88A6" stroke-width="2.5" stroke-linecap="round"></path></svg>
+</button>
+<div style="position: absolute; left: 654px; top: 244px; font-size: 14px; color: #A9A5BF;">Home</div>
+<div style="position: absolute; left: 642px; top: 538px; font-size: 14px; color: #A9A5BF;">Power</div>
+
+<div style="position: absolute; left: 760px; top: 110px; width: 420px; height: 640px; box-sizing: border-box; padding: 24px; border-radius: 20px; background: #1C1B24; border: 2px solid #2A2836; display: flex; flex-direction: column; gap: 18px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 600;">Simulator</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A9A5BF;">Motion sensor</div>
+<div style="display: flex; gap: 8px; align-items: center;">
+<button class="sim-btn" onClick="{{shake}}">Shake</button>
+<span style="font-size: 14px; color: #A9A5BF; margin-left: 6px;">Tilt</span>
+<button class="sim-btn" aria-label="Tilt left" onClick="{{tiltL}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" fill="none" stroke="#EDEAF5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<button class="sim-btn" aria-label="Tilt up" onClick="{{tiltU}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="#EDEAF5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<button class="sim-btn" aria-label="Tilt down" onClick="{{tiltD}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 L12 16 L19 9" fill="none" stroke="#EDEAF5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<button class="sim-btn" aria-label="Tilt right" onClick="{{tiltR}}"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5 L16 12 L9 19" fill="none" stroke="#EDEAF5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A9A5BF;">Time of day (Sleepy clock)</div>
+<div style="display: flex; gap: 8px;">
+<button class="{{c.night}}" onClick="{{setNight}}">Night</button>
+<button class="{{c.morning}}" onClick="{{setMorning}}">Wake-up time</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A9A5BF;">Battery</div>
+<div style="display: flex; gap: 8px;">
+<button class="{{c.pNormal}}" onClick="{{pNormal}}">Normal</button>
+<button class="{{c.pLow}}" onClick="{{pLow}}">Low</button>
+<button class="{{c.pCharge}}" onClick="{{pCharge}}">Charging</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A9A5BF;">Cat and system</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap;">
+<button class="{{c.lock}}" onClick="{{toggleLock}}">Bedtime lock</button>
+<button class="sim-btn" onClick="{{restart}}">Restart</button>
+<button class="sim-btn" onClick="{{firstRun}}">First run: pick cat</button>
+<button class="{{c.sound}}" onClick="{{toggleSound}}">Sound</button>
+</div>
+</div>
+
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 14px; background: #121118; border: 2px solid #2A2836;">
+<div style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A9A5BF;">Now playing</div>
+<div style="font-size: 15px; line-height: 1.4; color: #EDEAF5; min-height: 42px;">{{logTxt}}</div>
+<div style="font-size: 13px; color: #8A86A0;">Screen: {{screenName}}</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1240,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      view: 'boot', variant: 'orange', idx: 0, hidden: [], costume: 0, parrot: 'idle', listen: 0,
+      pet: 'idle', ball: { x: 330, y: 110 }, tool: 'rainbow', dots: [], paws: [],
+      yarn: { x: 233, y: 233 }, basket: 0, yarnHint: true, clock: 'night', sing: -1, hold: 0, dim: false, talking: false,
+      power: 'normal', lock: false, volume: 60, bed: 1170, wake: 420, sound: true, log: 'Boot: the cat stretches and yawns.',
+      screenOn: true, pickReturn: 'menu', celebrate: -1
+    };
+    this.t = {};
+    this.last = Date.now();
+    this.APPS = [
+      { hr: 'Smiješni glasovi', en: 'Silly voices', view: 'parrot' },
+      { hr: 'Maži macu', en: 'Pet the cat', view: 'pet' },
+      { hr: 'Čarobne šapice', en: 'Magic paws', view: 'draw' },
+      { hr: 'Klupko', en: 'Yarn roll', view: 'yarn' },
+      { hr: 'Pospani sat', en: 'Sleepy clock', view: 'clock' },
+      { hr: 'Mijau klavir', en: 'Meow piano', view: 'piano' }
+    ];
+    this.act = (t, p) => this.onAct(t, p);
+  }
+  componentDidMount() {
+    this.later('boot', 2600, () => { if (this.state.view === 'boot') this.setState({ view: 'menu', log: 'Menu: cat says the app name on every swipe.' }); });
+    this.idleIv = setInterval(() => {
+      if (this.state.view === 'menu' && !this.state.dim && Date.now() - this.last > 20000) this.setState({ dim: true, log: 'Idle 20 s: menu dims to 35 % (burn-in guard), cat gets sleepy.' });
+    }, 1000);
+  }
+  componentWillUnmount() {
+    Object.keys(this.t).forEach((k) => clearTimeout(this.t[k]));
+    clearInterval(this.idleIv); clearInterval(this.holdIv); clearInterval(this.listenIv);
+  }
+  later(name, ms, fn) { clearTimeout(this.t[name]); this.t[name] = setTimeout(fn, ms); }
+  vis() { const h = this.state.hidden; return [0, 1, 2, 3, 4, 5].filter((i) => h.indexOf(i) < 0); }
+  audio() {
+    try {
+      if (!this.ac) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; this.ac = new AC(); }
+      if (this.ac.state === 'suspended') this.ac.resume();
+      return this.ac;
+    } catch (e) { return null; }
+  }
+  tone(f0, f1, dur, type, gain, delay) {
+    if (!this.state.sound) return;
+    const ac = this.audio(); if (!ac) return;
+    try {
+      const t = ac.currentTime + (delay || 0);
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || 'triangle';
+      o.frequency.setValueAtTime(f0, t);
+      o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+      const v = Math.max(0.0002, (gain || 0.2) * this.state.volume / 100);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 0.05);
+    } catch (e) {}
+  }
+  meow(base, type, gain, delay) {
+    if (!this.state.sound) return;
+    const ac = this.audio(); if (!ac) return;
+    try {
+      const t = ac.currentTime + (delay || 0);
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || 'triangle';
+      o.frequency.setValueAtTime(base * 0.85, t);
+      o.frequency.linearRampToValueAtTime(base * 1.3, t + 0.14);
+      o.frequency.linearRampToValueAtTime(base * 0.75, t + 0.5);
+      const v = Math.max(0.0002, (gain || 0.22) * this.state.volume / 100);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.6);
+    } catch (e) {}
+  }
+  say(text, pitch, rate) {
+    if (!this.state.sound) return;
+    try {
+      const s = window.speechSynthesis; if (!s) return;
+      s.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'hr-HR'; u.pitch = pitch || 1.8; u.rate = rate || 1.05; u.volume = this.state.volume / 100;
+      s.speak(u);
+    } catch (e) {}
+  }
+  log(msg) { this.setState({ log: msg }); }
+  speakApp(id) {
+    const a = this.APPS[id];
+    this.tone(500, 900, 0.12, 'sine', 0.1);
+    this.meow(700, 'triangle', 0.2, 0.12);
+    this.later('say', 350, () => this.say(a.hr, 1.8));
+    this.log('Whoosh, then the cat meows the name: "' + a.hr + '" (' + a.en + ').');
+  }
+  voice(c, playback) {
+    const names = ['Mouse ears', 'Lion mane', 'Robot helmet', 'Cave'];
+    const desc = ['high squeaky voice, +7 semitones', 'deep voice, −7 semitones', 'robot voice, ring-mod 30 Hz + bitcrush', 'echo, 250 ms × 4 repeats'];
+    if (c === 0) { this.meow(1300, 'triangle', 0.18); this.meow(1500, 'triangle', 0.18, 0.22); }
+    if (c === 1) { this.meow(150, 'sawtooth', 0.2); }
+    if (c === 2) { [0, 0.15, 0.3].forEach((d) => this.tone(520, 520, 0.1, 'square', 0.08, d)); }
+    if (c === 3) { [0, 0.25, 0.5, 0.75].forEach((d, i) => this.meow(620, 'triangle', 0.22 * Math.pow(0.5, i), d)); }
+    this.log(playback ? 'Playback of her recording: ' + names[c] + ' (' + desc[c] + ').' : 'Costume: ' + names[c] + '. A short sample plays in the new voice.');
+  }
+  toMenu(msg) {
+    clearInterval(this.listenIv); clearInterval(this.holdIv);
+    ['play', 'pet', 'sing', 'tilt', 'erase', 'win', 'shh', 'talk', 'pick'].forEach((k) => clearTimeout(this.t[k]));
+    this.setState({ view: 'menu', parrot: 'idle', listen: 0, pet: 'idle', sing: -1, dim: false, hold: 0, talking: false, celebrate: -1 });
+    if (msg) this.log(msg);
+  }
+  stopListen() {
+    clearInterval(this.listenIv);
+    this.tone(900, 400, 0.12, 'sine', 0.1);
+    this.setState({ parrot: 'play', listen: 0 });
+    this.voice(this.state.costume, true);
+    this.later('play', 2600, () => this.setState({ parrot: 'idle' }));
+  }
+  onAct(t, p) {
+    this.last = Date.now();
+    const s = this.state;
+    if (s.lock || !s.screenOn) return;
+    if (s.dim) this.setState({ dim: false });
+    const vis = this.vis();
+    if (t === 'swipe') {
+      if (s.view !== 'menu') return;
+      const n = vis.length;
+      const idx = (s.idx + p + n) % n;
+      this.setState({ idx: idx, talking: true, hold: 0 });
+      this.speakApp(vis[idx]);
+      this.later('talk', 1400, () => this.setState({ talking: false }));
+    } else if (t === 'catTap') {
+      if (this.holdFired && Date.now() - this.holdFired < 800) return;
+      this.setState({ talking: true });
+      this.speakApp(vis[s.idx]);
+      this.later('talk', 1400, () => this.setState({ talking: false }));
+    } else if (t === 'open') {
+      const id = vis[s.idx];
+      const a = this.APPS[id];
+      this.tone(300, 900, 0.15, 'sine', 0.12);
+      this.say('Idemo!', 1.8);
+      this.setState({ view: a.view, parrot: 'idle', pet: 'idle', sing: -1, dots: [], paws: [], yarn: { x: 233, y: 233 }, yarnHint: true, talking: false });
+      if (a.view === 'yarn') this.later('hint', 4000, () => this.setState({ yarnHint: false }));
+      this.log('Pop + "Idemo!" Opened ' + a.en + '.');
+    } else if (t === 'holdStart') {
+      if (s.view !== 'menu') return;
+      this.holdStartT = Date.now();
+      clearInterval(this.holdIv);
+      this.holdIv = setInterval(() => {
+        const k = (Date.now() - this.holdStartT) / 5000;
+        if (k >= 1) {
+          clearInterval(this.holdIv);
+          this.holdFired = Date.now();
+          this.setState({ hold: 0, view: 'p-home', talking: false });
+          this.tone(660, 990, 0.2, 'sine', 0.12);
+          this.log('Parent area opened after a 5 s hold. The ring only shows after 1 s.');
+        } else this.setState({ hold: k });
+      }, 100);
+    } else if (t === 'holdEnd') {
+      clearInterval(this.holdIv);
+      if (this.state.hold) this.setState({ hold: 0 });
+    } else if (t === 'mic') {
+      if (s.parrot === 'idle') {
+        this.tone(400, 900, 0.12, 'sine', 0.1);
+        this.setState({ parrot: 'listen', listen: 1 });
+        this.log('Listening. Stops after 1.2 s of silence or 5 s, or on a second tap.');
+        this.listenStart = Date.now();
+        clearInterval(this.listenIv);
+        this.listenIv = setInterval(() => {
+          const k = 1 - (Date.now() - this.listenStart) / 5000;
+          if (k <= 0) this.stopListen(); else this.setState({ listen: k });
+        }, 100);
+      } else if (s.parrot === 'listen') this.stopListen();
+    } else if (t === 'costume') {
+      if (s.parrot === 'listen') return;
+      const c = (s.costume + 1) % 4;
+      this.setState({ costume: c });
+      this.voice(c, false);
+    } else if (t === 'petTap') {
+      this.setState({ pet: 'purr' });
+      this.tone(58, 52, 1.4, 'sawtooth', 0.08);
+      this.log('Tap: the cat purrs.');
+      this.later('pet', 1800, () => this.setState({ pet: 'idle' }));
+    } else if (t === 'rub') {
+      this.setState({ pet: 'giggle' });
+      [0, 0.12, 0.24, 0.36].forEach((d, i) => this.tone(900 + i * 120, 1300 + i * 120, 0.1, 'sine', 0.1, d));
+      this.log('Rub: the cat giggles.');
+      this.later('pet', 1800, () => this.setState({ pet: 'idle' }));
+    } else if (t === 'fish') {
+      this.setState({ pet: 'eat' });
+      [0, 0.2, 0.4].forEach((d) => this.tone(180, 90, 0.08, 'square', 0.08, d));
+      this.later('say', 700, () => this.say('Njam!', 1.9));
+      this.log('Fish: crunch, crunch, "Njam!"');
+      this.later('pet', 2400, () => this.setState({ pet: 'idle' }));
+    } else if (t === 'draw') {
+      if (s.view !== 'draw') return;
+      const dx = p.x - 233, dy = p.y - 233;
+      if (dx * dx + dy * dy > 212 * 212) return;
+      const RB = ['#FF5A5A', '#FF9F3A', '#FFD84A', '#5CD67A', '#4FD8FF', '#5A8CFF', '#B07CFF'];
+      if (s.tool === 'rainbow') {
+        const dots = s.dots;
+        const lp = dots[dots.length - 1];
+        if (!p.start && lp && Math.hypot(lp.x - p.x, lp.y - p.y) < 7) return;
+        const nd = dots.concat([{ x: p.x, y: p.y, c: RB[Math.floor(dots.length / 3) % 7] }]).slice(-600);
+        if (nd.length % 8 === 0) this.tone(1800, 2400, 0.05, 'sine', 0.04);
+        this.setState({ dots: nd });
+      } else {
+        const paws = s.paws;
+        const lp = paws[paws.length - 1];
+        if (!p.start && lp && Math.hypot(lp.ox - p.x, lp.oy - p.y) < 40) return;
+        let ang = 0;
+        if (lp && !p.start) ang = Math.atan2(p.y - lp.oy, p.x - lp.ox) * 180 / Math.PI + 90;
+        const side = paws.length % 2 ? 1 : -1;
+        const rad = (ang) * Math.PI / 180;
+        const np = { ox: p.x, oy: p.y, x: p.x + Math.cos(rad) * 9 * side, y: p.y + Math.sin(rad) * 9 * side, r: ang.toFixed(0), c: RB[paws.length % 7] };
+        this.tone(700, 500, 0.06, 'triangle', 0.08);
+        this.setState({ paws: paws.concat([np]).slice(-120) });
+      }
+    } else if (t === 'tool') {
+      const tool = s.tool === 'rainbow' ? 'paws' : 'rainbow';
+      this.tone(600, 1000, 0.1, 'sine', 0.1);
+      this.setState({ tool: tool });
+      this.log(tool === 'paws' ? 'Brush: paw prints.' : 'Brush: rainbow trail.');
+    } else if (t === 'piano') {
+      const F = [523, 587, 659, 784, 880];
+      const N = ['C5', 'D5', 'E5', 'G5', 'A5'];
+      this.setState({ sing: -1 }, () => this.setState({ sing: p }));
+      this.meow(F[p], 'triangle', 0.25);
+      this.log('Meow on ' + N[p] + ' (pentatonic, so any order sounds nice).');
+      this.later('sing', 700, () => this.setState({ sing: -1 }));
+    } else if (t === 'pick') {
+      this.setState({ variant: p, celebrate: 1 });
+      this.meow(800, 'triangle', 0.22);
+      this.log('Cat chosen: ' + p + '. It celebrates, then goes on.');
+      this.later('pick', 1400, () => this.setState({ view: this.state.pickReturn, celebrate: -1 }));
+    } else if (t === 'clockTap') {
+      if (s.clock !== 'night') return;
+      this.setState({ clock: 'shh' });
+      this.say('Pssst… spavaj', 1.2, 0.8);
+      this.log('Night tap: whispered "Pssst… spavaj" (shh, sleep). Volume capped at 30 %.');
+      this.later('shh', 2200, () => { if (this.state.clock === 'shh') this.setState({ clock: 'night' }); });
+    } else if (t === 'pnav') {
+      this.setState({ view: p });
+    } else if (t === 'pcat') {
+      this.setState({ view: 'pick', pickReturn: 'p-home' });
+    } else if (t === 'pvol') {
+      this.setState({ volume: Math.max(10, Math.min(100, s.volume + p)) });
+    } else if (t === 'ptime') {
+      const k = p.k;
+      const val = (s[k] + p.d + 1440) % 1440;
+      const o = {}; o[k] = val; this.setState(o);
+    } else if (t === 'papp') {
+      const h = s.hidden.slice();
+      const i = h.indexOf(p);
+      if (i >= 0) h.splice(i, 1); else if (h.length < 5) h.push(p);
+      const n = 6 - h.length;
+      this.setState({ hidden: h, idx: Math.min(s.idx, n - 1) });
+    }
+  }
+  home() {
+    const s = this.state;
+    if (s.lock) { this.log('Bedtime lock: Home does nothing, the cat keeps sleeping.'); return; }
+    if (!s.screenOn) this.setState({ screenOn: true });
+    this.last = Date.now();
+    this.tone(700, 480, 0.14, 'triangle', 0.12);
+    this.toMenu('Home: a short descending "mew", back to the menu.');
+  }
+  power() {
+    const on = !this.state.screenOn;
+    this.setState({ screenOn: on });
+    this.log(on ? 'Power: screen on.' : 'Power: screen off (touch disabled).');
+  }
+  shake() {
+    const s = this.state;
+    if (s.lock || !s.screenOn) return;
+    this.last = Date.now();
+    if (s.view === 'pet') {
+      this.setState({ pet: 'dizzy' });
+      this.tone(300, 1200, 0.4, 'sine', 0.12);
+      this.tone(400, 200, 0.5, 'triangle', 0.1, 0.4);
+      this.log('Shake: "wheee", boing. The cat is dizzy.');
+      this.later('pet', 2000, () => this.setState({ pet: 'idle' }));
+    } else if (s.view === 'draw') {
+      this.setState({ view: 'erase' });
+      this.tone(2000, 300, 0.6, 'sawtooth', 0.04);
+      this.later('say', 900, () => this.say('Čisto!', 1.8));
+      this.log('Shake: the cat sweeps with a broom, then "Čisto!" (all clean).');
+      this.later('erase', 1700, () => this.setState({ view: 'draw', dots: [], paws: [] }));
+    } else if (s.view === 'yarn') {
+      this.setState({ yarn: { x: 233, y: 233 } });
+      this.log('Shake: yarn jumps back to the middle.');
+    } else this.log('Shake: nothing happens on this screen.');
+  }
+  tilt(dx, dy) {
+    const s = this.state;
+    if (s.lock || !s.screenOn) return;
+    this.last = Date.now();
+    const clampR = (x, y, r, cx, cy) => { const ex = x - cx, ey = y - cy, d = Math.hypot(ex, ey); return d > r ? { x: cx + ex / d * r, y: cy + ey / d * r } : { x: x, y: y }; };
+    if (s.view === 'pet') {
+      const b = clampR(s.ball.x + dx * 60, s.ball.y + dy * 60, 190, 233, 233);
+      this.setState({ pet: 'tilt', ball: b });
+      this.tone(1400, 1500, 0.05, 'sine', 0.06);
+      this.log('Tilt: the ball rolls and the cat’s eyes follow it.');
+      this.later('pet', 3000, () => this.setState({ pet: 'idle' }));
+    } else if (s.view === 'yarn') {
+      const y = clampR(s.yarn.x + dx * 46, s.yarn.y + dy * 46, 185, 233, 233);
+      this.setState({ yarn: y, yarnHint: false });
+      this.tone(220, 180, 0.15, 'triangle', 0.06);
+      const B = [[330, 318], [136, 318], [330, 150], [136, 150]][s.basket % 4];
+      if (Math.hypot(y.x - B[0], y.y - (B[1] - 10)) < 62) {
+        this.later('winGo', 320, () => {
+          this.setState({ view: 'yarnwin' });
+          [523, 659, 784, 1047].forEach((f, i) => this.tone(f, f, 0.18, 'triangle', 0.14, i * 0.14));
+          this.later('say', 700, () => this.say('Bravo!', 1.8));
+          this.log('In the basket! Fanfare + "Bravo!", confetti and a proud cat.');
+          this.later('win', 3500, () => this.setState({ view: 'yarn', basket: (this.state.basket + 1) % 4, yarn: { x: 233, y: 233 } }));
+        });
+      } else this.log('Tilt: the yarn rolls and the cat chases it.');
+    } else this.log('Tilt: nothing happens on this screen.');
+  }
+  renderVals() {
+    const s = this.state;
+    const vis = this.vis();
+    const cfg = {
+      view: s.view, variant: s.variant, apps: vis, idx: s.idx, talking: s.talking, dim: s.dim, hold: s.hold,
+      costume: s.costume, parrot: s.parrot, listen: s.listen, pet: s.pet, ball: s.ball, tool: s.tool,
+      dots: s.dots, paws: s.paws, yarn: s.yarn, basket: s.basket, yarnHint: s.yarnHint, clock: s.clock,
+      stars: s.clock === 'night' || s.clock === 'shh' ? 3 : 0, sing: s.sing, volume: s.volume, bed: s.bed, wake: s.wake,
+      hidden: s.hidden, battery: s.power === 'low' ? 8 : 72, celebrate: s.celebrate
+    };
+    const on = (b) => (b ? 'sim-btn sim-on' : 'sim-btn');
+    const circ = (x, y, r) => 'M' + (x - r) + ' ' + y + ' a' + r + ' ' + r + ' 0 1 0 ' + (2 * r) + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + (-2 * r) + ' 0 Z ';
+    const names = { boot: 'Boot', pick: 'Pick your cat', menu: 'Menu', parrot: 'Silly voice parrot', pet: 'Pet the cat', draw: 'Magic paws', erase: 'Magic paws (erasing)', yarn: 'Yarn roll', yarnwin: 'Yarn roll (win)', clock: 'Sleepy clock', piano: 'Meow piano', lowbatt: 'Low battery', charging: 'Charging', bedtime: 'Bedtime lock', 'p-home': 'Parent area', 'p-volume': 'Parent: volume', 'p-times': 'Parent: sleep times', 'p-apps': 'Parent: apps' };
+    return {
+      cfg: cfg, act: this.act,
+      screenOff: !s.screenOn,
+      pawD: 'M6.5 16.5 Q6.5 11 12 11 Q17.5 11 17.5 16.5 Q17.5 20 12 20 Q6.5 20 6.5 16.5 Z ' + circ(5, 9.5, 2.4) + circ(9.3, 5.6, 2.4) + circ(14.7, 5.6, 2.4) + circ(19, 9.5, 2.4),
+      home: () => this.home(), power: () => this.power(),
+      shake: () => this.shake(),
+      tiltL: () => this.tilt(-1, 0), tiltR: () => this.tilt(1, 0), tiltU: () => this.tilt(0, -1), tiltD: () => this.tilt(0, 1),
+      setNight: () => { this.setState({ clock: 'night' }); this.log('Clock: before wake-up time. Night light, very dim.'); },
+      setMorning: () => {
+        this.setState({ clock: 'morning' });
+        if (this.state.view === 'clock') { [392, 523, 659, 784].forEach((f, i) => this.tone(f, f * 1.02, 0.25, 'triangle', 0.12, i * 0.2)); this.later('say', 900, () => this.say('Dobro jutro!', 1.7)); }
+        this.log('Wake-up time: the sun rises over 4 s, the cat stretches, "Dobro jutro!"');
+      },
+      pNormal: () => { this.setState({ power: 'normal' }); if (['lowbatt', 'charging'].indexOf(this.state.view) >= 0) this.toMenu('Battery normal.'); },
+      pLow: () => { if (this.state.lock) return; this.setState({ power: 'low', view: 'lowbatt' }); this.say('Gladna sam…', 1.3, 0.8); this.log('Low battery: sleepy cat, empty bowl, "Gladna sam…" (I’m hungry).'); },
+      pCharge: () => { if (this.state.lock) return; this.setState({ power: 'charging', view: 'charging' }); this.say('Njam njam!', 1.9); this.log('Charging: the cat eats happily. Home keeps playing.'); },
+      toggleLock: () => {
+        const l = !this.state.lock;
+        this.setState({ lock: l, view: l ? 'bedtime' : 'menu', dim: false });
+        this.log(l ? 'Bedtime lock: outside allowed hours. Sleeping cat, nothing reacts.' : 'Allowed hours again: back to the menu.');
+      },
+      restart: () => { this.setState({ view: 'boot', lock: false }); this.meow(400, 'triangle', 0.2); this.log('Boot: the cat stretches and yawns.'); this.later('boot', 2600, () => { if (this.state.view === 'boot') this.setState({ view: 'menu' }); }); },
+      firstRun: () => { this.setState({ view: 'boot', lock: false, pickReturn: 'menu' }); this.log('First run: after the boot yawn she picks her cat.'); this.later('boot', 2600, () => { if (this.state.view === 'boot') this.setState({ view: 'pick' }); }); },
+      toggleSound: () => { const sd = !this.state.sound; this.setState({ sound: sd }); if (!sd) { try { window.speechSynthesis.cancel(); } catch (e) {} } },
+      c: {
+        night: on(s.clock !== 'morning'), morning: on(s.clock === 'morning'),
+        pNormal: on(s.power === 'normal'), pLow: on(s.power === 'low'), pCharge: on(s.power === 'charging'),
+        lock: on(s.lock), sound: on(s.sound)
+      },
+      logTxt: s.log,
+      screenName: names[s.view] || s.view
+    };
+  }
+}
+</script>
+</body>
+</html>

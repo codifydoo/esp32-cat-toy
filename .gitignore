@@ -1,0 +1,14 @@
+# ESP-IDF build output and generated config (sdkconfig holds Wi-Fi secrets after a build)
+build/
+managed_components/
+dependencies.lock
+sdkconfig
+sdkconfig.old
+sdkconfig.secrets
+
+# Generated assets (rebuilt by tools/)
+assets/
+
+# Tooling
+node_modules/
+.DS_Store

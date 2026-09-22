@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cat character sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#000000}
+</style>
+</helmet>
+<div style="width: 2800px; height: 1900px; box-sizing: border-box; padding: 72px; background: #000000; color: #EDEAF5; font-family: 'Nunito', system-ui, sans-serif; display: flex; flex-direction: column; gap: 56px;">
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 56px; font-weight: 600;">The cat · character sheet</div>
+<div style="font-size: 22px; color: #A9A5BF; max-width: 1500px;">Drawn on pure black, as on the device. Flat fills, 6 px outline at the 200 px reference size (3 px at the 100 px minimum), no gradients, blur or shadows. The black-and-white cat uses a light lavender outline so it never disappears into the black screen.</div>
+</div>
+
+<div style="display: flex; gap: 72px; align-items: flex-end;">
+<sc-for list="{{heroes}}" as="hc" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 18px; align-items: center; width: 520px;">
+<dc-import name="Cat" expression="happy" variant="{{hc.v}}" size="300" animate="{{ false }}" hint-size="300px,315px"></dc-import>
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 28px; font-weight: 600;">{{hc.name}}</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+<sc-for list="{{hc.sw}}" as="s" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: #16151C; border: 2px solid #2A2836;">
+<div style="width: 26px; height: 26px; border-radius: 50%; background: {{s.hex}}; border: 2px solid #3A3850;"></div>
+<span style="font-size: 14px; color: #CFCBE0;">{{s.k}} {{s.hex}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 760px; padding-bottom: 20px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 26px; font-weight: 600;">How she picks</div>
+<div style="font-size: 18px; line-height: 1.5; color: #A9A5BF;">On first boot the three cats sit on round pads; she taps one and it celebrates. Parents can change it later under Cat. Every screen, costume and expression works with all three.</div>
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 26px; font-weight: 600; margin-top: 10px;">Construction</div>
+<div style="font-size: 18px; line-height: 1.5; color: #A9A5BF;">Canvas 200 × 210. Head ellipse 148 × 124 at (100, 108). Eyes at (72, 104) and (128, 104). Mouth anchor (100, 130). Paws, tail, ears and costume are separate layers so one head works for every state.</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Expressions</div>
+<div style="display: grid; grid-template-columns: 170px repeat(15, minmax(0, 1fr)); gap: 8px; align-items: center;">
+<div></div>
+<sc-for list="{{cols}}" as="col" hint-placeholder-count="15">
+<div style="display: flex; flex-direction: column; gap: 2px; text-align: center;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 18px; font-weight: 600;">{{col.name}}</div>
+<div style="font-size: 13px; color: #8A86A0;">{{col.use}}</div>
+</div>
+</sc-for>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 20px; font-weight: 600; color: {{r.color}};">{{r.name}}</div>
+<sc-for list="{{r.cells}}" as="cell" hint-placeholder-count="15">
+<div style="display: flex; justify-content: center; padding: 10px 0;">
+<dc-import name="Cat" expression="{{cell.e}}" variant="{{cell.v}}" frame="{{cell.f}}" size="136" animate="{{ false }}" hint-size="136px,143px"></dc-import>
+</div>
+</sc-for>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600;">Costumes · Silly voice parrot</div>
+<div style="display: flex; gap: 48px;">
+<sc-for list="{{costumes}}" as="cs" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 12px; align-items: center; width: 300px;">
+<div style="display: flex; gap: 4px;">
+<dc-import name="Cat" expression="talking" variant="orange" costume="{{cs.c}}" frame="2" size="146" animate="{{ false }}" hint-size="146px,153px"></dc-import>
+<dc-import name="Cat" expression="happy" variant="tux" costume="{{cs.c}}" size="146" animate="{{ false }}" hint-size="146px,153px"></dc-import>
+</div>
+<div style="display: flex; align-items: center; gap: 10px;">
+<div style="width: 18px; height: 18px; border-radius: 50%; background: {{cs.accent}};"></div>
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 22px; font-weight: 600;">{{cs.name}}</div>
+</div>
+<div style="font-size: 16px; color: #A9A5BF; text-align: center;">{{cs.voice}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":2800,"height":1900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const VAR = [
+      { v: 'orange', name: 'Orange tabby', color: '#FF9F43', sw: [['fur', '#FF9F43'], ['stripe', '#D9661A'], ['muzzle', '#FFE6C7'], ['line', '#6B2E0A'], ['eyes', '#2A1633'], ['nose', '#FF6F91']] },
+      { v: 'grey', name: 'Grey', color: '#A9B6C9', sw: [['fur', '#A9B6C9'], ['stripe', '#7483A0'], ['muzzle', '#EEF2F8'], ['line', '#2C3547'], ['eyes', '#1E2233'], ['nose', '#FF7FA0']] },
+      { v: 'tux', name: 'Black and white', color: '#C9CDEB', sw: [['fur', '#3B3B52'], ['chest', '#F6F6FA'], ['line', '#C9CDEB'], ['eyes', '#FFD84A'], ['ear', '#FF9DB5'], ['nose', '#FF7FA0']] }
+    ];
+    const cols = [
+      { e: 'happy', name: 'Happy', use: 'default, menu' },
+      { e: 'laughing', name: 'Laughing', use: 'rub, piano' },
+      { e: 'surprised', name: 'Surprised', use: 'draw, yarn chase' },
+      { e: 'listening', name: 'Listening', use: 'mic on, ears up' },
+      { e: 'talking', f: 0, name: 'Talk A', use: 'mouth closed' },
+      { e: 'talking', f: 1, name: 'Talk B', use: 'mouth half' },
+      { e: 'talking', f: 2, name: 'Talk C', use: 'mouth open' },
+      { e: 'sleepy', name: 'Sleepy', use: 'idle, low battery' },
+      { e: 'sleeping', name: 'Sleeping', use: 'night, bedtime' },
+      { e: 'dizzy', name: 'Dizzy', use: 'shake' },
+      { e: 'eating', name: 'Eating', use: 'fish, charging' },
+      { e: 'proud', name: 'Proud', use: 'win, wake-up' },
+      { e: 'yawn', name: 'Stretch', use: 'boot' },
+      { e: 'purring', name: 'Purring', use: 'tap in Pet' },
+      { e: 'shh', name: 'Shh', use: 'night tap' }
+    ];
+    const rows = VAR.map((vv) => ({ name: vv.name, color: vv.color, cells: cols.map((c) => ({ e: c.e, v: vv.v, f: c.f || 0 })) }));
+    const heroes = VAR.map((vv) => ({ v: vv.v, name: vv.name, sw: vv.sw.map((s) => ({ k: s[0], hex: s[1] })) }));
+    const costumes = [
+      { c: 'mouse', name: 'Mouse ears', accent: '#FF8FC8', voice: 'High squeaky · pitch +7 semitones' },
+      { c: 'lion', name: 'Lion mane', accent: '#FFB020', voice: 'Deep · pitch −7 semitones' },
+      { c: 'robot', name: 'Robot helmet', accent: '#4FD8FF', voice: 'Robot · ring-mod 30 Hz + bitcrush' },
+      { c: 'miner', name: 'Cave', accent: '#9C7BFF', voice: 'Echo · 250 ms × 4, drawn inside a cave arch' }
+    ];
+    return { heroes: heroes, cols: cols, rows: rows, costumes: costumes };
+  }
+}
+</script>
+</body>
+</html>

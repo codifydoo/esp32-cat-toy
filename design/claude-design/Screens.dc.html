@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>All screens and states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Nunito:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#17161E}
+@keyframes catbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes catbreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+@keyframes catwobble{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+@keyframes catblink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(0.1)}}
+@keyframes cattail{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-12deg)}}
+@keyframes tA{0%{opacity:1}33.33%{opacity:0}100%{opacity:0}}
+@keyframes tB{0%{opacity:0}33.33%{opacity:1}66.66%{opacity:0}100%{opacity:0}}
+@keyframes tC{0%{opacity:0}66.66%{opacity:1}100%{opacity:1}}
+@keyframes zz{0%{transform:translate(0,0);opacity:.25}50%{opacity:1}100%{transform:translate(6px,-10px);opacity:.25}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%{transform:scale(.94);opacity:.9}100%{transform:scale(1.1);opacity:0}}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes floatup{0%{transform:translateY(10px);opacity:0}30%{opacity:1}100%{transform:translateY(-44px);opacity:0}}
+@keyframes fall{0%{transform:translateY(0) rotate(0deg)}100%{transform:translateY(520px) rotate(540deg)}}
+@keyframes sweep{0%,100%{transform:translateX(-60px)}50%{transform:translateX(60px)}}
+@keyframes bounce{0%{transform:translateY(0)}35%{transform:translateY(-22px)}70%{transform:translateY(0)}85%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+@keyframes rise{0%{transform:translateY(110px)}100%{transform:translateY(0)}}
+@keyframes ring{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.25);opacity:0}}
+@keyframes charge{0%{transform:scaleX(.15)}100%{transform:scaleX(1)}}
+@keyframes wave{0%,100%{opacity:.25}50%{opacity:1}}
+.cat-bob{animation:catbob 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.cat-breathe{animation:catbreathe 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.cat-wobble{animation:catwobble .6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 80%}
+.cat-blink{animation:catblink 4.2s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+.cat-tail{animation:cattail 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:0% 100%}
+.cat-tA{animation:tA .45s steps(1,end) infinite}
+.cat-tB{animation:tB .45s steps(1,end) infinite}
+.cat-tC{animation:tC .45s steps(1,end) infinite}
+.cat-zz{animation:zz 2.4s ease-in-out infinite}
+.cat-spin{animation:spin 1.6s linear infinite;transform-box:fill-box;transform-origin:50% 50%}
+.pulse-ring{animation:pulse 1s ease-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+.twinkle{animation:twinkle 3s ease-in-out infinite}
+.float-up{animation:floatup 1.2s ease-out infinite}
+.confetti{animation:fall 1.6s ease-in infinite}
+.sweep-x{animation:sweep .55s ease-in-out infinite}
+.bounce{animation:bounce .4s ease-out 1}
+.icon-breathe{animation:breathe 3s ease-in-out infinite}
+.sun-rise{animation:rise 4s ease-in-out 1 both}
+.spin-slow{animation:spin 24s linear infinite}
+.boot-ring{animation:ring 2s ease-out infinite;transform-box:fill-box;transform-origin:50% 50%}
+.charge-fill{animation:charge 2s ease-in-out infinite;transform-box:fill-box;transform-origin:0% 50%}
+.wave-pulse{animation:wave .9s ease-in-out infinite}
+.blink-slow{animation:twinkle 1.6s ease-in-out infinite}
+.yarn-roll{animation:spin 1.2s linear infinite}
+</style>
+</helmet>
+<div style="width: 3236px; height: 4720px; box-sizing: border-box; padding: 80px; background: #17161E; color: #EDEAF5; font-family: 'Nunito', system-ui, sans-serif; display: flex; flex-direction: column; gap: 72px;">
+<div style="display: flex; flex-direction: column; gap: 10px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 56px; font-weight: 600;">Every screen, every state</div>
+<div style="font-size: 22px; color: #A9A5BF;">466 × 466 round AMOLED, shown at 1:1. Black is pixels off. The child-facing screens have no text; the cat speaks every name out loud.</div>
+</div>
+<sc-for list="{{sections}}" as="sec" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 28px;">
+<div style="display: flex; align-items: baseline; gap: 18px; border-bottom: 2px solid #2E2C3A; padding-bottom: 12px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 34px; font-weight: 600; color: {{sec.color}};">{{sec.title}}</div>
+<div style="font-size: 18px; color: #A9A5BF;">{{sec.sub}}</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 56px;">
+<sc-for list="{{sec.items}}" as="it" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 14px;">
+<div style="width: 466px; height: 466px;">
+<dc-import name="Screen" cfg="{{it.cfg}}" hint-size="466px,466px"></dc-import>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<div style="font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-size: 22px; font-weight: 600;">{{it.title}}</div>
+<div style="font-size: 16px; line-height: 1.45; color: #A9A5BF; text-wrap: pretty;">{{it.note}}</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["orange","grey","tux"],"default":"orange"},"animate":{"editor":"boolean","default":true},"$preview":{"width":3236,"height":4720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const variant = this.props.variant || 'orange';
+    const anim = !(this.props.animate === false || this.props.animate === 'false');
+    const RB = ['#FF5A5A', '#FF9F3A', '#FFD84A', '#5CD67A', '#4FD8FF', '#5A8CFF', '#B07CFF'];
+    const dots = [];
+    for (let i = 0; i < 90; i++) {
+      const t = (i / 90) * Math.PI * 2;
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      dots.push({ x: 233 + x * 8.5, y: 190 - y * 8.5, c: RB[Math.floor(i / 4) % 7] });
+    }
+    for (let i = 0; i < 30; i++) dots.push({ x: 110 + i * 8, y: 330 + Math.sin(i / 3) * 16, c: RB[(Math.floor(i / 3) + 3) % 7] });
+    const paws = [];
+    for (let i = 0; i < 8; i++) {
+      const a = Math.PI * (0.9 + i * 0.16);
+      const ang = a * 180 / Math.PI + 180;
+      const side = i % 2 ? 1 : -1;
+      paws.push({ x: 233 + 140 * Math.cos(a) + side * 8 * Math.cos(a), y: 250 + 140 * Math.sin(a) + side * 8 * Math.sin(a), r: ang.toFixed(0), c: RB[i % 7] });
+    }
+    const b = (o) => Object.assign({ variant: variant, anim: anim }, o);
+    const sections = [
+      {
+        title: 'Start and menu', sub: 'Boot, first-run cat picker, the carousel launcher and its idle and hidden-parent states', color: '#FFB547',
+        items: [
+          { title: 'Boot / wake', note: 'Cat stretches and yawns inside two expanding rings. 2.6 s, then the menu.', cfg: b({ view: 'boot' }) },
+          { title: 'Pick your cat', note: 'First run, or from the parent area. Three 156 px pads; the chosen cat celebrates.', cfg: b({ view: 'pick', celebrate: 1 }) },
+          { title: 'Menu · Silly voices', note: 'Icon 240 px, cat peeks over the rim with paws on it and meows the app name on every swipe.', cfg: b({ view: 'menu', idx: 0, talking: true }) },
+          { title: 'Menu · Meow piano', note: 'The cat reacts to each app (here: laughing). Active page dot takes the app color.', cfg: b({ view: 'menu', idx: 5 }) },
+          { title: 'Menu · idle', note: 'After 20 s without touch: dims to 35 % over 600 ms, cat turns sleepy. Screen off at 120 s.', cfg: b({ view: 'menu', idx: 1, dim: true }) },
+          { title: 'Menu · parent hold', note: 'Hidden entry: hold the cat 5 s. Nothing shows for the first second, then a faint ring fills.', cfg: b({ view: 'menu', idx: 2, hold: 0.7 }) }
+        ]
+      },
+      {
+        title: 'Silly voice parrot', sub: 'Big mic records up to 5 s; tapping the cat cycles the costume, and each costume is a voice', color: '#FF5FA2',
+        items: [
+          { title: 'Ready', note: 'Mic 220 px. The dotted ring shows the voice color and slowly turns, hinting that the cat is tappable.', cfg: b({ view: 'parrot', costume: 0, parrot: 'idle' }) },
+          { title: 'Listening', note: 'Ears perk. Mic turns red with a pulse ring; the white arc counts down 5 s. Silence of 1.2 s ends early.', cfg: b({ view: 'parrot', costume: 0, parrot: 'listen', listen: 0.62 }) },
+          { title: 'Playback · mouse ears', note: 'High squeaky: pitch +7 semitones. Mouth frames follow the playback volume.', cfg: b({ view: 'parrot', costume: 0, parrot: 'play' }) },
+          { title: 'Playback · lion mane', note: 'Deep voice: pitch −7 semitones.', cfg: b({ view: 'parrot', costume: 1, parrot: 'play' }) },
+          { title: 'Playback · robot helmet', note: 'Robot: ring modulation at 30 Hz plus light bitcrush.', cfg: b({ view: 'parrot', costume: 2, parrot: 'play' }) },
+          { title: 'Playback · cave', note: 'Echo: 250 ms delay, 4 repeats, each at half volume. The cat wears a lamp helmet inside a cave arch.', cfg: b({ view: 'parrot', costume: 3, parrot: 'play' }) }
+        ]
+      },
+      {
+        title: 'Pet the cat', sub: 'Tap = purr, rub = giggle, shake = dizzy, tilt = eyes follow a ball, fish = eat', color: '#FFB547',
+        items: [
+          { title: 'Idle', note: 'Cat 250 px, whole head is the touch area (230 px). Fish button 150 px.', cfg: b({ view: 'pet', pet: 'idle' }) },
+          { title: 'Tap · purr', note: 'Content eyes, purr vibration lines, hearts float up. Low purr loop 1.5 s.', cfg: b({ view: 'pet', pet: 'purr' }) },
+          { title: 'Rub · giggle', note: 'Rub = 150 px of finger travel while pressed. Laughing face with hearts.', cfg: b({ view: 'pet', pet: 'giggle' }) },
+          { title: 'Shake · dizzy', note: 'Spiral eyes, orbiting stars, ±7° wobble for 2 s.', cfg: b({ view: 'pet', pet: 'dizzy' }) },
+          { title: 'Tilt · follow the ball', note: 'A ball rolls with the tilt; the pupils track it. Back to idle 3 s after the last tilt.', cfg: b({ view: 'pet', pet: 'tilt', ball: { x: 350, y: 250 } }) },
+          { title: 'Fish · eating', note: 'Happy munching with the fish in its paws. Crunch sound plus "Njam!"', cfg: b({ view: 'pet', pet: 'eat' }) }
+        ]
+      },
+      {
+        title: 'Magic paws and Yarn roll', sub: 'Glowing trails on black; shake to sweep. Tilt the yarn into the basket', color: '#8A7BFF',
+        items: [
+          { title: 'Drawing · rainbow', note: '16 px dot with a 30 px halo at 28 % (glow without blur). Color steps every 3 dots.', cfg: b({ view: 'draw', tool: 'rainbow', dots: dots }) },
+          { title: 'Drawing · paw prints', note: 'A print every 40 px, alternating left and right, turned along the stroke. Brush button 150 px.', cfg: b({ view: 'draw', tool: 'paws', paws: paws }) },
+          { title: 'Shake · sweep', note: 'Drawing fades to 30 % while the cat sweeps for 1.6 s, then "Čisto!" and a clean canvas.', cfg: b({ view: 'erase', dots: dots, paws: [] }) },
+          { title: 'Yarn · rolling', note: 'Tilt rolls the yarn; the cat chases it from behind. Tilt hint shows for the first 4 s.', cfg: b({ view: 'yarn', yarn: { x: 250, y: 214 }, basket: 0, yarnHint: true }) },
+          { title: 'Yarn · in the basket', note: 'Confetti (24 pieces), proud cat, fanfare and "Bravo!" The basket moves for the next round.', cfg: b({ view: 'yarnwin' }) }
+        ]
+      },
+      {
+        title: 'Sleepy clock, bedtime and Meow piano', sub: 'Night light stays dim; morning is the one bright, happy moment', color: '#3D7BFF',
+        items: [
+          { title: 'Clock · night light', note: 'Whole scene at 45 %. Stars along the bottom are hours left until wake-up; one goes out each hour.', cfg: b({ view: 'clock', clock: 'night', stars: 3 }) },
+          { title: 'Clock · tap at night', note: 'Cat half opens its eyes, paw to mouth, whispers "Pssst… spavaj". Volume capped at 30 %.', cfg: b({ view: 'clock', clock: 'shh', stars: 3 }) },
+          { title: 'Clock · wake-up time', note: 'Sun rises over 4 s while brightness goes 10 % to 100 %. The cat stretches up. "Dobro jutro!"', cfg: b({ view: 'clock', clock: 'morning' }) },
+          { title: 'Bedtime lock', note: 'Outside allowed hours. 30 % brightness, nothing reacts, Home is ignored; panel off after 30 s.', cfg: b({ view: 'bedtime' }) },
+          { title: 'Meow piano', note: 'Five 150 px cats on a ring, one per pentatonic note: C, D, E, G, A. Any order sounds nice.', cfg: b({ view: 'piano', sing: -1 }) },
+          { title: 'Meow piano · singing', note: 'The tapped cat bounces 22 px, sings, and its pad fills. The center note takes its color.', cfg: b({ view: 'piano', sing: 2 }) }
+        ]
+      },
+      {
+        title: 'Battery and parent area', sub: 'Battery states are picture-only. The parent area is the only place with text', color: '#5CD67A',
+        items: [
+          { title: 'Low battery', note: 'Below 10 %: sleepy cat, empty bowl, blinking red battery. "Gladna sam…" Shows 4 s, then play resumes.', cfg: b({ view: 'lowbatt' }) },
+          { title: 'Charging', note: 'Plugged in: the cat eats from a full bowl, battery fills in a loop. Home returns to play.', cfg: b({ view: 'charging' }) },
+          { title: 'Parent area', note: 'Four 140 px tiles and the battery level in the middle. Adult text: Fredoka 17–22 px.', cfg: b({ view: 'p-home' }) },
+          { title: 'Parent · max volume', note: '270° arc, 10 % steps. Caps every sound on the device.', cfg: b({ view: 'p-volume', volume: 60 }) },
+          { title: 'Parent · sleep times', note: 'Bedtime and wake-up in 15 min steps. They drive the bedtime lock and the Sleepy clock.', cfg: b({ view: 'p-times' }) },
+          { title: 'Parent · show apps', note: 'Tap to hide or show. Hidden apps leave the carousel; at least one stays.', cfg: b({ view: 'p-apps', hidden: [3] }) }
+        ]
+      }
+    ];
+    return { sections: sections };
+  }
+}
+</script>
+</body>
+</html>
