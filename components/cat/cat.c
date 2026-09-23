@@ -13,7 +13,6 @@
 #define PAW_DRAWN_Y     172
 #define EYE_SPACING     56  /* right eye is 56 design px right of the left eye */
 #define LOOK_RANGE      4   /* pupils move up to 4 design px */
-#define DIZZY_ROTATION  70  /* 0.1 degree units: +-7 degrees */
 
 typedef enum { EARS_NORMAL, EARS_PERK, EARS_DROOP } ears_t;
 typedef enum { EYES_OPEN, EYES_HAPPY, EYES_BIG, EYES_HALF, EYES_CLOSED, EYES_SPIRAL } eyes_t;
@@ -213,7 +212,8 @@ static void apply(cat_t *c)
 
     bool calm = c->state == CAT_SLEEPING || c->state == CAT_SLEEPY || c->state == CAT_SHH;
     lv_obj_set_style_translate_y(c->rig, calm ? 0 : sc(c, BOB[(t / 2) % 6]), 0);
-    lv_obj_set_style_transform_rotation(c->rig, c->state == CAT_DIZZY ? ((t / 4) % 2 ? DIZZY_ROTATION : -DIZZY_ROTATION) : 0, 0);
+    /* Spec §3.4 fallback: rotating the whole rig measured 7 FPS on the device, so dizzy wobbles sideways. */
+    lv_obj_set_style_translate_x(c->rig, c->state == CAT_DIZZY ? ((t / 4) % 2 ? sc(c, 10) : sc(c, -10)) : 0, 0);
 }
 
 static void on_timer(lv_timer_t *timer)
