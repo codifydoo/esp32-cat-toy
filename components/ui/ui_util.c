@@ -48,3 +48,20 @@ void ui_set_hidden(lv_obj_t *obj, bool hidden)
         lv_obj_remove_flag(obj, LV_OBJ_FLAG_HIDDEN);
     }
 }
+
+lv_obj_t *ui_arc(lv_obj_t *parent, int32_t cx, int32_t cy, int32_t r, int32_t width)
+{
+    lv_obj_t *a = lv_arc_create(parent);
+    int32_t d = 2 * r + width;
+    lv_obj_set_size(a, d, d);
+    lv_obj_set_pos(a, cx - d / 2, cy - d / 2);
+    lv_obj_remove_flag(a, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_bg_opa(a, LV_OPA_TRANSP, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(a, 0, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(a, 0, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(a, width, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(a, width, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_rounded(a, true, LV_PART_MAIN);
+    lv_obj_set_style_arc_rounded(a, true, LV_PART_INDICATOR);
+    return a;
+}

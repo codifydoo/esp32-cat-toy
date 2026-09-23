@@ -8,3 +8,6 @@ lv_obj_t *ui_plain(lv_obj_t *parent);       /* no style, not clickable, not scro
 lv_obj_t *ui_circle(lv_obj_t *parent, int32_t cx, int32_t cy, int32_t d, uint32_t color);
 lv_obj_t *ui_image(lv_obj_t *parent, const char *asset, int32_t x, int32_t y); /* not clickable */
 void ui_set_hidden(lv_obj_t *obj, bool hidden);
+/* A non-clickable arc without a knob, centered on (cx, cy) with the given radius to the middle of
+ * the stroke; main (track) and indicator both get `width` and round caps. */
+lv_obj_t *ui_arc(lv_obj_t *parent, int32_t cx, int32_t cy, int32_t r, int32_t width);
