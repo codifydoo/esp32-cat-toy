@@ -360,6 +360,6 @@ direct_dependencies:
 - joltwallet/littlefs
 - lvgl/lvgl
 - waveshare/esp32_s3_touch_amoled_1_75
-manifest_hash: 953f112f6f19d29ad4b5f11c11b7c71792d5000c7b10f1cb5c4eb7082a333513
+manifest_hash: 8ba011f6a4ef6b757fca61e7fb47480885ab8667e7572f7193c36f2696e64d94
 target: esp32s3
 version: 2.0.0

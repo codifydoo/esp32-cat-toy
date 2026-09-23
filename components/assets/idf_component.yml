@@ -1,0 +1,5 @@
+dependencies:
+  lvgl/lvgl:
+    version: "9.4.*"
+    public: true
+  joltwallet/littlefs: "^1.22.3"

@@ -7,8 +7,8 @@ sdkconfig.old
 sdkconfig.secrets
 
 # Generated assets and previews (rebuilt by tools/build_assets.sh)
-assets/
-build-assets/
+/assets/
+/build-assets/
 
 # Tooling
 node_modules/
