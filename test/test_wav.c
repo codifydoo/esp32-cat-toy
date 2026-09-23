@@ -79,6 +79,19 @@ static void test_truncated_data_is_clamped_to_even_bytes(void)
     TEST_ASSERT_EQUAL(6, w.data_bytes);
 }
 
+static void test_rejects_huge_chunk_size(void)
+{
+    /* A non-data chunk declaring a size near UINT32_MAX: on a 32-bit size_t,
+     * 8 + 0xFFFFFFF8 + 0 == 0x100000000, which wraps to 0, so `step` would be 0 and the
+     * parser would loop on the same offset forever instead of rejecting the file. */
+    wav_info_t w;
+    header();
+    fmt_chunk(1, 1, 24000, 16);
+    put("JUNK", 4);
+    put32(0xFFFFFFF8u);
+    TEST_ASSERT_FALSE(wav_parse(buf, len, &w));
+}
+
 static void test_rejects_bad_files(void)
 {
     wav_info_t w;
@@ -102,6 +115,7 @@ int main(void)
     RUN_TEST(test_canonical_file);
     RUN_TEST(test_skips_other_chunks_with_padding);
     RUN_TEST(test_truncated_data_is_clamped_to_even_bytes);
+    RUN_TEST(test_rejects_huge_chunk_size);
     RUN_TEST(test_rejects_bad_files);
     return UNITY_END();
 }

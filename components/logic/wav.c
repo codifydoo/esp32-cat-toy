@@ -31,6 +31,12 @@ bool wav_parse(const uint8_t *buf, size_t len, wav_info_t *out)
             out->data_bytes = (size < avail ? size : avail) & ~(size_t)1;
             return true;
         }
+        if (size > avail) {
+            /* Declared chunk size overruns the buffer; on a 32-bit size_t a value near
+             * UINT32_MAX (e.g. 0xFFFFFFF7/0xFFFFFFF8) would otherwise wrap `step` to a tiny
+             * number below and spin this loop forever instead of stopping. */
+            break;
+        }
         size_t step = 8 + (size_t)size + (size & 1u);
         if (step > len - p) {
             break;
