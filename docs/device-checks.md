@@ -194,3 +194,17 @@ Missing versus the schematic: 0x20 TCA9554 (U5) and 0x51 PCF85063 RTC (U4).
 
 Conclusion: M0 is blocked on hardware. The unit's I/O expander, RTC and audio path do not work under
 Waveshare's own firmware either. Next step: replace the unit or get Waveshare's diagnosis.
+
+## Cat gallery (Task 14) — 2026-09-23
+
+| Check | Result |
+| --- | --- |
+| 15 expressions vs the character sheet | PASS: all match (also covers the Task 9 design comparison) |
+| Costumes (BOOT cycles mouse, lion, robot, miner, none) | PASS: all sit correctly; 5 of 5 normal BOOT clicks registered |
+| Happy cat idle animation (bob, blink, tail) | PASS |
+| Cat variants and scales (PWR cycles them) | BLOCKED: PWR does not work on this unit (see Diagnostics) |
+| FPS, happy cat | 25–30 FPS |
+| FPS, dizzy | 7 FPS with the ±7° rotation (CPU 99%) → applied the spec §3.4 fallback (sideways wobble): 26–30 FPS, looks smooth |
+| Missing images | none |
+
+M2 passes except the variant/scale check, which needs PWR.
