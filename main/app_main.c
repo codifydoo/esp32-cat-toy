@@ -5,6 +5,7 @@
 #include "cat.h"
 #include "display.h"
 #include "esp_log.h"
+#include "esp_system.h"
 #include "lvgl.h"
 #include "sdkconfig.h"
 #include "sensors.h"
@@ -33,6 +34,9 @@ static void on_button(button_id_t id)
 
 void app_main(void)
 {
+    /* The ROM's own reset-reason line is often lost over USB, so log it again (esp_reset_reason_t:
+     * 1 power-on, 3 software, 4 panic, 5-7 watchdogs, 9 brownout, 11 USB, 14 power glitch). */
+    ESP_LOGI(TAG, "reset reason %d", (int)esp_reset_reason());
     ESP_ERROR_CHECK(settings_init());
     if (assets_init() != ESP_OK) {
         ESP_LOGE(TAG, "assets missing: images show as magenta dots and sounds are silent");
