@@ -9,6 +9,9 @@
 #include "cat.h"
 #include "esp_random.h"
 #include "gestures.h"
+#include "idle.h"
+#include "parent.h"
+#include "touch_raw.h"
 #include "settings.h"
 #include "tokens.h"
 #include "ui_util.h"
@@ -24,6 +27,8 @@ static gesture_track_t s_track;
 static bool s_busy;
 static uint8_t s_idle_level;
 static lv_timer_t *s_react_timer;
+static lv_obj_t *s_hold_ring;
+static hold_track_t s_hold;
 
 static const app_t *current(void) { return s_apps[s_car.index]; }
 
@@ -219,6 +224,41 @@ static void chevron(const lv_point_precise_t *points)
     lv_obj_set_style_line_rounded(l, true, 0);
 }
 
+/* Two fingers are down: make LVGL ignore the rest of this touch, so letting go is not also a tap
+ * on the cat or the icon (the same call the app manager uses before closing an app). */
+static void swallow_touch(void)
+{
+    for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
+        if (lv_indev_get_type(i) == LV_INDEV_TYPE_POINTER && lv_indev_get_state(i) == LV_INDEV_STATE_PRESSED) {
+            lv_indev_wait_release(i);
+        }
+    }
+}
+
+static void hold_tick(lv_timer_t *t)
+{
+    (void)t;
+    if (app_manager_current() || lv_screen_active() != s_scr) {
+        hold_reset(&s_hold); /* only on the menu */
+        ui_set_hidden(s_hold_ring, true);
+        return;
+    }
+    touch_raw_t raw = touch_raw_get();
+    uint16_t progress = 0;
+    hold_state_t st = hold_update(&s_hold, raw.count, raw.x, raw.y, lv_tick_get(), &progress);
+    if (st != HOLD_IDLE) {
+        swallow_touch();
+    }
+    ui_set_hidden(s_hold_ring, st != HOLD_PROGRESS);
+    if (st == HOLD_PROGRESS) {
+        lv_arc_set_value(s_hold_ring, progress);
+    } else if (st == HOLD_DONE) {
+        idle_wake(); /* the hold may have started on a dimmed or dark menu */
+        s_busy = true; /* launcher_show() clears it when the menu comes back */
+        app_manager_open(&PARENT_APP);
+    }
+}
+
 void launcher_create(void)
 {
     s_scr = ui_screen();
@@ -258,6 +298,15 @@ void launcher_create(void)
     lv_obj_set_style_image_opa(hint, STATIC_OPA, 0);
     layout_dots();
     cat_set_state(s_cat, current()->react);
+    s_hold_ring = ui_arc(s_scr, HOLD_RING_CX, HOLD_RING_CY, HOLD_RING_R, HOLD_RING_W);
+    lv_arc_set_rotation(s_hold_ring, 270); /* start at 12 o'clock */
+    lv_arc_set_bg_angles(s_hold_ring, 0, 360);
+    lv_arc_set_range(s_hold_ring, 0, 1000);
+    lv_obj_set_style_arc_opa(s_hold_ring, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_arc_color(s_hold_ring, lv_color_white(), LV_PART_INDICATOR);
+    lv_obj_set_style_arc_opa(s_hold_ring, HOLD_RING_OPA, LV_PART_INDICATOR);
+    ui_set_hidden(s_hold_ring, true);
+    lv_timer_create(hold_tick, HOLD_POLL_MS, NULL);
 }
 
 void launcher_show(void)

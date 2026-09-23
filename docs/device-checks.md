@@ -326,3 +326,17 @@ M3 passes.
 | 2 | All 50 rounds, no restart, but `SOAK: FAIL: internal delta=-25592`. Readings swung between ~198 KB and ~223 KB from round to round: a ~25 KB buffer held for a few ms during a display flush or fade, not a leak (PSRAM was flat) |
 | 3 | After flashing and a scripted reset, the screen stayed black and the chip did not answer the flasher until the user replugged USB. Not reproduced since; cause unknown |
 | 4 | Soak now takes the highest of 10 readings 50 ms apart. **`SOAK: PASS: internal delta=-8 psram delta=0 over 50 rounds`**, one boot, no crash, logged with a listener that does not touch the reset lines |
+
+## Parent volume (2026-09-23)
+
+| Check | Result |
+| --- | --- |
+| Diagnostics: one finger, then two held, then lift | PASS after a fix: first the count never passed 1 (the Waveshare CST9217 driver hard-codes one point); with the report read, `touch points=1`, `2`, then `0`, on 3 holds |
+| Two fingers held still on the menu: nothing for 1 s, ring fills around the cat, Max volume opens at 5 s | PASS |
+| "−" three times (100 → 70 %, quieter clicks), "+" once (80 %), BOOT back to the menu with the mew at the new level | PASS |
+| Menu afterwards: swipes, cat tap, app open/close, dim at ~20 s and tap to wake | PASS, sounds at the new level (the new display setup and brightness path behave as before) |
+| One finger on the cat 10 s; two fingers 3 s then lift; two fingers with one sliding ~2 cm | PASS: none opened it |
+| Letting go after a completed hold | PASS: no app name, no app opened behind it |
+| Untouched Max volume screen | PASS: back to the menu after ~60 s |
+| Volume survives a restart | PASS: `settings: volume cap 50%` after reset (the level last set) |
+| Log | one boot, no Guru Meditation, abort or assert |
