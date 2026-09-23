@@ -18,6 +18,10 @@ static void close_current_app(void)
     lv_obj_t *screen = s_screen;
     s_current = NULL;
     s_screen = NULL;
+    /* A close reached here by any path (direct, or the deferred one below) fully settles this
+     * open/close cycle, so any stale request from earlier in it must not leak into the next
+     * one -- see app_manager_open()'s comment on why this can otherwise go stale. */
+    s_pending_home = false;
 
     /* Cut pointer input to the app screen before destroy(): a press already in flight on it can
      * otherwise still reach the app's event callbacks (e.g. a tap handler) after destroy() has
@@ -47,6 +51,9 @@ static void close_current_app(void)
 static void deferred_home(void *user_data)
 {
     (void)user_data;
+    if (!s_current) {
+        return; /* a direct-path Home (see app_manager_home()) already closed it */
+    }
     close_current_app();
 }
 
@@ -74,6 +81,15 @@ void app_manager_open(const app_t *app)
         return;
     }
     s_current = app;
+    /* A Home from the previous open/close cycle can be left pending here: if a second Home
+     * landed once that cycle's app screen had genuinely become active, it took the direct path
+     * in app_manager_home() below, whose launcher_show() -> lv_screen_load_anim() deletes that
+     * app screen's still-pending load anim via lv_anim_delete() (lv_display.c) without ever
+     * running its completed_cb (remove_anim() only calls deleted_cb, never completed_cb --
+     * managed_components/lvgl__lvgl/src/misc/lv_anim.c:816-822), so scr_anim_completed() and
+     * LV_EVENT_SCREEN_LOADED never fired for it and on_screen_loaded() never got to clear the
+     * flag itself. Start this new app with a clean slate regardless. */
+    s_pending_home = false;
     s_screen = ui_screen();
     lv_obj_add_event_cb(s_screen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, NULL);
     app->create(s_screen);
