@@ -49,7 +49,7 @@
 #define ANIM_OPEN_FADE_MS      180
 #define ANIM_HOME_MS           200
 #define ANIM_DIM_MS            600
-#define ICON_SCALE_OPEN        486 /* 1.9 x 256; spec 3.4 fallback is 307 (1.2 x) */
+#define ICON_SCALE_OPEN        307 /* spec 3.4 fallback 1.2 x 256: 1.9 x (486) measured 11 FPS on the device */
 #define ICON_SCALE_SETTLE_FROM 230 /* 0.9 x 256 */
 #define TALK_AFTER_NAME_MS     1200
 
