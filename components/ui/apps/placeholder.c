@@ -62,7 +62,6 @@ static void placeholder_destroy(void)
     };
 
 /* Remove a line when that app's real file lands (voices: Task 17). */
-PLACEHOLDER(app_voices, "voices", COLOR_VOICES, SND_NAME_VOICES, SND_SWIPE_VOICES, CAT_TALKING)
 PLACEHOLDER(app_pet, "pet", COLOR_PET, SND_NAME_PET, SND_SWIPE_PET, CAT_HAPPY)
 PLACEHOLDER(app_draw, "draw", COLOR_DRAW, SND_NAME_DRAW, SND_SWIPE_DRAW, CAT_SURPRISED)
 PLACEHOLDER(app_yarn, "yarn", COLOR_YARN, SND_NAME_YARN, SND_SWIPE_YARN, CAT_LISTENING)
