@@ -7,7 +7,7 @@
  * one pointer (the first point). */
 typedef struct {
     uint8_t count; /* 0, 1 or 2 fingers */
-    int16_t x[2];
+    int16_t x[2];  /* raw controller coordinates (not mirrored): fine for measuring movement */
     int16_t y[2];
 } touch_raw_t;
 
