@@ -1,13 +1,14 @@
-# ESP-IDF build output and generated config (sdkconfig holds Wi-Fi secrets after a build)
+# ESP-IDF build output and generated config
 build/
+build-*/
 managed_components/
-dependencies.lock
 sdkconfig
 sdkconfig.old
 sdkconfig.secrets
 
-# Generated assets (rebuilt by tools/)
+# Generated assets and previews (rebuilt by tools/build_assets.sh)
 assets/
+build-assets/
 
 # Tooling
 node_modules/
