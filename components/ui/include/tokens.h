@@ -1,0 +1,100 @@
+#pragma once
+/* Design constants from design/claude-design (Spec.dc.html, Screen.dc.html). One place to tune. */
+
+#define SCREEN_SIZE   466
+#define SCREEN_CENTER 233
+
+/* App colors (Spec: App colors) */
+#define COLOR_VOICES 0xFF5FA2
+#define COLOR_PET    0xFFB547
+#define COLOR_DRAW   0x8A7BFF
+#define COLOR_YARN   0x2FC4A0
+#define COLOR_CLOCK  0x3D7BFF
+#define COLOR_PIANO  0xFF7A45
+
+/* Menu (Screen.dc.html, menu view). The cat is the M scale (200 px); its design origin sits here. */
+#define MENU_CAT_ORIGIN_X   133
+#define MENU_CAT_ORIGIN_Y   9
+#define MENU_CAT_CX         233
+#define MENU_CAT_CY         97
+#define MENU_CAT_R          75
+#define MENU_ICON_X         113
+#define MENU_ICON_Y         142
+#define MENU_ICON_SIZE      240
+#define MENU_ICON_CX        233
+#define MENU_ICON_CY        262
+#define MENU_ICON_R         120
+#define MENU_PAW_A_CX       205
+#define MENU_PAW_B_CX       261
+#define MENU_PAW_CY         144
+#define MENU_ZONE_LEFT_X    14
+#define MENU_ZONE_RIGHT_X   362
+#define MENU_ZONE_Y         172
+#define MENU_ZONE_W         90
+#define MENU_ZONE_H         180
+#define MENU_DOT_RADIUS     204
+#define MENU_DOT_STEP_DEG   7
+#define MENU_DOT_ACTIVE     18
+#define MENU_DOT_IDLE       12
+#define MENU_DOT_EDGE       8
+#define MENU_DOT_IDLE_OPA   89  /* 35 % */
+#define STATIC_OPA          77  /* 30 %: chevrons and the home hint */
+#define HOME_HINT_ANGLE_DEG (-30) /* 2 o'clock; set from docs/device-checks.md (BOOT position) */
+#define HOME_HINT_RADIUS    206
+
+/* Motion (Spec: Motion) */
+#define ANIM_SWIPE_MS          280
+#define ANIM_SETTLE_MS         320
+#define ANIM_OPEN_ZOOM_MS      220
+#define ANIM_OPEN_FADE_MS      180
+#define ANIM_HOME_MS           200
+#define ANIM_DIM_MS            600
+#define ICON_SCALE_OPEN        307 /* spec 3.4 fallback 1.2 x 256: 1.9 x (486) measured 11 FPS on the device */
+#define ICON_SCALE_SETTLE_FROM 230 /* 0.9 x 256 */
+#define TALK_AFTER_NAME_MS     1200
+
+/* Idle and burn-in (Spec: Burn-in) */
+#define IDLE_DIM_MS      20000
+#define IDLE_SLEEP_MS    60000
+#define IDLE_OFF_MS      120000
+#define IDLE_APP_HOME_MS 60000
+#define IDLE_DIM_PCT     35
+#define BRIGHTNESS_FULL  100
+#define BURN_SHIFT_MS    60000
+#define BURN_SHIFT_PX    4
+
+/* Boot (Screens: Boot / wake) */
+#define BOOT_MS         2600
+#define BOOT_RING_COLOR 0xFFB547
+
+/* Placeholder apps: an L-scale cat centered on the screen */
+#define PLACEHOLDER_CAT_X 103
+#define PLACEHOLDER_CAT_Y 70
+
+/* Silly voices (Screen.dc.html, parrot view) */
+#define VOICES_CAT_ORIGIN_X   133
+#define VOICES_CAT_ORIGIN_Y   17
+#define VOICES_CAT_HIT_X      148
+#define VOICES_CAT_HIT_Y      38
+#define VOICES_CAT_HIT_SIZE   170
+#define VOICES_MIC_X          123
+#define VOICES_MIC_Y          232
+#define VOICES_MIC_SIZE       220
+#define VOICES_RING_CX        233
+#define VOICES_RING_CY        124
+#define VOICES_RING_R         102
+#define VOICES_RING_DOTS      29
+#define VOICES_RING_DOT       7
+#define VOICES_WAVE_CY        120
+#define VOICES_RECORD_MAX_S   5
+#define VOICES_BLIP_LEAD_MS   150
+#define COLOR_MIC_IDLE        0xFF5FA2
+#define COLOR_MIC_LISTEN      0xFF3B5C
+#define COLOR_MIC_PLAY        0x5A2340
+#define COLOR_MIC_OFF         0x5F5E5A
+#define COLOR_MIC_RING        0x9E1F5C
+#define COLOR_MIC_RING_LISTEN 0x8A0F26
+#define COLOR_COSTUME_MOUSE   0xFF8FC8
+#define COLOR_COSTUME_LION    0xFFB020
+#define COLOR_COSTUME_ROBOT   0x4FD8FF
+#define COLOR_COSTUME_CAVE    0x9C7BFF

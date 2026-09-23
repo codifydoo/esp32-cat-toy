@@ -1,0 +1,65 @@
+# Phrases (record these: docs/recording-list.md)
+bok           phrase  Bok!
+name_voices   phrase  Smiješni glasovi
+name_pet      phrase  Maži macu
+name_draw     phrase  Čarobne šapice
+name_yarn     phrase  Klupko
+name_clock    phrase  Pospani sat
+name_piano    phrase  Mijau klavir
+idemo         phrase  Idemo!
+hihihi        phrase  Hihihi!
+njam          phrase  Njam!
+njam_njam     phrase  Njam njam!
+cisto         phrase  Čisto!
+bravo         phrase  Bravo!
+pssst_spavaj  phrase  Pssst… spavaj
+dobro_jutro   phrase  Dobro jutro!
+gladna_sam    phrase  Gladna sam…
+# Synthesized UI sounds
+blip_up       synth   blip_up
+blip_down     synth   blip_down
+pop           synth   pop
+click         synth   click
+chime_boot    synth   chime_boot
+chime_wake    synth   chime_wake
+sparkle       synth   sparkle
+bell_tick     synth   bell_tick
+beep_boop     synth   beep_boop
+fanfare       synth   fanfare
+# Organic sounds (CC0 or own recordings win; otherwise a synth placeholder)
+meow_1        organic meow
+meow_2        organic meow_high
+meow_3        organic meow_low
+mew_down      organic mew_down
+mrrrow        organic mrrrow
+purr          organic purr
+giggle        organic giggle
+wheee         organic wheee
+boing         organic boing
+crunch        organic crunch
+swish         organic swish
+rumble        organic rumble
+whoosh        organic whoosh
+squeak        organic squeak
+roar          organic roar
+yawn          organic yawn
+munch         organic munch
+snore         organic snore
+# Derived
+piano_c5      pitch   meow_1:0
+piano_d5      pitch   meow_1:2
+piano_e5      pitch   meow_1:4
+piano_g5      pitch   meow_1:7
+piano_a5      pitch   meow_1:9
+boot          concat  mrrrow+chime_boot
+open          concat  pop+idemo
+costume_mouse concat  squeak+bok@mouse
+costume_lion  concat  roar+bok@lion
+costume_robot concat  beep_boop+bok@robot
+costume_cave  concat  bok@cave
+swipe_voices  concat  whoosh+name_voices
+swipe_pet     concat  whoosh+name_pet
+swipe_draw    concat  whoosh+name_draw
+swipe_yarn    concat  whoosh+name_yarn
+swipe_clock   concat  whoosh+name_clock
+swipe_piano   concat  whoosh+name_piano

@@ -293,7 +293,7 @@ Rules for apps:
   | Setting | Default |
   | --- | --- |
   | Cat variant | Chosen on first run |
-  | Volume cap | 60 % |
+  | Volume cap | 100 % |
   | Bedtime | 19:30 |
   | Wake time | 07:00 |
   | Hidden-apps bitmask | None hidden |
@@ -394,8 +394,8 @@ swish, rolling rumble loop, whoosh, squeak, roar, yawn, munching loop, snore.
 
 - A protective case is required before she gets the device: the -B enclosure or a printed one.
   The board and its lithium battery are never handed over bare.
-- The volume cap defaults to 60 %, with a hard firmware maximum of 80 % that the parent area
-  cannot exceed.
+- The volume cap defaults to 100 % (the codec's 0 dB; 60 % measured far too quiet on the device,
+  2026-09-23), and the parent area can lower it. Check the real loudness at the kid test (M8).
 - No cloud, no accounts. The network is used only for NTP at boot, then Wi-Fi turns off.
 - Recordings are held in RAM only and discarded when Silly voices closes or the device sleeps.
 - Wi-Fi credentials live in a gitignored `sdkconfig.secrets`, never in the repository. The generated
