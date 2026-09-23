@@ -317,3 +317,12 @@ M1 passes.
 | Log | no Guru Meditation, abort, assert or unexpected reboot |
 
 M3 passes.
+
+## Soak (Task 18) — 2026-09-23, 1.75C BSP, volume 100 %
+
+| Run | Result |
+| --- | --- |
+| 1 | Restarted by itself after round 20; no panic text, and the ROM's reset line was lost over USB. The logger then reopened the port, and opening the port is itself shown to reset this board (`reset reason 11`, USB), so the logger is the likely cause. The firmware now logs `reset reason N` at every boot |
+| 2 | All 50 rounds, no restart, but `SOAK: FAIL: internal delta=-25592`. Readings swung between ~198 KB and ~223 KB from round to round: a ~25 KB buffer held for a few ms during a display flush or fade, not a leak (PSRAM was flat) |
+| 3 | After flashing and a scripted reset, the screen stayed black and the chip did not answer the flasher until the user replugged USB. Not reproduced since; cause unknown |
+| 4 | Soak now takes the highest of 10 readings 50 ms apart. **`SOAK: PASS: internal delta=-8 psram delta=0 over 50 rounds`**, one boot, no crash, logged with a listener that does not touch the reset lines |
