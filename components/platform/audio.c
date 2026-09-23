@@ -2,15 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 #include "bsp/esp-bsp.h"
+#include "driver/i2c_master.h"
 #include "envelope.h"
 #include "esp_check.h"
 #include "esp_codec_dev.h"
+#include "esp_codec_dev_defaults.h"
 #include "esp_heap_caps.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "settings.h"
 #include "wav.h"
+
+#define I2C_PROBE_TIMEOUT_MS 50
 
 #define CHUNK_SAMPLES      480 /* 20 ms at 24 kHz */
 #define MIC_GAIN_DB        30.0f
@@ -343,10 +347,27 @@ static void send(cmd_t c)
 
 static uint8_t clamp_volume(uint8_t pct) { return pct > SETTINGS_VOLUME_MAX ? SETTINGS_VOLUME_MAX : pct; }
 
+/* CONFIG_BSP_ERROR_CHECK aborts inside bsp_audio_codec_*_init() when the codec doesn't answer
+ * (es8311_codec_new/es7210_codec_new return NULL into BSP_NULL_CHECK -> assert). Probe each
+ * codec's 7-bit address on the BSP's I2C bus first and skip the BSP call when it's absent, so a
+ * missing chip degrades to "codec init failed" below instead of a reboot loop. */
+static bool i2c_probe(uint16_t addr7)
+{
+    return i2c_master_probe(bsp_i2c_get_handle(), addr7, I2C_PROBE_TIMEOUT_MS) == ESP_OK;
+}
+
 esp_err_t audio_init(uint8_t volume_pct)
 {
-    s_spk = bsp_audio_codec_speaker_init();
-    s_mic = bsp_audio_codec_microphone_init();
+    bool spk_present = i2c_probe(ES8311_CODEC_DEFAULT_ADDR >> 1);
+    bool mic_present = i2c_probe(ES7210_CODEC_DEFAULT_ADDR >> 1);
+    if (!spk_present) {
+        ESP_LOGW(TAG, "ES8311 speaker codec not found on I2C (addr 0x%02x)", ES8311_CODEC_DEFAULT_ADDR >> 1);
+    }
+    if (!mic_present) {
+        ESP_LOGW(TAG, "ES7210 mic codec not found on I2C (addr 0x%02x)", ES7210_CODEC_DEFAULT_ADDR >> 1);
+    }
+    s_spk = spk_present ? bsp_audio_codec_speaker_init() : NULL;
+    s_mic = mic_present ? bsp_audio_codec_microphone_init() : NULL;
     ESP_RETURN_ON_FALSE(s_spk && s_mic, ESP_FAIL, TAG, "codec init failed");
     esp_codec_dev_sample_info_t fs = {
         .bits_per_sample = 16,

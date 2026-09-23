@@ -3,6 +3,7 @@
 #include "bsp/esp-bsp.h"
 #include "debounce.h"
 #include "driver/gpio.h"
+#include "driver/i2c_master.h"
 #include "esp_check.h"
 #include "esp_io_expander.h"
 
@@ -32,7 +33,15 @@ esp_err_t buttons_init(void)
         .pull_up_en = GPIO_PULLUP_ENABLE,
     };
     ESP_RETURN_ON_ERROR(gpio_config(&io), TAG, "BOOT gpio");
-    s_expander = bsp_io_expander_init();
+    /* CONFIG_BSP_ERROR_CHECK aborts inside bsp_io_expander_init() if the TCA9554 doesn't answer
+     * (esp_io_expander_new_i2c_tca9554 failure -> ESP_ERROR_CHECK). Probe it first and skip the
+     * BSP call when it's absent, so a missing expander degrades to "PWR button disabled" below
+     * instead of a reboot loop. */
+    if (i2c_master_probe(bsp_i2c_get_handle(), BSP_IO_EXPANDER_I2C_ADDRESS, 50) == ESP_OK) {
+        s_expander = bsp_io_expander_init();
+    } else {
+        s_expander = NULL;
+    }
     if (s_expander) {
         esp_io_expander_set_dir(s_expander, POWER_PIN, IO_EXPANDER_INPUT);
     } else {
