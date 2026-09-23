@@ -278,3 +278,42 @@ read from the PMU's latched short-press flag.
 | Accelerometer, touch, placeholder dot | unchanged, PASS |
 
 M0 passes, apart from the quick-double-press BOOT finding.
+
+## Audio (Task 12) — 2026-09-23, 1.75C BSP
+
+| Check | Result |
+| --- | --- |
+| `audio: ready: 24000 Hz mono` | PASS (now logs `volume 100%`, see below) |
+| Boot meow and chime; BOOT mew in the menu; PWR blip in diagnostics | PASS |
+| Volume | At the 60 % cap the user found every sound too quiet. The codec curve is −50 dB at 0 % and 0 dB at 100 %, so 60 % played at −20 dB. The user asked for full volume: the cap now defaults to 100 % (0 dB), and the spec's 80 % ceiling is lifted. At 100 %: "good now" |
+| Missing-sound check (`meow_1.wav` moved away) | not run yet |
+
+## Idle and boot (Task 16) — 2026-09-23
+
+| Check | Result |
+| --- | --- |
+| Boot: two rings, a yawning cat, meow and chime, menu after ~2.6 s | PASS |
+| BOOT held through boot does not count as a press | Not run on the device (the instructions were unclear to the user). Covered by the host test `test_button_held_at_boot_does_not_fire` |
+| Dimming: dim and sleepy at ~20 s, zz at ~60 s, dark at ~120 s | PASS |
+| Tap while dark only wakes; the second tap opens the app | PASS |
+| PWR inside an app: screen dark; the waking tap does not make the cat laugh | PASS (PWR through the AXP2101) |
+| App left alone returns to the menu after ~60 s | PASS |
+| Home hint | PASS: the paw at 2 o'clock points at BOOT, so `HOME_HINT_ANGLE_DEG` stays −30 |
+
+M1 passes.
+
+## Silly voices (Task 17) — 2026-09-23
+
+| Check | Result |
+| --- | --- |
+| Screen: pink dotted ring, mouse ears, pink mic | PASS |
+| Tapping the cat cycles lion (orange), robot (cyan), miner with cave arch (purple), mouse, each with its sting and "Bok!" | PASS |
+| Record and play in all four voices | First run: all four worked but were barely audible. Arm's-length speech peaks at only 1,700–3,600 (−19 to −25 dBFS), and the output was capped at −20 dB. Recordings are now normalized to the assets' −3 dBFS peak (at most +24 dB) and the volume is 100 %. Retest: clearly audible, mouse included |
+| Stop early (second tap) | PASS |
+| Silent take plays a meow, never silence | PASS (peak 157, `heard=0`) |
+| Loud take (shout close to the board) | PASS: clean, raw peaks 5,900–10,400 |
+| BOOT while listening; BOOT while playing | PASS: the menu appears at once, sound stops |
+| Reopen and record | First run: inaudible, because reopening resets to the quietest costume, the mouse (`heard=1`, so it did play). After normalization: clearly audible |
+| Log | no Guru Meditation, abort, assert or unexpected reboot |
+
+M3 passes.
