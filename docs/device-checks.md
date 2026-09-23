@@ -358,3 +358,12 @@ M3 passes.
 | None of tonight's settings (`-Og`, default caches, no XIP, no style cache) | hang at cycle 22 (1 in 22) |
 
 So it predates tonight's changes and does not depend on those settings. It needs two resets close together during early boot; a normal power-on is a full power cycle and was never affected. Suspect: the chip (ESP32-S3 rev v0.2 with AP octal PSRAM; compare esp-idf issue 18806). Open: test with `CONFIG_SPIRAM_MEMTEST` off and with Waveshare's own firmware under the same script.
+
+## Cat gallery variants and scales (Task 14) — 2026-09-24
+
+| Check | Result |
+| --- | --- |
+| PWR cycles the three cats (orange, grey, tuxedo) at M, L and S | PASS: all 9 look right, nothing clipped or missing (log shows every `scale=/variant=` combination) |
+| Costumes at L and S (BOOT) | PASS: they sit right |
+
+This closes the one M2 check that was blocked on PWR. M2 passes.
