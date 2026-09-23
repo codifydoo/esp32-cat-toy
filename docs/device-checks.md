@@ -196,8 +196,8 @@ booting the app -- the screen stays black. That is expected hardware behavior, n
 I2C scan (BSP bus, GPIO14/15): 0x18 ES8311, 0x34 AXP2101, 0x40 ES7210, 0x5A CST9217 touch, 0x6B QMI8658.
 Missing versus the schematic: 0x20 TCA9554 (U5) and 0x51 PCF85063 RTC (U4).
 
-Conclusion: M0 is blocked on hardware. The unit's I/O expander, RTC and audio path do not work under
-Waveshare's own firmware either. Next step: replace the unit or get Waveshare's diagnosis.
+Conclusion at the time: M0 is blocked on hardware. **Superseded:** the board is a 1.75C, not a
+defective 1.75; see "Board identification and diagnostics rerun" below.
 
 ## Cat gallery (Task 14) — 2026-09-23
 
@@ -252,3 +252,29 @@ The open zoom stayed below 24 FPS, so the spec §3.4 fallback is applied: `ICON_
 | Open zoom (1.2x fallback) | 14–20 FPS for the one sample covering the 220 ms zoom; below 24, but the user saw it as fine |
 | Silly voices listen screen (pulse ring + countdown) | 25–30 FPS (was 10–12 at 98% CPU) |
 | Idle menu | 28–30 FPS at ~21% CPU (was 26 FPS at ~54%) |
+
+## Board identification and diagnostics rerun (Task 13) — 2026-09-23
+
+The board is a **Waveshare ESP32-S3-Touch-AMOLED-1.75C**, not the 1.75 the plan assumed:
+
+- esptool reports 32 MB flash. The 1.75 factory image is 16 MB; the 1.75C factory image is 32 MB.
+- Waveshare's 1.75C factory image (`ESP32-S3-Touch-AMOLED-1.75C-FactoryOnly-260113.bin` from
+  `waveshareteam/ESP32-S3-Touch-AMOLED-1.75C`, git blob `db765377`) plays sound, its mic screen
+  reacts to voice, and PWR works: a click powers on, a ~7 s hold powers off.
+- The 1.75 BSP drives the codec MCLK on GPIO42; the 1.75C wires it to GPIO16. Without MCLK the
+  ES8311 and ES7210 accept their I2C setup but pass no audio (the zeros and silence above). The
+  1.75C also has no TCA9554 I/O expander and no PCF85063 RTC, and its LCD and touch resets are
+  GPIO1 and GPIO2.
+
+The firmware now uses `waveshare/esp32_s3_touch_amoled_1_75c`. PWR is the AXP2101 PWRON key,
+read from the PMU's latched short-press flag.
+
+| Check (diagnostics build on the 1.75C BSP) | Result |
+| --- | --- |
+| Speaker (blips on button presses) | PASS |
+| Buttons BOOT x2, PWR x1 | PWR PASS (POWER 1). BOOT: the first two presses counted once (HOME 1, one log line); two more presses one second apart counted 2 of 2. A quick second BOOT press can be missed; cause not yet found |
+| Record "Bok, maco!" and play back | PASS: `recorded 59520 samples, heard=1`, the user heard their voice |
+| PSRAM free after boot | 7,615,828 bytes (XIP from PSRAM now holds the code; still > 7,000,000) |
+| Accelerometer, touch, placeholder dot | unchanged, PASS |
+
+M0 passes, apart from the quick-double-press BOOT finding.
