@@ -77,7 +77,14 @@ of a valid two-finger hold. The whole screen counts because two adult fingertips
 150 px cat target.
 
 The CST9217 reports up to two points. LVGL's pointer input only tracks one, so the gesture reads
-the point count directly from the touch driver (`esp_lcd_touch`).
+the point count directly from the touch driver (`esp_lcd_touch`). The Waveshare CST9217 driver
+stops at one point, so the count and the second point come from the controller's own report
+(`touch_report.c`), read alongside the driver.
+
+The first slice of the parent area (2026-09-23) opens straight on **Max volume**: the design's
+270° arc, 10 % steps from 10 % to 100 %, and a "Home button exits" hint in place of the "‹ Parents"
+button. It uses LVGL's built-in Montserrat until the full parent area brings Fredoka and the
+four-tile home screen (M7).
 
 ### 3.2 Time source
 
