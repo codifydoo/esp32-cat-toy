@@ -1,5 +1,6 @@
 #include "app_manager.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include "audio.h"
 #include "idle.h"
 #include "launcher.h"
@@ -10,13 +11,34 @@
 static const app_t *s_current;
 static lv_obj_t *s_screen;  /* the current app's screen; NULL when none is open */
 static bool s_pending_home; /* Home arrived before the open fade made s_screen the active screen */
+static bool s_started;      /* true once app_manager_start() has run; gates buttons during boot */
+
+#if CONFIG_CAT_HOME_ON_POWER
+static lv_timer_t *s_home_timer;    /* pending "act as Home" one-shot, NULL when none is queued */
+static uint32_t s_last_power_wake_ms;
+#endif
 
 void app_manager_init(void)
 {
     launcher_create();
     idle_init();
 }
-void app_manager_start(void) { launcher_show(); }
+
+void app_manager_start(void)
+{
+    launcher_show();
+    s_started = true; /* buttons are ignored until this point -- see handle_button() */
+}
+
+#if CONFIG_CAT_HOME_ON_POWER
+static void cancel_pending_home(void)
+{
+    if (s_home_timer) {
+        lv_timer_delete(s_home_timer);
+        s_home_timer = NULL;
+    }
+}
+#endif
 
 static void close_current_app(void)
 {
@@ -28,6 +50,11 @@ static void close_current_app(void)
      * open/close cycle, so any stale request from earlier in it must not leak into the next
      * one -- see app_manager_open()'s comment on why this can otherwise go stale. */
     s_pending_home = false;
+#if CONFIG_CAT_HOME_ON_POWER
+    /* A pending PWR-Home queued just before this close (from any path, including the app's own
+     * idle timeout) must not fire 400 ms later against whatever the menu/app state becomes next. */
+    cancel_pending_home();
+#endif
 
     /* Cut pointer input to the app screen before destroy(): a press already in flight on it can
      * otherwise still reach the app's event callbacks (e.g. a tap handler) after destroy() has
@@ -86,6 +113,11 @@ void app_manager_open(const app_t *app)
     if (s_current || !app) {
         return;
     }
+#if CONFIG_CAT_HOME_ON_POWER
+    /* Opening an app is itself fresh activity; a PWR-Home queued just before this touch must not
+     * fire against the app that is about to open. */
+    cancel_pending_home();
+#endif
     s_current = app;
     /* A Home from the previous open/close cycle can be left pending here: if a second Home
      * landed once that cycle's app screen had genuinely become active, it took the direct path
@@ -118,25 +150,14 @@ void app_manager_home(void)
 
 const app_t *app_manager_current(void) { return s_current; }
 
-void app_manager_on_button(button_id_t id)
+/* Shared "act as Home" logic: wakes a dim/sleeping/off screen instead of acting, otherwise closes
+ * the current app or re-announces the menu. Used directly by BOOT (or, without the Kconfig
+ * option, by PWR) and, with CONFIG_CAT_HOME_ON_POWER, by the deferred single-PWR-press timer. */
+static void do_home(void)
 {
-    lv_display_trigger_activity(NULL); /* a button press counts as activity */
 #if CONFIG_CAT_HOME_ON_POWER
-    static uint32_t s_last_power_ms;
-    if (id == BUTTON_POWER) {
-        bool double_press = lv_tick_elaps(s_last_power_ms) < 400;
-        s_last_power_ms = lv_tick_get();
-        if (double_press) {
-            idle_power_toggle();
-            return;
-        }
-        id = BUTTON_HOME;
-    }
+    cancel_pending_home(); /* a Home about to run makes any pending PWR-Home stale */
 #endif
-    if (id == BUTTON_POWER) {
-        idle_power_toggle();
-        return;
-    }
     if (idle_wake_if_asleep()) {
         return; /* the press only wakes the screen */
     }
@@ -145,4 +166,57 @@ void app_manager_on_button(button_id_t id)
     } else {
         launcher_home_pressed();
     }
+}
+
+#if CONFIG_CAT_HOME_ON_POWER
+static void pending_home_cb(lv_timer_t *t)
+{
+    (void)t;
+    s_home_timer = NULL;
+    do_home();
+}
+#endif
+
+/* Runs on the LVGL task (queued from app_manager_on_button() below via lv_async_call, since
+ * brightness changes -- reached through idle_wake()/idle_power_toggle() -- must only happen on
+ * the LVGL task; see display.h). */
+static void handle_button(void *user_data)
+{
+    button_id_t id = (button_id_t)(uintptr_t)user_data;
+    if (!s_started) {
+        return; /* ignore presses until app_manager_start() has shown the menu (boot animation) */
+    }
+    lv_display_trigger_activity(NULL); /* a button press counts as activity */
+#if CONFIG_CAT_HOME_ON_POWER
+    if (id == BUTTON_POWER) {
+        if (idle_wake_if_asleep()) {
+            s_last_power_wake_ms = lv_tick_get();
+            return; /* this press only woke the screen */
+        }
+        if (lv_tick_elaps(s_last_power_wake_ms) < 400) {
+            return; /* a press right after a PWR-triggered wake is ignored */
+        }
+        if (s_home_timer) {
+            /* second awake press within the window: cancel the pending Home, turn off instead */
+            cancel_pending_home();
+            idle_power_toggle();
+            return;
+        }
+        /* first awake press: wait out the double-press window before acting as Home */
+        s_home_timer = lv_timer_create(pending_home_cb, 400, NULL);
+        lv_timer_set_repeat_count(s_home_timer, 1);
+        return;
+    }
+#else
+    if (id == BUTTON_POWER) {
+        idle_power_toggle();
+        return;
+    }
+#endif
+    do_home();
+}
+
+void app_manager_on_button(button_id_t id)
+{
+    lv_async_call(handle_button, (void *)(uintptr_t)id);
 }

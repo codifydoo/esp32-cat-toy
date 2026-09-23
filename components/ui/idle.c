@@ -63,8 +63,13 @@ static void apply_level(uint8_t level)
     show_catcher(level > 0);
     if (level == 0) {
         fade_to(BRIGHTNESS_FULL, 0);
-    } else if (level == 1) {
-        fade_to(IDLE_DIM_PCT, ANIM_DIM_MS);
+    } else if (level == 1 || level == 2) {
+        /* Reachable directly from level 0 (an app timing out straight into "sleeping" skips the
+         * level-1 dim, since apply_level() is never called while an app is open) as well as from
+         * level 1, where brightness is already at IDLE_DIM_PCT and re-fading would be a no-op. */
+        if (display_brightness() > IDLE_DIM_PCT) {
+            fade_to(IDLE_DIM_PCT, ANIM_DIM_MS);
+        }
     } else if (level == 3) {
         fade_to(0, 0);
     }
