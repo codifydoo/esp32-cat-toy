@@ -1,6 +1,7 @@
 #include "app_manager.h"
 #include "assets.h"
 #include "audio.h"
+#include "boot.h"
 #include "cat.h"
 #include "display.h"
 #include "esp_log.h"
@@ -45,7 +46,7 @@ void app_main(void)
     cat_set_variant((cat_variant_t)settings_cat_variant());
     display_lock(-1);
     app_manager_init();
-    app_manager_start();
+    boot_run(app_manager_start);
     display_unlock();
     const sensors_listener_t listener = {.on_button = on_button};
     if (sensors_start(&listener) != ESP_OK) {

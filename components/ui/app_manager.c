@@ -1,7 +1,9 @@
 #include "app_manager.h"
 #include <stdbool.h>
 #include "audio.h"
+#include "idle.h"
 #include "launcher.h"
+#include "sdkconfig.h"
 #include "tokens.h"
 #include "ui_util.h"
 
@@ -9,7 +11,11 @@ static const app_t *s_current;
 static lv_obj_t *s_screen;  /* the current app's screen; NULL when none is open */
 static bool s_pending_home; /* Home arrived before the open fade made s_screen the active screen */
 
-void app_manager_init(void) { launcher_create(); }
+void app_manager_init(void)
+{
+    launcher_create();
+    idle_init();
+}
 void app_manager_start(void) { launcher_show(); }
 
 static void close_current_app(void)
@@ -114,8 +120,25 @@ const app_t *app_manager_current(void) { return s_current; }
 
 void app_manager_on_button(button_id_t id)
 {
-    if (id != BUTTON_HOME) {
-        return; /* Power is wired up in Task 16 */
+    lv_display_trigger_activity(NULL); /* a button press counts as activity */
+#if CONFIG_CAT_HOME_ON_POWER
+    static uint32_t s_last_power_ms;
+    if (id == BUTTON_POWER) {
+        bool double_press = lv_tick_elaps(s_last_power_ms) < 400;
+        s_last_power_ms = lv_tick_get();
+        if (double_press) {
+            idle_power_toggle();
+            return;
+        }
+        id = BUTTON_HOME;
+    }
+#endif
+    if (id == BUTTON_POWER) {
+        idle_power_toggle();
+        return;
+    }
+    if (idle_wake_if_asleep()) {
+        return; /* the press only wakes the screen */
     }
     if (s_current) {
         app_manager_home();

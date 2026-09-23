@@ -8,4 +8,9 @@ menu "Cat toy"
     config CAT_DEV_SOAK
         bool "Run the app open/close soak test after boot"
         default n
+    config CAT_HOME_ON_POWER
+        bool "Use PWR as Home (only if BOOT cannot be pressed through the case)"
+        default n
+        help
+            Spec 3.6: a short PWR press becomes Home, and a double press turns the screen off/on.
 endmenu
