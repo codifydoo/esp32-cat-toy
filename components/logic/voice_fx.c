@@ -84,3 +84,22 @@ size_t voice_fx_apply(voice_t v, const int16_t *in, size_t in_len, int16_t *out,
         return 0;
     }
 }
+
+void voice_fx_normalize(int16_t *buf, size_t n)
+{
+    int32_t peak = 0;
+    for (size_t i = 0; i < n; i++) {
+        int32_t a = buf[i] < 0 ? -(int32_t)buf[i] : buf[i];
+        peak = a > peak ? a : peak;
+    }
+    if (peak == 0) {
+        return;
+    }
+    int64_t gain_q16 = ((int64_t)VOICE_FX_TARGET_PEAK << 16) / peak;
+    if (gain_q16 > ((int64_t)VOICE_FX_MAX_GAIN << 16)) {
+        gain_q16 = (int64_t)VOICE_FX_MAX_GAIN << 16;
+    }
+    for (size_t i = 0; i < n; i++) {
+        buf[i] = sat16((int32_t)(((int64_t)buf[i] * gain_q16) / 65536));
+    }
+}

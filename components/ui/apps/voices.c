@@ -132,6 +132,7 @@ static void on_recorded(uint32_t session, int16_t *pcm, size_t n, bool heard)
     int16_t *out = heap_caps_malloc(out_n * sizeof(int16_t), MALLOC_CAP_SPIRAM);
     if (out) {
         out_n = voice_fx_apply(v, pcm, n, out, out_n, AUDIO_RATE_HZ);
+        voice_fx_normalize(out, out_n);
     }
     heap_caps_free(pcm);
     if (!lock_session(session)) {

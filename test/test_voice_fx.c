@@ -109,6 +109,41 @@ static void test_output_is_clipped_to_capacity(void)
     TEST_ASSERT_EQUAL(0, voice_fx_apply(VOICE_MOUSE, in, 0, out, 3, 24000));
 }
 
+static void test_normalize_brings_speech_up_to_the_asset_level(void)
+{
+    int16_t buf[3] = {2000, -1000, 500};
+    voice_fx_normalize(buf, 3);
+    TEST_ASSERT_INT_WITHIN(2, VOICE_FX_TARGET_PEAK, buf[0]);
+    TEST_ASSERT_INT_WITHIN(2, -VOICE_FX_TARGET_PEAK / 2, buf[1]);
+    TEST_ASSERT_INT_WITHIN(2, VOICE_FX_TARGET_PEAK / 4, buf[2]);
+}
+
+static void test_normalize_limits_the_gain_on_a_quiet_take(void)
+{
+    int16_t buf[2] = {100, -50};
+    voice_fx_normalize(buf, 2);
+    TEST_ASSERT_EQUAL_INT16(100 * VOICE_FX_MAX_GAIN, buf[0]);
+    TEST_ASSERT_EQUAL_INT16(-50 * VOICE_FX_MAX_GAIN, buf[1]);
+}
+
+static void test_normalize_turns_a_clipped_take_down(void)
+{
+    int16_t buf[3] = {INT16_MIN, INT16_MAX, 0};
+    voice_fx_normalize(buf, 3);
+    TEST_ASSERT_INT_WITHIN(2, -VOICE_FX_TARGET_PEAK, buf[0]);
+    TEST_ASSERT_INT_WITHIN(2, VOICE_FX_TARGET_PEAK, buf[1]);
+    TEST_ASSERT_EQUAL_INT16(0, buf[2]);
+}
+
+static void test_normalize_leaves_silence_alone(void)
+{
+    int16_t buf[3] = {0, 0, 0};
+    voice_fx_normalize(buf, 3);
+    const int16_t want[3] = {0, 0, 0};
+    TEST_ASSERT_EQUAL_INT16_ARRAY(want, buf, 3);
+    voice_fx_normalize(buf, 0);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -120,5 +155,9 @@ int main(void)
     RUN_TEST(test_cave_echoes_an_impulse);
     RUN_TEST(test_cave_saturates_instead_of_wrapping);
     RUN_TEST(test_output_is_clipped_to_capacity);
+    RUN_TEST(test_normalize_brings_speech_up_to_the_asset_level);
+    RUN_TEST(test_normalize_limits_the_gain_on_a_quiet_take);
+    RUN_TEST(test_normalize_turns_a_clipped_take_down);
+    RUN_TEST(test_normalize_leaves_silence_alone);
     return UNITY_END();
 }
