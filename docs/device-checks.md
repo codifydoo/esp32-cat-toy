@@ -87,8 +87,9 @@ owed, in plan order. Work through it once the board is available, then record re
       logging, and no "missing image" lines.
 - [ ] Human check: compare all 15 expressions against the character sheet; cycle costumes (BOOT)
       and variants/scales (PWR); confirm the happy state's bob/blink/tail animate over 10 s.
-- [ ] Dizzy state FPS check: if FPS < 24, the `translate_x` fallback in `apply()` should engage
-      (this is a device-conditional fallback already coded; just confirm it triggers correctly).
+- [x] Dizzy state FPS check: if FPS < 24, replace the rotation line in `apply()`
+      (`components/cat/cat.c`) with the spec §3.4 `translate_x` wobble. This is a manual edit, not
+      a runtime switch; it was needed and is applied (commit a472015).
 - [ ] Record "## Cat gallery (Task 14)".
 
 ### Task 15: menu (icon carousel)
@@ -104,17 +105,20 @@ owed, in plan order. Work through it once the board is available, then record re
       swipes, a swipe immediately followed by a tap, a tap plus BOOT during the open zoom, and
       mashing the screen edges. Confirm at most one app ever opens, the UI recovers, and there is
       no Guru Meditation / abort in the log.
-- [ ] Flash `build-perf`; do 10 swipes plus 1 app open; confirm FPS >= 24. If not, set
-      `ICON_SCALE_OPEN` to 307 (device-conditional fallback already coded) and retest.
+- [ ] Flash `build-perf`; do 10 swipes plus 1 app open; confirm FPS >= 24. If the open zoom is
+      below 24, change the `ICON_SCALE_OPEN` define in `components/ui/include/tokens.h` from 486 to
+      307 (a manual edit, not a runtime switch) and retest.
 - [ ] Record "## Menu FPS (Task 15)".
 - [ ] Re-flash the normal build afterward.
 
 ### Task 16: idle, dimming, and boot (M1 gate)
 
 - [ ] From Task 2's recorded BOOT clock position (or PWR's, if `CAT_HOME_ON_POWER` will be
-      enabled), compute `HOME_HINT_ANGLE_DEG = hour*30-90` and set it in the sdkconfig. If BOOT is
-      not reachable through the case (Task 2 finding), append `CONFIG_CAT_HOME_ON_POWER=y` to
-      `sdkconfig.defaults` and do a full clean build.
+      enabled), compute `HOME_HINT_ANGLE_DEG = hour*30-90` and set that `#define` in
+      `components/ui/include/tokens.h` (it is not a Kconfig option). If BOOT is not reachable
+      through the case (Task 2 finding), append `CONFIG_CAT_HOME_ON_POWER=y` to
+      `sdkconfig.defaults`, then `rm sdkconfig && idf.py fullclean build` (an existing `sdkconfig`
+      ignores new defaults).
 - [ ] Flash and check: boot animation shows rings, a yawn, and a meow+chime, reaching the menu in
       about 2.6 s; holding BOOT during boot suppresses the mew and the app name; the screen dims
       after 20 s idle, sleeps after 60 s, and goes fully dark after 120 s; tapping the screen while
@@ -208,3 +212,43 @@ Waveshare's own firmware either. Next step: replace the unit or get Waveshare's 
 | Missing images | none |
 
 M2 passes except the variant/scale check, which needs PWR.
+
+## Menu (Task 15) — 2026-09-23
+
+| Check | Result |
+| --- | --- |
+| Layout: cat over the pink mic, two paws, chevrons, six dots, paw hint | PASS |
+| Swipe left/right, wraparound, edge taps, active dot follows | PASS |
+| Tap the cat; tap the icon (zoom, then the big placeholder cat); tap that cat; BOOT back to the same app | PASS visually; the name, laugh, meow and mew sounds are BLOCKED (speaker, see Diagnostics) |
+| Rapid input: double tap, fast swipes, swipe then tap, BOOT during the zoom, mashing the edges | PASS: at most one app opened and the menu always recovered; the 15 min log has no Guru Meditation, abort or reset |
+| Missing images | none |
+
+The five apps other than Silly voices open the placeholder big cat until M4–M5 build them.
+
+## Menu FPS (Task 15) — 2026-09-23
+
+The first measurement failed: 10 swipes ran at 10–23 FPS (mostly 10–14, 80–93 ms render, CPU 98%),
+and the user saw them as choppy. A temporary auto-swipe benchmark (not committed) isolated the
+cause: LVGL's software renderer reads the RGB565A8 images and writes the draw buffers in PSRAM
+through the default 16 KB instruction / 32 KB data caches, compiled at `-Og`.
+
+| Benchmark (swipe avg FPS / render ms) | Result |
+| --- | --- |
+| Original (`-Og`) | 11.7 / 68 |
+| `-O2` | 13.7 / 57 |
+| `-O2` + 32 KB I-cache + 64 KB D-cache with 64 B lines | 23.9 / 32 |
+| + XIP from PSRAM | 24.7 / 30 |
+| + LVGL style cache (all four, now in `sdkconfig.defaults`) | 24.4 / 29 |
+| Open zoom, 1 s slow zoom: 1.9x / 1.2x / 1.2x without antialias | 10.9 / 16.9 / 19.7 FPS |
+
+Two draw units (`LV_DRAW_SW_DRAW_UNIT_CNT=2`) need LVGL's OS mode and were not tried.
+
+The open zoom stayed below 24 FPS, so the spec §3.4 fallback is applied: `ICON_SCALE_OPEN` 307
+(fade plus scale 1.0 → 1.2).
+
+| Check on the final `build-perf` | Result |
+| --- | --- |
+| 10 swipes | PASS: 19–30 FPS, 26.3 average (the lowest single samples fall on the settle bounce); user: "smooth now" |
+| Open zoom (1.2x fallback) | 14–20 FPS for the one sample covering the 220 ms zoom; below 24, but the user saw it as fine |
+| Silly voices listen screen (pulse ring + countdown) | 25–30 FPS (was 10–12 at 98% CPU) |
+| Idle menu | 28–30 FPS at ~21% CPU (was 26 FPS at ~54%) |
