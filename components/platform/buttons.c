@@ -44,8 +44,9 @@ static bool power_pressed(void)
     if (!s_pmu || pmu_read(PMU_REG_INTSTS2, &sts) != ESP_OK || !(sts & PMU_PKEY_SHORT)) {
         return false;
     }
-    pmu_write(PMU_REG_INTSTS2, PMU_PKEY_SHORT); /* write-1-to-clear, leaves the other flags */
-    return true;
+    /* Write-1-to-clear, leaves the other flags. If the clear fails, report the press on the poll
+     * that does clear it, so one press never fires twice. */
+    return pmu_write(PMU_REG_INTSTS2, PMU_PKEY_SHORT) == ESP_OK;
 }
 
 static void pmu_init(void)
@@ -71,7 +72,9 @@ static void pmu_init(void)
         return;
     }
     /* Drop a press latched before boot (e.g. the click that powered the board on). */
-    pmu_write(PMU_REG_INTSTS2, PMU_PKEY_SHORT);
+    if (pmu_write(PMU_REG_INTSTS2, PMU_PKEY_SHORT) != ESP_OK) {
+        ESP_LOGW(TAG, "PMU flag clear failed; a PWR press from before boot may count once");
+    }
 }
 
 esp_err_t buttons_init(void)
