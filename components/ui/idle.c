@@ -65,8 +65,10 @@ static void apply_level(uint8_t level)
         fade_to(BRIGHTNESS_FULL, 0);
     } else if (level == 1 || level == 2) {
         /* Reachable directly from level 0 (an app timing out straight into "sleeping" skips the
-         * level-1 dim, since apply_level() is never called while an app is open) as well as from
-         * level 1, where brightness is already at IDLE_DIM_PCT and re-fading would be a no-op. */
+         * level-1 dim, since tick()'s escalation path never calls apply_level() while an app is
+         * open -- see its early return below; idle_wake()/idle_power_toggle() still can, from a
+         * button press) as well as from level 1, where brightness is already at IDLE_DIM_PCT and
+         * re-fading would be a no-op. */
         if (display_brightness() > IDLE_DIM_PCT) {
             fade_to(IDLE_DIM_PCT, ANIM_DIM_MS);
         }

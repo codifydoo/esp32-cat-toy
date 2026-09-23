@@ -13,7 +13,9 @@
  * active session" — see audio_session_end() for why the session number alone is not enough. */
 typedef struct {
     /* Recording finished (auto-stop, max length, or audio_record_stop). The callee owns pcm and must
-     * heap_caps_free() it. pcm is NULL and n is 0 if memory ran out. */
+     * heap_caps_free() it whenever pcm is non-NULL -- n can be 0 with a non-NULL pcm (a stop or a
+     * mic read failure within the first 100 ms, before any sample was kept) as well as with n > 0.
+     * pcm is NULL (n is then 0 too) only if memory ran out. */
     void (*on_recorded)(uint32_t session, int16_t *pcm, size_t n, bool heard);
     /* Peak of each 20 ms chunk while this session's clip plays. */
     void (*on_level)(uint32_t session, uint16_t peak);

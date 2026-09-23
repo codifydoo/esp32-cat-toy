@@ -5,6 +5,7 @@
 #include "cat.h"
 #include "display.h"
 #include "esp_log.h"
+#include "lvgl.h"
 #include "sdkconfig.h"
 #include "sensors.h"
 #include "settings.h"
@@ -37,6 +38,14 @@ void app_main(void)
         ESP_LOGE(TAG, "assets missing: images show as magenta dots and sounds are silent");
     }
     ESP_ERROR_CHECK(display_init());
+    /* Black out the default LVGL screen before anything else loads, so the panel doesn't flash
+     * white while the boot screen is being built. */
+    if (display_lock(-1)) {
+        lv_obj_t *scr = lv_screen_active();
+        lv_obj_set_style_bg_color(scr, lv_color_black(), 0);
+        lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
+        display_unlock();
+    }
     if (audio_init(settings_volume_cap()) != ESP_OK) {
         ESP_LOGE(TAG, "audio unavailable; running silently");
     }

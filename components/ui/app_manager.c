@@ -77,7 +77,11 @@ static void close_current_app(void)
 
     app->destroy();
     audio_stop_all();
-    audio_play(SND_HOME);
+    if (idle_level() != 3) {
+        /* Screen is dark (e.g. Power turned it off, then this app's own idle timeout closed it):
+         * don't mew in the dark. */
+        audio_play(SND_HOME);
+    }
     launcher_show(); /* fades the menu in and deletes the app screen */
 }
 
@@ -151,8 +155,9 @@ void app_manager_home(void)
 const app_t *app_manager_current(void) { return s_current; }
 
 /* Shared "act as Home" logic: wakes a dim/sleeping/off screen instead of acting, otherwise closes
- * the current app or re-announces the menu. Used directly by BOOT (or, without the Kconfig
- * option, by PWR) and, with CONFIG_CAT_HOME_ON_POWER, by the deferred single-PWR-press timer. */
+ * the current app or re-announces the menu. Used directly by BOOT. Without CAT_HOME_ON_POWER, PWR
+ * does not reach here -- handle_button() diverts it straight to idle_power_toggle(). With
+ * CAT_HOME_ON_POWER, PWR reaches it only via the deferred single-press timer (pending_home_cb). */
 static void do_home(void)
 {
 #if CONFIG_CAT_HOME_ON_POWER

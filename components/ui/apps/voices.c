@@ -141,6 +141,7 @@ static void on_recorded(uint32_t session, int16_t *pcm, size_t n, bool heard)
     show_state(out ? V_PLAY : V_IDLE);
     s_level_calls = 0;
     s_level_peak = 0;
+    s_mouth_pending = false; /* don't let a previous clip's last frame show at the start of this one */
     display_unlock();
     if (out) {
         audio_play_pcm(session, out, out_n); /* ownership passes to the audio service */

@@ -61,6 +61,6 @@ static void soak_task(void *arg)
 
 void soak_start(void)
 {
-    xTaskCreatePinnedToCore(soak_task, "soak", 4096, NULL, 3, NULL, 0);
+    xTaskCreatePinnedToCore(soak_task, "soak", 8192, NULL, 3, NULL, 0);
 }
 #endif
