@@ -340,3 +340,21 @@ M3 passes.
 | Untouched Max volume screen | PASS: back to the menu after ~60 s |
 | Volume survives a restart | PASS: `settings: volume cap 50%` after reset (the level last set) |
 | Log | one boot, no Guru Meditation, abort or assert |
+
+## Review fixes and a boot hang (2026-09-24)
+
+| Check | Result |
+| --- | --- |
+| Palm on the dimmed menu (under 1 s) wakes it; quick two-finger tap on the icon opens the app | PASS (the hold now takes the touch only once its ring shows) |
+| Two-finger hold, "−"/"+" and BOOT after the fixes | PASS |
+| New volume curve (10 % = −20 dB, 100 % = 0 dB) | Built in; the user keeps 10 % and did not judge its loudness |
+
+**Boot hang after a double reset.** Sometimes, after a reset followed by a second one within about a second (a flash plus a serial-port open, or a scripted reset), the bootloader finishes and the app prints nothing. The screen stays black, and the chip does not answer the flasher until USB is replugged. A scripted test (`double_reset.py`: reset, wait 0.15–1.2 s, reset, look for the app's first line) reproduces it:
+
+| Firmware | Result |
+| --- | --- |
+| Tonight's settings (`-O2`, 32/64 KB caches, XIP from PSRAM, style cache) | hang at cycle 21 (1 in 21) |
+| Same without XIP from PSRAM | hang at cycle 20 (1 in 20) |
+| None of tonight's settings (`-Og`, default caches, no XIP, no style cache) | hang at cycle 22 (1 in 22) |
+
+So it predates tonight's changes and does not depend on those settings. It needs two resets close together during early boot; a normal power-on is a full power cycle and was never affected. Suspect: the chip (ESP32-S3 rev v0.2 with AP octal PSRAM; compare esp-idf issue 18806). Open: test with `CONFIG_SPIRAM_MEMTEST` off and with Waveshare's own firmware under the same script.
