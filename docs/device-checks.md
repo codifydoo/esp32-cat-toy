@@ -162,3 +162,35 @@ owed, in plan order. Work through it once the board is available, then record re
 
 Holding BOOT (GPIO0, a strapping pin) while powering on enters the ROM's download mode instead of
 booting the app -- the screen stays black. That is expected hardware behavior, not a firmware bug.
+
+## Hardware (Task 2)
+
+| Item | Result |
+| --- | --- |
+| Serial port | /dev/cu.usbmodem101 |
+| Variant | -B (case) |
+| Battery | connected (capacity not recorded) |
+| Speaker | connected |
+| BOOT position | TBD |
+| PWR position | TBD |
+| BOOT reachable through case | yes |
+| Waveshare LVGL demo runs | yes |
+
+## Diagnostics (Task 13) — 2026-09-23
+
+| Check | Result |
+| --- | --- |
+| Touch direction (USB port down) | PASS: top tap y ≈ 30–110, right tap x ≈ 350–446; no mirror change needed |
+| Accelerometer | PASS: flat reads x -0.03, y 0.03, z +0.97 g (z positive face up); tilt changes x/y (signs to confirm in M4) |
+| PSRAM free after boot | PASS: 8,289,996 bytes (Task 3 needs > 7,000,000) |
+| Missing-image placeholder | PASS: magenta dot shown, one `missing image` log line |
+| BOOT (GPIO0) | PASS on 3 s holds (`button HOME`, GPIO0 reads 0). The first round of brief presses registered nothing; recheck short presses in the menu |
+| PWR | FAIL (hardware): no TCA9554 answers at 0x20 (or 0x38). Waveshare's factory Button Test shows PWR `READ ERROR` / "CHECK INPUT CONNECTIONS" on this unit |
+| Microphone | FAIL (hardware): recordings are exact digital zeros on both channels (mono and stereo reads). Waveshare's SpecAnalyzer (BSP 3.0.1) and the factory SpecAnalyzer (TDM mode) are flat too |
+| Speaker | FAIL: silent with mono and stereo output although samples reach the codec (`esp_codec_dev_write` OK, peak 22950). Not yet tested with factory firmware (needs a microSD card) |
+
+I2C scan (BSP bus, GPIO14/15): 0x18 ES8311, 0x34 AXP2101, 0x40 ES7210, 0x5A CST9217 touch, 0x6B QMI8658.
+Missing versus the schematic: 0x20 TCA9554 (U5) and 0x51 PCF85063 RTC (U4).
+
+Conclusion: M0 is blocked on hardware. The unit's I/O expander, RTC and audio path do not work under
+Waveshare's own firmware either. Next step: replace the unit or get Waveshare's diagnosis.
