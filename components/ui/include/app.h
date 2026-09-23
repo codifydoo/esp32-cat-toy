@@ -14,7 +14,14 @@ typedef struct {
     sound_id_t swipe_sound; /* whoosh + spoken name */
     cat_state_t react;      /* the menu cat's expression while this app is shown */
     void (*create)(lv_obj_t *screen); /* build into an empty black screen (LVGL task) */
-    void (*destroy)(void);            /* stop timers and audio; objects die with the screen */
+    /* Stop timers and audio, and drop any pointers to the screen's objects (e.g. set them to
+     * NULL); the screen itself and its LVGL event callbacks are deleted separately, slightly
+     * later (once the menu has faded back in), and pointer input to the screen is cut before
+     * destroy() runs but a press already mid-dispatch, or a timer already queued, can still
+     * invoke an event callback in the gap. Every callback the app registered on the screen or
+     * its children (tap handlers, timers, ...) must therefore check the app's own state first
+     * and no-op if destroy() already ran, rather than assume it cannot be called afterward. */
+    void (*destroy)(void);
     void (*on_shake)(void);           /* optional, NULL if unused */
     void (*on_tilt)(float x_deg, float y_deg); /* optional, NULL if unused */
 } app_t;

@@ -11,12 +11,18 @@ static void back_to_happy(lv_timer_t *t)
 {
     (void)t;
     s_back = NULL; /* one-shot timers delete themselves */
+    if (!s_cat) {
+        return; /* destroy() already ran; the screen can outlive it briefly, see app.h */
+    }
     cat_set_state(s_cat, CAT_HAPPY);
 }
 
 static void tapped(lv_event_t *e)
 {
     (void)e;
+    if (!s_cat) {
+        return; /* destroy() already ran; the screen can outlive it briefly, see app.h */
+    }
     cat_set_state(s_cat, CAT_LAUGHING);
     audio_play(SND_MEOW);
     if (s_back) {
