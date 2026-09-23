@@ -5,24 +5,73 @@
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
 #include "esp_check.h"
-#include "esp_io_expander.h"
+#include "esp_log.h"
 
-#define HOME_GPIO GPIO_NUM_0            /* BOOT button, low while pressed */
-#define POWER_PIN IO_EXPANDER_PIN_NUM_4 /* TCA9554 EXIO4 = SYS_OUT, high while PWR is pressed */
+#define HOME_GPIO GPIO_NUM_0 /* BOOT button, low while pressed */
+
+/* On the 1.75C, PWR is the AXP2101 PWRON key: the PMU debounces it and latches a
+ * "short press" flag (released before the long-press time). A long hold (about 7 s) powers the board
+ * off in hardware. */
+#define PMU_ADDR          0x34
+#define PMU_REG_INTEN2    0x41
+#define PMU_REG_INTSTS2   0x49
+#define PMU_PKEY_SHORT    (1u << 3) /* AXP2101 IRQ bit 11 */
+#define PMU_POLL_EVERY    3         /* read the PMU every 3rd 20 ms poll (60 ms) */
+#define PMU_TIMEOUT_MS    50
 
 static const char *TAG = "buttons";
-static esp_io_expander_handle_t s_expander;
-static debounce_t s_home, s_power;
+static i2c_master_dev_handle_t s_pmu;
+static debounce_t s_home;
+static uint8_t s_pmu_tick;
 
 static bool home_raw(void) { return gpio_get_level(HOME_GPIO) == 0; }
 
-static bool power_raw(void)
+static esp_err_t pmu_read(uint8_t reg, uint8_t *val)
 {
-    uint32_t levels = 0;
-    if (!s_expander || esp_io_expander_get_level(s_expander, POWER_PIN, &levels) != ESP_OK) {
+    return i2c_master_transmit_receive(s_pmu, &reg, 1, val, 1, PMU_TIMEOUT_MS);
+}
+
+static esp_err_t pmu_write(uint8_t reg, uint8_t val)
+{
+    const uint8_t buf[2] = {reg, val};
+    return i2c_master_transmit(s_pmu, buf, sizeof(buf), PMU_TIMEOUT_MS);
+}
+
+/* Returns true once per short PWR press, and clears the latched flag. */
+static bool power_pressed(void)
+{
+    uint8_t sts = 0;
+    if (!s_pmu || pmu_read(PMU_REG_INTSTS2, &sts) != ESP_OK || !(sts & PMU_PKEY_SHORT)) {
         return false;
     }
-    return (levels & POWER_PIN) != 0;
+    pmu_write(PMU_REG_INTSTS2, PMU_PKEY_SHORT); /* write-1-to-clear, leaves the other flags */
+    return true;
+}
+
+static void pmu_init(void)
+{
+    i2c_master_bus_handle_t bus = bsp_i2c_get_handle();
+    if (i2c_master_probe(bus, PMU_ADDR, PMU_TIMEOUT_MS) != ESP_OK) {
+        ESP_LOGW(TAG, "PMU missing; PWR button disabled");
+        return;
+    }
+    const i2c_device_config_t cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = PMU_ADDR,
+        .scl_speed_hz = 100000,
+    };
+    uint8_t en = 0;
+    if (i2c_master_bus_add_device(bus, &cfg, &s_pmu) != ESP_OK || pmu_read(PMU_REG_INTEN2, &en) != ESP_OK ||
+        pmu_write(PMU_REG_INTEN2, en | PMU_PKEY_SHORT) != ESP_OK) {
+        ESP_LOGW(TAG, "PMU not responding; PWR button disabled");
+        if (s_pmu) {
+            i2c_master_bus_rm_device(s_pmu);
+            s_pmu = NULL;
+        }
+        return;
+    }
+    /* Drop a press latched before boot (e.g. the click that powered the board on). */
+    pmu_write(PMU_REG_INTSTS2, PMU_PKEY_SHORT);
 }
 
 esp_err_t buttons_init(void)
@@ -33,22 +82,8 @@ esp_err_t buttons_init(void)
         .pull_up_en = GPIO_PULLUP_ENABLE,
     };
     ESP_RETURN_ON_ERROR(gpio_config(&io), TAG, "BOOT gpio");
-    /* CONFIG_BSP_ERROR_CHECK aborts inside bsp_io_expander_init() if the TCA9554 doesn't answer
-     * (esp_io_expander_new_i2c_tca9554 failure -> ESP_ERROR_CHECK). Probe it first and skip the
-     * BSP call when it's absent, so a missing expander degrades to "PWR button disabled" below
-     * instead of a reboot loop. */
-    if (i2c_master_probe(bsp_i2c_get_handle(), BSP_IO_EXPANDER_I2C_ADDRESS, 50) == ESP_OK) {
-        s_expander = bsp_io_expander_init();
-    } else {
-        s_expander = NULL;
-    }
-    if (s_expander) {
-        esp_io_expander_set_dir(s_expander, POWER_PIN, IO_EXPANDER_INPUT);
-    } else {
-        ESP_LOGW(TAG, "IO expander missing; PWR button disabled");
-    }
+    pmu_init();
     debounce_init(&s_home, home_raw());
-    debounce_init(&s_power, power_raw());
     return ESP_OK;
 }
 
@@ -58,8 +93,11 @@ uint8_t buttons_poll(void)
     if (debounce_update(&s_home, home_raw())) {
         ev |= BUTTON_EV_HOME;
     }
-    if (debounce_update(&s_power, power_raw())) {
-        ev |= BUTTON_EV_POWER;
+    if (++s_pmu_tick >= PMU_POLL_EVERY) {
+        s_pmu_tick = 0;
+        if (power_pressed()) {
+            ev |= BUTTON_EV_POWER;
+        }
     }
     return ev;
 }

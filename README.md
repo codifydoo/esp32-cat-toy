@@ -1,6 +1,6 @@
 # Cat toy
 
-Firmware for a Waveshare ESP32-S3-Touch-AMOLED-1.75 cat toy. Spec: `docs/superpowers/specs/2026-09-22-cat-toy-design.md`.
+Firmware for a Waveshare ESP32-S3-Touch-AMOLED-1.75C cat toy (the 1.75C, not the 1.75: different audio clock pin, no I/O expander). Spec: `docs/superpowers/specs/2026-09-22-cat-toy-design.md`.
 
 ## Build
 
