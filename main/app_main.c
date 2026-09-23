@@ -1,11 +1,15 @@
 #include "assets.h"
 #include "audio.h"
+#include "cat.h"
 #include "display.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
 #include "settings.h"
 #if CONFIG_CAT_DEV_DIAG
 #include "diag.h"
+#endif
+#if CONFIG_CAT_DEV_GALLERY
+#include "gallery.h"
 #endif
 
 static const char *TAG = "main";
@@ -22,7 +26,10 @@ void app_main(void)
     }
 #if CONFIG_CAT_DEV_DIAG
     diag_start();
+#elif CONFIG_CAT_DEV_GALLERY
+    cat_set_variant(CAT_VARIANT_ORANGE);
+    gallery_start();
 #else
-    ESP_LOGW(TAG, "no UI yet: use the diag build until Task 15");
+    ESP_LOGW(TAG, "no UI yet: use the diag or gallery build until Task 15");
 #endif
 }
