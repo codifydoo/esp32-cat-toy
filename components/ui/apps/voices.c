@@ -31,8 +31,13 @@ static lv_obj_t *s_cat, *s_cave, *s_mic, *s_glyph, *s_pulse, *s_countdown;
 static lv_obj_t *s_ring[VOICES_RING_DOTS];
 static lv_obj_t *s_waves[4];
 static lv_timer_t *s_start_timer;
+static lv_timer_t *s_mouth_timer;
 static uint16_t s_level_peak; /* audio task only */
 static uint8_t s_level_calls; /* audio task only */
+/* Published by on_level (audio task) without the LVGL lock, consumed by mouth_tick (LVGL task).
+ * A stale publish after the session ends is harmless: the timer is gone, or s_state != V_PLAY. */
+static volatile uint8_t s_mouth_frame;
+static volatile bool s_mouth_pending;
 
 static void set_opa(void *obj, int32_t v) { lv_obj_set_style_opa(obj, (lv_opa_t)v, 0); }
 static void set_countdown(void *arc, int32_t v) { lv_arc_set_value(arc, (int16_t)v); }
@@ -144,22 +149,20 @@ static void on_recorded(uint32_t session, int16_t *pcm, size_t n, bool heard)
 
 static void on_level(uint32_t session, uint16_t peak)
 {
+    (void)session; /* a stale publish is harmless: see s_mouth_pending above */
     if (peak > s_level_peak) {
         s_level_peak = peak;
     }
     if (++s_level_calls < 6) { /* 6 x 20 ms = 120 ms, about 8 fps */
         return;
     }
-    uint8_t frame = envelope_mouth(s_level_peak);
+    /* No LVGL/display_lock here: the LVGL task can hold the lock for a whole render+flush, and a
+     * missed try-lock would both log an error and drop this frame. mouth_tick() on the LVGL task
+     * picks the published frame up instead. */
+    s_mouth_frame = envelope_mouth(s_level_peak);
+    s_mouth_pending = true;
     s_level_calls = 0;
     s_level_peak = 0;
-    if (!display_lock(0)) { /* skip a mouth frame rather than stall the audio */
-        return;
-    }
-    if (session == s_session && s_state == V_PLAY) {
-        cat_set_mouth(s_cat, frame);
-    }
-    display_unlock();
 }
 
 static void on_done(uint32_t session)
@@ -172,13 +175,25 @@ static void on_done(uint32_t session)
     }
 }
 
-/* ---- touch handlers (LVGL task) ---- */
+/* ---- touch handlers and timers (LVGL task) ---- */
 
 static void start_recording(lv_timer_t *t)
 {
     (void)t;
     s_start_timer = NULL;
     audio_record_start(s_session, (size_t)VOICES_RECORD_MAX_S * AUDIO_RATE_HZ);
+}
+
+static void mouth_tick(lv_timer_t *t)
+{
+    (void)t;
+    if (!s_cat) {
+        return; /* destroy() already ran; the screen can outlive it briefly, see app.h */
+    }
+    if (s_state == V_PLAY && s_mouth_pending) {
+        s_mouth_pending = false;
+        cat_set_mouth(s_cat, s_mouth_frame);
+    }
 }
 
 static void mic_tapped(lv_event_t *e)
@@ -296,6 +311,8 @@ static void voices_create(lv_obj_t *screen)
     build(screen);
     apply_costume();
     show_state(V_IDLE);
+    s_mouth_pending = false;
+    s_mouth_timer = lv_timer_create(mouth_tick, 40, NULL);
     s_session = audio_session_begin(&listener);
 }
 
@@ -307,6 +324,10 @@ static void voices_destroy(void)
     if (s_start_timer) {
         lv_timer_delete(s_start_timer);
         s_start_timer = NULL;
+    }
+    if (s_mouth_timer) {
+        lv_timer_delete(s_mouth_timer);
+        s_mouth_timer = NULL;
     }
     s_cat = NULL;
 }

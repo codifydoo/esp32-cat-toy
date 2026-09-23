@@ -15,6 +15,7 @@
 #define CHUNK_SAMPLES      480 /* 20 ms at 24 kHz */
 #define MIC_GAIN_DB        30.0f
 #define AUDIO_MIC_CHANNELS 1   /* set to 2 if recordings are silent (see Task 13, Step 6) */
+#define REC_SKIP_CHUNKS    5   /* discard the first 100 ms of every recording (see record_chunk) */
 
 static const char *TAG = "audio";
 
@@ -64,6 +65,7 @@ static int16_t *s_rec;
 static size_t s_rec_n, s_rec_max;
 static uint32_t s_rec_session;
 static rec_stop_t s_rec_stop;
+static uint8_t s_rec_skip; /* chunks left to discard at the start of the current recording */
 
 static int16_t clamp16(int32_t v) { return (int16_t)(v > INT16_MAX ? INT16_MAX : v < INT16_MIN ? INT16_MIN : v); }
 
@@ -202,6 +204,7 @@ static void handle(const cmd_t *c)
         s_rec_max = c->n;
         s_rec_n = 0;
         s_rec_session = c->session;
+        s_rec_skip = REC_SKIP_CHUNKS;
         rec_stop_init(&s_rec_stop);
         if (!s_rec) {
             ESP_LOGE(TAG, "no memory for a %u-sample recording", (unsigned)c->n);
@@ -230,28 +233,49 @@ static void handle(const cmd_t *c)
     }
 }
 
-static void record_chunk(void)
+/* Reads `want` mono samples from the mic into dst (want <= CHUNK_SAMPLES). */
+static bool mic_read(int16_t *dst, size_t want)
 {
-    size_t want = s_rec_max - s_rec_n;
-    if (want > CHUNK_SAMPLES) {
-        want = CHUNK_SAMPLES;
-    }
-    int16_t *dst = s_rec + s_rec_n;
 #if AUDIO_MIC_CHANNELS == 2
     static int16_t stereo[CHUNK_SAMPLES * 2];
     if (esp_codec_dev_read(s_mic, stereo, (int)(want * 4)) != ESP_CODEC_DEV_OK) {
-        rec_finish();
-        return;
+        return false;
     }
     for (size_t i = 0; i < want; i++) {
         dst[i] = stereo[i * 2];
     }
 #else
     if (esp_codec_dev_read(s_mic, dst, (int)(want * 2)) != ESP_CODEC_DEV_OK) {
+        return false;
+    }
+#endif
+    return true;
+}
+
+static void record_chunk(void)
+{
+    if (s_rec_skip) {
+        /* The mic RX DMA ring still holds a few buffers queued before REC_START, and the blip's
+         * own release tail (picked up by the mic) would otherwise read as speech a moment later
+         * at 30 dB gain. Read and discard into s_rec itself: it's scratch until s_rec_n advances
+         * below, and capping at s_rec_max keeps this safe even for a tiny max_samples. */
+        size_t want = CHUNK_SAMPLES < s_rec_max ? CHUNK_SAMPLES : s_rec_max;
+        if (!mic_read(s_rec, want)) {
+            rec_finish();
+            return;
+        }
+        s_rec_skip--;
+        return;
+    }
+    size_t want = s_rec_max - s_rec_n;
+    if (want > CHUNK_SAMPLES) {
+        want = CHUNK_SAMPLES;
+    }
+    int16_t *dst = s_rec + s_rec_n;
+    if (!mic_read(dst, want)) {
         rec_finish();
         return;
     }
-#endif
     uint16_t peak = envelope_peak(dst, want);
     s_rec_n += want;
     if (rec_stop_update(&s_rec_stop, peak, (uint32_t)want, AUDIO_RATE_HZ) || s_rec_n >= s_rec_max) {

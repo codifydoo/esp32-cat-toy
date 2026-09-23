@@ -40,6 +40,8 @@ uint32_t audio_session_begin(const audio_listener_t *listener);
  * audio_session_end() itself never blocks on the audio task, so it is safe to call from the LVGL
  * task while holding display_lock(). */
 void audio_session_end(uint32_t session);
+/* Discards the first 100 ms of captured audio (RX DMA backlog plus the mic's own pickup of a
+ * preceding blip's release tail) before it counts toward max_samples or speech/silence detection. */
 void audio_record_start(uint32_t session, size_t max_samples);
 void audio_record_stop(uint32_t session);
 /* Takes ownership of pcm unconditionally: it is freed on every path, whether the clip actually
