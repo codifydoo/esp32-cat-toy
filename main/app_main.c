@@ -14,6 +14,9 @@
 #if CONFIG_CAT_DEV_GALLERY
 #include "gallery.h"
 #endif
+#if CONFIG_CAT_DEV_SOAK
+#include "soak.h"
+#endif
 
 static const char *TAG = "main";
 
@@ -52,5 +55,8 @@ void app_main(void)
     if (sensors_start(&listener) != ESP_OK) {
         ESP_LOGE(TAG, "buttons unavailable");
     }
+#if CONFIG_CAT_DEV_SOAK
+    soak_start();
+#endif
 #endif
 }

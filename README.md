@@ -23,3 +23,15 @@ tools/flash_and_log.sh 15      # flash and show 15 s of logs
 ## Host tests
 
 `test/run.sh` (add `-R name` to run one test)
+
+## Adding an app
+
+1. Create `components/ui/apps/<name>.c` that defines `const app_t app_<name>` (see `components/ui/include/app.h`
+   and `apps/voices.c` for a full example).
+2. Add `X(app_<name>)` to `APP_LIST` in `components/ui/apps/registry.c`.
+3. If it replaces a placeholder, delete that line from `apps/placeholder.c`.
+
+## Replacing placeholder sounds
+
+Record the phrases in `docs/recording-list.md` into `assets-src/sounds/phrases/`, then run
+`tools/build_assets.sh && idf.py build && tools/flash_and_log.sh 5`.
