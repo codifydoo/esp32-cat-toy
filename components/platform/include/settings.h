@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include "esp_err.h"
 
-#define SETTINGS_VOLUME_DEFAULT 60
-#define SETTINGS_VOLUME_MAX     80 /* hard ceiling; the parent area cannot exceed it */
+#define SETTINGS_VOLUME_DEFAULT 100 /* 0 dB; the codec curve is -50 dB at 0 %, 0 dB at 100 % */
+#define SETTINGS_VOLUME_MAX     100 /* hard ceiling; the parent area cannot exceed it */
 
 esp_err_t settings_init(void);
 uint8_t settings_volume_cap(void);
