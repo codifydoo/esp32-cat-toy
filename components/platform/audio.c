@@ -353,6 +353,7 @@ void audio_stop_all(void) { send((cmd_t){.kind = CMD_STOP_ALL}); }
 uint32_t audio_session_begin(const audio_listener_t *listener)
 {
     portENTER_CRITICAL(&s_mux);
+    uint32_t previous = s_session;
     uint32_t s = s_next_session++;
     if (s_next_session == 0) {
         s_next_session = 1;
@@ -360,6 +361,9 @@ uint32_t audio_session_begin(const audio_listener_t *listener)
     s_session = s;
     s_listener = *listener;
     portEXIT_CRITICAL(&s_mux);
+    if (previous != 0) {
+        send((cmd_t){.kind = CMD_SESSION_END, .session = previous});
+    }
     return s;
 }
 
