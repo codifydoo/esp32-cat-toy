@@ -1,4 +1,5 @@
 #include "assets.h"
+#include "audio.h"
 #include "display.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
@@ -13,6 +14,7 @@ static uint32_t s_home, s_power;
 
 static void on_button(button_id_t id)
 {
+    audio_play(id == BUTTON_HOME ? SND_MEOW : SND_BLIP_UP);
     if (id == BUTTON_HOME) {
         s_home++;
     } else {
@@ -30,6 +32,10 @@ void app_main(void)
     ESP_ERROR_CHECK(settings_init());
     assets_init();
     ESP_ERROR_CHECK(display_init());
+    if (audio_init(settings_volume_cap()) != ESP_OK) {
+        ESP_LOGE(TAG, "audio unavailable");
+    }
+    audio_play(SND_BOOT);
     display_lock(-1);
     lv_obj_t *scr = lv_screen_active();
     lv_obj_set_style_bg_color(scr, lv_color_black(), 0);
