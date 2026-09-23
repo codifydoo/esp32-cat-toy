@@ -1,50 +1,48 @@
-#include <stdio.h>
 #include "assets.h"
-#include "bsp/esp-bsp.h"
-#include "esp_heap_caps.h"
+#include "display.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "sounds.h"
+#include "lvgl.h"
+#include "sensors.h"
+#include "settings.h"
 
 static const char *TAG = "SMOKE";
+static lv_obj_t *s_label;
+static uint32_t s_home, s_power;
 
-static lv_obj_t *show(lv_obj_t *scr, const char *name, lv_align_t align, int32_t x, int32_t y)
+static void on_button(button_id_t id)
 {
-    lv_obj_t *img = lv_image_create(scr);
-    lv_image_set_src(img, assets_image(name));
-    lv_obj_align(img, align, x, y);
-    return img;
+    if (id == BUTTON_HOME) {
+        s_home++;
+    } else {
+        s_power++;
+    }
+    ESP_LOGI(TAG, "button %s", id == BUTTON_HOME ? "HOME" : "POWER");
+    if (display_lock(-1)) {
+        lv_label_set_text_fmt(s_label, "HOME %lu  POWER %lu", (unsigned long)s_home, (unsigned long)s_power);
+        display_unlock();
+    }
 }
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK(assets_init());
-    bsp_display_start();
-    bsp_display_lock(-1);
+    ESP_ERROR_CHECK(settings_init());
+    assets_init();
+    ESP_ERROR_CHECK(display_init());
+    display_lock(-1);
     lv_obj_t *scr = lv_screen_active();
     lv_obj_set_style_bg_color(scr, lv_color_black(), 0);
-    show(scr, "cat/orange/M/head", LV_ALIGN_TOP_MID, 0, 30);
-    show(scr, "apps/voices", LV_ALIGN_BOTTOM_MID, 0, -40);
-    const lv_image_dsc_t *missing = assets_image("does/not/exist");
-    show(scr, "does/not/exist", LV_ALIGN_LEFT_MID, 40, 0);
-    bsp_display_unlock();
-
+    s_label = lv_label_create(scr);
+    lv_obj_set_style_text_color(s_label, lv_color_white(), 0);
+    lv_obj_set_style_text_font(s_label, &lv_font_montserrat_28, 0);
+    lv_label_set_text(s_label, "press BOOT / PWR");
+    lv_obj_center(s_label);
+    display_unlock();
+    const sensors_listener_t listener = {.on_button = on_button};
+    ESP_ERROR_CHECK(sensors_start(&listener));
     for (;;) {
-        int ok = 0, bad = 0;
-        char path[64];
-        for (int i = 0; i < SND_COUNT; i++) {
-            FILE *f = sounds_path((sound_id_t)i, path, sizeof(path)) ? fopen(path, "rb") : NULL;
-            if (f) {
-                ok++;
-                fclose(f);
-            } else {
-                bad++;
-                ESP_LOGE(TAG, "sound missing: %s", path);
-            }
-        }
-        ESP_LOGI(TAG, "sounds ok=%d missing=%d; placeholder for missing image: %s; psram free %u", ok, bad,
-                 missing->header.w == 32 ? "yes" : "no", (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+        ESP_LOGI(TAG, "volume cap %u%%", settings_volume_cap());
         vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }

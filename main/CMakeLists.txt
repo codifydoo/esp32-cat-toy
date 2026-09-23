@@ -1,4 +1,5 @@
-idf_component_register(SRC_DIRS "." INCLUDE_DIRS ".")
+idf_component_register(SRC_DIRS "." INCLUDE_DIRS "."
+                       REQUIRES platform assets)
 
 set(ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../assets")
 if(NOT EXISTS "${ASSETS_DIR}")

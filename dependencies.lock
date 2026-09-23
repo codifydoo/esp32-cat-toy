@@ -355,11 +355,22 @@ dependencies:
       registry_url: https://components.espressif.com
       type: service
     version: 2.0.0
+  waveshare/qmi8658:
+    component_hash: 105bc632cc0360ffdcc3b7c0556c64fb05bb44e91dba5f2f35aa8e3f6a18d385
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.3.2'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 2.0.1
 direct_dependencies:
 - idf
 - joltwallet/littlefs
 - lvgl/lvgl
 - waveshare/esp32_s3_touch_amoled_1_75
-manifest_hash: 8ba011f6a4ef6b757fca61e7fb47480885ab8667e7572f7193c36f2696e64d94
+- waveshare/qmi8658
+manifest_hash: dd67811205bda4af425212ba13554308562dc1feba260aff95aa9e466a03bea9
 target: esp32s3
 version: 2.0.0
