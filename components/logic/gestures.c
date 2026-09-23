@@ -104,3 +104,8 @@ hold_state_t hold_update(hold_track_t *h, uint8_t n, const int16_t x[2], const i
     }
     return HOLD_PROGRESS;
 }
+
+bool hold_owns_touch(hold_state_t st)
+{
+    return st == HOLD_PROGRESS || st == HOLD_DONE;
+}

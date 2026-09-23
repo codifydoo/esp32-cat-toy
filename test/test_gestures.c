@@ -160,6 +160,16 @@ static void test_hold_survives_the_millisecond_counter_wrapping(void)
     TEST_ASSERT_EQUAL(HOLD_DONE, two(&h, 100, 200, 300, 200, t0 + 5000u, &p));
 }
 
+static void test_the_hold_takes_over_the_touch_only_once_the_ring_shows(void)
+{
+    /* Under 1 s the touch still belongs to the menu: a quick two-finger tap or a palm on a dimmed
+     * screen must still tap or wake. */
+    TEST_ASSERT_FALSE(hold_owns_touch(HOLD_IDLE));
+    TEST_ASSERT_FALSE(hold_owns_touch(HOLD_WAITING));
+    TEST_ASSERT_TRUE(hold_owns_touch(HOLD_PROGRESS));
+    TEST_ASSERT_TRUE(hold_owns_touch(HOLD_DONE));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -177,5 +187,6 @@ int main(void)
     RUN_TEST(test_one_finger_never_fires);
     RUN_TEST(test_fingers_reported_in_swapped_order_are_not_a_move);
     RUN_TEST(test_hold_survives_the_millisecond_counter_wrapping);
+    RUN_TEST(test_the_hold_takes_over_the_touch_only_once_the_ring_shows);
     return UNITY_END();
 }

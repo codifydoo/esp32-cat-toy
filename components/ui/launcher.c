@@ -224,8 +224,8 @@ static void chevron(const lv_point_precise_t *points)
     lv_obj_set_style_line_rounded(l, true, 0);
 }
 
-/* Two fingers are down: make LVGL ignore the rest of this touch, so letting go is not also a tap
- * on the cat or the icon (the same call the app manager uses before closing an app). */
+/* The hold owns this touch (the ring is showing): make LVGL ignore the rest of it, so letting go is
+ * not also a tap on the cat or the icon (the same call the app manager uses before closing an app). */
 static void swallow_touch(void)
 {
     for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
@@ -246,8 +246,9 @@ static void hold_tick(lv_timer_t *t)
     touch_raw_t raw = touch_raw_get();
     uint16_t progress = 0;
     hold_state_t st = hold_update(&s_hold, raw.count, raw.x, raw.y, lv_tick_get(), &progress);
-    if (st != HOLD_IDLE) {
+    if (hold_owns_touch(st)) {
         swallow_touch();
+        idle_wake_if_asleep(); /* show the ring even if the hold started on a dimmed or dark menu */
     }
     ui_set_hidden(s_hold_ring, st != HOLD_PROGRESS);
     if (st == HOLD_PROGRESS) {

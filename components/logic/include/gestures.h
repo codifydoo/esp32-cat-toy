@@ -49,3 +49,6 @@ void hold_reset(hold_track_t *h);
  * between samples; each point is matched to the nearer start point. */
 hold_state_t hold_update(hold_track_t *h, uint8_t n, const int16_t x[2], const int16_t y[2],
                          uint32_t t_ms, uint16_t *progress);
+/* Whether the hold has taken over the touch: once the ring shows (1 s). Before that the touch
+ * still belongs to the menu, so a quick two-finger tap or a palm still taps or wakes. */
+bool hold_owns_touch(hold_state_t st);
