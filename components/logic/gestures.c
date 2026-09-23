@@ -46,3 +46,61 @@ gesture_kind_t gesture_end(gesture_track_t *g, int16_t x, int16_t y, uint32_t t_
     }
     return GESTURE_NONE;
 }
+
+void hold_reset(hold_track_t *h)
+{
+    *h = (hold_track_t){0};
+}
+
+static uint32_t dist2(int16_t ax, int16_t ay, int16_t bx, int16_t by)
+{
+    int32_t dx = ax - bx;
+    int32_t dy = ay - by;
+    return (uint32_t)(dx * dx + dy * dy);
+}
+
+static uint32_t max2(uint32_t a, uint32_t b) { return a > b ? a : b; }
+
+hold_state_t hold_update(hold_track_t *h, uint8_t n, const int16_t x[2], const int16_t y[2],
+                         uint32_t t_ms, uint16_t *progress)
+{
+    if (n < 2) {
+        h->active = false;
+        h->spent = false; /* a lifted finger ends this hold; the next two-finger touch starts fresh */
+        return HOLD_IDLE;
+    }
+    if (h->spent) {
+        return HOLD_IDLE;
+    }
+    if (!h->active) {
+        h->active = true;
+        for (int i = 0; i < 2; i++) {
+            h->x0[i] = x[i];
+            h->y0[i] = y[i];
+        }
+        h->t0_ms = t_ms;
+        return HOLD_WAITING;
+    }
+    /* The controller may report the two fingers in either order, so use the pairing that moved less. */
+    uint32_t same = max2(dist2(x[0], y[0], h->x0[0], h->y0[0]), dist2(x[1], y[1], h->x0[1], h->y0[1]));
+    uint32_t swapped = max2(dist2(x[0], y[0], h->x0[1], h->y0[1]), dist2(x[1], y[1], h->x0[0], h->y0[0]));
+    uint32_t moved = same < swapped ? same : swapped;
+    if (moved > (uint32_t)(GESTURE_HOLD_MAX_PX * GESTURE_HOLD_MAX_PX)) {
+        h->active = false;
+        h->spent = true;
+        return HOLD_IDLE;
+    }
+    uint32_t elapsed = t_ms - h->t0_ms; /* unsigned: correct across the counter wrapping */
+    if (elapsed >= GESTURE_HOLD_MS) {
+        h->active = false;
+        h->spent = true;
+        return HOLD_DONE;
+    }
+    if (elapsed < GESTURE_HOLD_SHOW_MS) {
+        return HOLD_WAITING;
+    }
+    if (progress) {
+        *progress = (uint16_t)((elapsed - GESTURE_HOLD_SHOW_MS) * 1000u / (GESTURE_HOLD_MS - GESTURE_HOLD_SHOW_MS));
+    }
+    return HOLD_PROGRESS;
+}
