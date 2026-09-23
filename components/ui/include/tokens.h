@@ -98,3 +98,27 @@
 #define COLOR_COSTUME_LION    0xFFB020
 #define COLOR_COSTUME_ROBOT   0x4FD8FF
 #define COLOR_COSTUME_CAVE    0x9C7BFF
+
+/* Parent area (design: "Parent area" colors; "Parent · max volume") */
+#define COLOR_P_SURFACE 0x1E1D2A
+#define COLOR_P_BORDER  0x3A3850
+#define COLOR_P_TEXT    0xF2EFFA
+#define COLOR_P_MUTED   0xA9A5BF
+#define COLOR_P_TRACK   0x2A2838
+#define COLOR_P_ARC     0xFFB547
+#define PARENT_ARC_CX   233
+#define PARENT_ARC_CY   254
+#define PARENT_ARC_R    110
+#define PARENT_ARC_W    22
+#define PARENT_BTN_SIZE 84
+#define PARENT_BTN_Y    332
+#define PARENT_MINUS_X  106
+#define PARENT_PLUS_X   276
+
+/* Parent entry ring (design: "Menu · parent hold") */
+#define HOLD_RING_CX  233
+#define HOLD_RING_CY  112
+#define HOLD_RING_R   92
+#define HOLD_RING_W   6
+#define HOLD_RING_OPA 140 /* 55 % */
+#define HOLD_POLL_MS  50

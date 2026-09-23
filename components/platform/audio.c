@@ -378,6 +378,11 @@ esp_err_t audio_init(uint8_t volume_pct)
     fs.channel = AUDIO_MIC_CHANNELS;
     ESP_RETURN_ON_FALSE(esp_codec_dev_open(s_mic, &fs) == ESP_CODEC_DEV_OK, ESP_FAIL, TAG, "mic open failed");
     esp_codec_dev_set_in_gain(s_mic, MIC_GAIN_DB);
+    /* The codec's default curve (-50 dB at 0 %) left the bottom of the parent's 10-100 % range
+     * nearly silent. 10 % is -20 dB (quiet but audible on the device), 100 % is 0 dB. */
+    esp_codec_dev_vol_map_t points[] = {{.vol = 10, .db_value = -20.0f}, {.vol = 100, .db_value = 0.0f}};
+    esp_codec_dev_vol_curve_t curve = {.vol_map = points, .count = 2};
+    esp_codec_dev_set_vol_curve(s_spk, &curve);
     esp_codec_dev_set_out_vol(s_spk, clamp_volume(volume_pct));
     s_queue = xQueueCreate(16, sizeof(cmd_t));
     ESP_RETURN_ON_FALSE(s_queue, ESP_ERR_NO_MEM, TAG, "queue");

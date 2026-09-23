@@ -9,6 +9,7 @@
 #include "imu.h"
 #include "lvgl.h"
 #include "sensors.h"
+#include "touch_raw.h"
 
 #define DIAG_RECORD_S 3
 
@@ -16,6 +17,7 @@ static const char *TAG = "DIAG";
 static lv_obj_t *s_touch, *s_accel, *s_buttons, *s_rec_label;
 static uint32_t s_home, s_power, s_ticks, s_session;
 static volatile bool s_busy;
+static uint8_t s_points; /* last logged finger count */
 
 static void set_rec_label(const char *text)
 {
@@ -89,6 +91,11 @@ static void on_button(button_id_t id)
 static void tick(lv_timer_t *t)
 {
     (void)t;
+    touch_raw_t raw = touch_raw_get();
+    if (raw.count != s_points) {
+        s_points = raw.count;
+        ESP_LOGI(TAG, "touch points=%u", (unsigned)raw.count);
+    }
     float x, y, z;
     if (!imu_read_g(&x, &y, &z)) {
         lv_label_set_text(s_accel, "IMU not responding");

@@ -317,3 +317,44 @@ M1 passes.
 | Log | no Guru Meditation, abort, assert or unexpected reboot |
 
 M3 passes.
+
+## Soak (Task 18) — 2026-09-23, 1.75C BSP, volume 100 %
+
+| Run | Result |
+| --- | --- |
+| 1 | Restarted by itself after round 20; no panic text, and the ROM's reset line was lost over USB. The logger then reopened the port, and opening the port is itself shown to reset this board (`reset reason 11`, USB), so the logger is the likely cause. The firmware now logs `reset reason N` at every boot |
+| 2 | All 50 rounds, no restart, but `SOAK: FAIL: internal delta=-25592`. Readings swung between ~198 KB and ~223 KB from round to round: a ~25 KB buffer held for a few ms during a display flush or fade, not a leak (PSRAM was flat) |
+| 3 | After flashing and a scripted reset, the screen stayed black and the chip did not answer the flasher until the user replugged USB. Not reproduced since; cause unknown |
+| 4 | Soak now takes the highest of 10 readings 50 ms apart. **`SOAK: PASS: internal delta=-8 psram delta=0 over 50 rounds`**, one boot, no crash, logged with a listener that does not touch the reset lines |
+
+## Parent volume (2026-09-23)
+
+| Check | Result |
+| --- | --- |
+| Diagnostics: one finger, then two held, then lift | PASS after a fix: first the count never passed 1 (the Waveshare CST9217 driver hard-codes one point); with the report read, `touch points=1`, `2`, then `0`, on 3 holds |
+| Two fingers held still on the menu: nothing for 1 s, ring fills around the cat, Max volume opens at 5 s | PASS |
+| "−" three times (100 → 70 %, quieter clicks), "+" once (80 %), BOOT back to the menu with the mew at the new level | PASS |
+| Menu afterwards: swipes, cat tap, app open/close, dim at ~20 s and tap to wake | PASS, sounds at the new level (the new display setup and brightness path behave as before) |
+| One finger on the cat 10 s; two fingers 3 s then lift; two fingers with one sliding ~2 cm | PASS: none opened it |
+| Letting go after a completed hold | PASS: no app name, no app opened behind it |
+| Untouched Max volume screen | PASS: back to the menu after ~60 s |
+| Volume survives a restart | PASS: `settings: volume cap 50%` after reset (the level last set) |
+| Log | one boot, no Guru Meditation, abort or assert |
+
+## Review fixes and a boot hang (2026-09-24)
+
+| Check | Result |
+| --- | --- |
+| Palm on the dimmed menu (under 1 s) wakes it; quick two-finger tap on the icon opens the app | PASS (the hold now takes the touch only once its ring shows) |
+| Two-finger hold, "−"/"+" and BOOT after the fixes | PASS |
+| New volume curve (10 % = −20 dB, 100 % = 0 dB) | Built in; the user keeps 10 % and did not judge its loudness |
+
+**Boot hang after a double reset.** Sometimes, after a reset followed by a second one within about a second (a flash plus a serial-port open, or a scripted reset), the bootloader finishes and the app prints nothing. The screen stays black, and the chip does not answer the flasher until USB is replugged. A scripted test (`double_reset.py`: reset, wait 0.15–1.2 s, reset, look for the app's first line) reproduces it:
+
+| Firmware | Result |
+| --- | --- |
+| Tonight's settings (`-O2`, 32/64 KB caches, XIP from PSRAM, style cache) | hang at cycle 21 (1 in 21) |
+| Same without XIP from PSRAM | hang at cycle 20 (1 in 20) |
+| None of tonight's settings (`-Og`, default caches, no XIP, no style cache) | hang at cycle 22 (1 in 22) |
+
+So it predates tonight's changes and does not depend on those settings. It needs two resets close together during early boot; a normal power-on is a full power cycle and was never affected. Suspect: the chip (ESP32-S3 rev v0.2 with AP octal PSRAM; compare esp-idf issue 18806). Open: test with `CONFIG_SPIRAM_MEMTEST` off and with Waveshare's own firmware under the same script.
