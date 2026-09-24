@@ -61,8 +61,7 @@ static void placeholder_destroy(void)
         .destroy = placeholder_destroy,                            \
     };
 
-/* Remove a line when that app's real file lands (voices: Task 17, pet: M4). */
-PLACEHOLDER(app_draw, "draw", COLOR_DRAW, SND_NAME_DRAW, SND_SWIPE_DRAW, CAT_SURPRISED)
+/* Remove a line when that app's real file lands (voices: Task 17, pet: M4, draw: M5). */
 PLACEHOLDER(app_yarn, "yarn", COLOR_YARN, SND_NAME_YARN, SND_SWIPE_YARN, CAT_LISTENING)
 PLACEHOLDER(app_clock, "clock", COLOR_CLOCK, SND_NAME_CLOCK, SND_SWIPE_CLOCK, CAT_SLEEPY)
 PLACEHOLDER(app_piano, "piano", COLOR_PIANO, SND_NAME_PIANO, SND_SWIPE_PIANO, CAT_LAUGHING)

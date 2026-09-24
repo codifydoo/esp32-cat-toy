@@ -154,3 +154,28 @@
 #define PET_GIGGLE_MS     1800
 #define PET_DIZZY_MS      2000
 #define PET_EAT_MS        2400
+
+/* Rainbow brush (Spec.dc.html): Magic paws dots and prints, Yarn roll confetti. An array initializer. */
+#define RAINBOW_COLORS {0xFF5A5A, 0xFF9F3A, 0xFFD84A, 0x5CD67A, 0x4FD8FF, 0x5A8CFF, 0xB07CFF}
+
+/* Magic paws (Screen.dc.html draw and erase views; spec §3.11) */
+#define DRAW_DOT_R           8.0f  /* 16 px dots */
+#define DRAW_HALO_R          15.0f /* 30 px halo */
+#define DRAW_HALO_OPA        71    /* 28 % */
+#define DRAW_BUTTON_X        158   /* the 150 px brush button */
+#define DRAW_BUTTON_Y        300
+#define DRAW_HINT_X          153
+#define DRAW_HINT_Y          120
+#define DRAW_DUST_X          100
+#define DRAW_DUST_Y          360
+#define DRAW_TWINKLE_MS      3000  /* 30 % -> 100 % -> 30 % */
+#define DRAW_TWINKLE_LOW_OPA 77    /* 30 % */
+#define DRAW_SPARKLE_EVERY   8     /* dots per sparkle tick */
+#define DRAW_SOUND_GAP_MS    125   /* sparkles and pats: at most 8 per second */
+#define DRAW_SWEEP_OPA       77    /* the drawing at 30 % while the cat sweeps */
+#define DRAW_SWEEP_CAT_X     133   /* scale M origin */
+#define DRAW_SWEEP_CAT_Y     196
+#define DRAW_SWEEP_PX        60
+#define DRAW_SWING_MS        550   /* one swing there and back */
+#define DRAW_CISTO_MS        900
+#define DRAW_CLEAN_MS        1700
