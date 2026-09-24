@@ -269,6 +269,25 @@
 #define DAY_CAT_W             200  /* the scale M cat's box: a tap inside it purrs */
 #define DAY_CAT_H             210
 
+/* Parent home and Sleep times (design "Parent · home", "Parent · sleep times"; spec §3.12) */
+#define COLOR_P_VALUE        0xFFC76B /* tile values and the row icons */
+#define PARENT_TILE_SIZE     140
+#define PARENT_TILE_Y        88
+#define PARENT_TILE_VOL_X    88
+#define PARENT_TILE_SLEEP_X  238
+#define PARENT_BACK_X        158      /* "< Parents" */
+#define PARENT_BACK_Y        34
+#define PARENT_BACK_W        150
+#define PARENT_BACK_H        52
+#define PARENT_ROW_Y0        96       /* Sleep times: the first row's label; three rows 100 px apart */
+#define PARENT_ROW_STEP      100
+#define PARENT_ROW_VALUE_DY  28
+#define PARENT_ROW_BTN_DY    12
+#define PARENT_ROW_BTN       76
+#define PARENT_ROW_MINUS_X   70
+#define PARENT_ROW_PLUS_X    320
+#define PARENT_TIMES_NOTE_Y  394
+
 /* Bedtime lock and sunrise (spec §3.12) */
 #define BEDTIME_TICK_MS        1000
 #define BEDTIME_BRIGHTNESS     35
