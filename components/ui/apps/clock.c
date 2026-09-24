@@ -81,6 +81,7 @@ static void clock_create(lv_obj_t *screen)
 static void clock_destroy(void)
 {
     cancel_timers();
+    scene_day_stop(&s_day);
     s_cat = NULL;
     /* the purr loop: app_manager calls audio_stop_all() after this */
 }

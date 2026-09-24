@@ -138,4 +138,17 @@ void scene_day_create(day_scene_t *s, lv_obj_t *parent)
     s->cat = cat_create(s->root, CAT_SCALE_M);
     cat_set_origin(s->cat, DAY_CAT_X, DAY_CAT_Y);
     cat_set_state(s->cat, CAT_PROUD);
+
+    s->sun = sun;
+    s->ray_box = rays;
+}
+
+void scene_day_stop(day_scene_t *s)
+{
+    if (!s->sun) {
+        return; /* never started, or already stopped: lv_anim_delete(NULL, NULL) would delete every animation */
+    }
+    lv_anim_delete(s->ray_box, NULL);
+    lv_anim_delete(s->sun, NULL);
+    s->sun = s->ray_box = NULL;
 }

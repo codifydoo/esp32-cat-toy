@@ -21,10 +21,15 @@ void scene_night_set_stars(night_scene_t *s, uint8_t lit);
 
 typedef struct {
     lv_obj_t *root;
-    lv_obj_t *cat; /* the proud cat, scale M */
+    lv_obj_t *sun;     /* the rising box: disc and rays */
+    lv_obj_t *ray_box; /* the turning lines */
+    lv_obj_t *cat;     /* the proud cat, scale M */
     lv_point_precise_t rays[DAY_RAYS][2]; /* the turning rays' end points: lv_line keeps a pointer */
 } day_scene_t;
 
 /* The sun with its turning rays, rising DAY_RISE_PX over DAY_RISE_MS; the hills; the proud cat. `s`
  * must outlive the scene's objects, because the rays read their points from it. */
 void scene_day_create(day_scene_t *s, lv_obj_t *parent);
+/* Stops the turning rays and the rise (spec §4.4: an app's destroy() leaves no animations behind).
+ * The objects stay where they are until their screen is deleted. Safe to call twice. */
+void scene_day_stop(day_scene_t *s);
