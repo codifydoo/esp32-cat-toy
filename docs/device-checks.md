@@ -400,4 +400,41 @@ Normal build 968e970, then the perf and soak builds of 476a3b5.
 ball appear at once, because flat became level at open (spec §3.10). Filed as issue #4 with fix
 options, to decide after the kid test.
 
-The kid test (spec §7) is still open for M3 and M4.
+## Magic paws, Yarn roll and Meow piano (M5) — 2026-09-24
+
+Normal build 55b0a34, then the perf builds of 55b0a34 and 5bb4e4a, the normal build of f3559a3
+(final-review fixes), and the soak builds of 55b0a34, f3559a3 and 32e26f9.
+
+| Check | Result |
+| --- | --- |
+| Menu: the surprised face (Magic paws icon) looks as before | PASS |
+| Magic paws: layout, twinkling hint, rainbow trail with glow and sparkles, fast scribbles unbroken | PASS |
+| Magic paws: paw brush (alternating, turned, pat), edge ring and button stay clean | PASS |
+| Magic paws: drawing kept after Home; shake sweeps it (dim, broom, swish, "Čisto!", clean); Home mid-sweep leaves it clean | PASS |
+| Magic paws (f3559a3): a stroke continues across the brush button; a press dragged off the button neither switches the brush nor paints; a tap still switches | PASS |
+| Yarn roll: layout and 4 s hint; rolls downhill with rumble and turning frames; the cat follows and looks at the yarn | PASS |
+| Yarn roll: win scene (full basket, proud cat, confetti, fanfare + "Bravo!"), three rounds through the basket spots | PASS |
+| Yarn roll: shake recenters; resting against the rim stops the rumble and times out after ~60 s | PASS |
+| Yarn roll (f3559a3): PWR while the yarn rolls silences the rumble at once; win and next round still work | PASS |
+| Meow piano: five colored cats and pads; each tap sings, bounces, fills its pad and colors the note; fast taps never stick | PASS |
+| BOOT mid-sweep, mid-roll, after the hit, during the confetti and mid-song: menu at once, silence | PASS |
+| Tilt-only play in Yarn roll for 90 s stays open; Magic paws and Meow piano time out after ~60 s | PASS |
+| PWR off in Yarn roll: tilt and shake stay dark and silent | PASS |
+| FPS (perf build) | Magic paws scribbling 28-30 (rainbow and paws); sweep 24-30; Yarn rolling 29-30; app-open zoom 3-13 (the accepted §3.4 exception). Confetti with spin measured 13-17, so the spec §3.11 fallback dropped the spin (5bb4e4a): 24-26 over two full win scenes. **Open:** Meow piano measures 15-22 (a few samples to 9) while tapping cats quickly and 26-30 between taps; the user saw it as smooth and deferred it to M8. The first two perf logs recorded only the idle menu; the third captured the run |
+| Soak | PASS on the committed build (32e26f9, silent): `SOAK: PASS: internal delta=-8 psram delta=0 over 50 rounds`. Earlier runs are in the investigation below |
+| Log | no missing image or sound, Guru Meditation, abort, assert or unexpected reset |
+
+**Soak investigation.** The first soak (55b0a34) failed on PSRAM −12,636 B: one drop between the
+baseline and round 10, then flat. An instrumented run logging every image and sound load and the
+free PSRAM after each of 300 steps stayed flat (PSRAM delta 0), but failed on internal RAM: its
+baseline caught a rare high reading (243,671 B; run 1 had the same value once, at round 10), while every other reading sat
+at 219-222 K with no trend. The final-review fixes made the soak warm up three rounds (the piano's
+first open blocks the UI ~440 ms, so one round can miss animation frames that are then cached forever)
+and compare median readings. The next run (f3559a3) still dropped exactly −12,636 B once, between
+rounds 30 and 40. A silent run with heap hooks (a backtrace for any 12-13.5 KB PSRAM allocation after
+the baseline) passed 120 rounds with PSRAM flat and no hook hit. **Open:** a one-time, non-growing
+12,636 B PSRAM hold. It appeared in runs 1 and 3 (sound on, uninstrumented), not in run 2 (sound on,
+instrumented) nor in the silent runs (120 and 50 rounds). Its source is not identified. Next instrument for M8: a table of live PSRAM allocations since the baseline, with
+backtraces, printed at each checkpoint. At the user's request the soak now runs silent (32e26f9).
+
+The kid test (spec §7) is still open for M3, M4 and M5.
