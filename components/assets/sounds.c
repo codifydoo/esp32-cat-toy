@@ -25,6 +25,11 @@ static const char *const FILES[SND_COUNT] = {
     [SND_COSTUME_LION] = "costume_lion",
     [SND_COSTUME_ROBOT] = "costume_robot",
     [SND_COSTUME_CAVE] = "costume_cave",
+    [SND_PURR] = "purr",
+    [SND_BELL_TICK] = "bell_tick",
+    [SND_PET_RUB] = "pet_rub",
+    [SND_PET_DIZZY] = "pet_dizzy",
+    [SND_PET_EAT] = "pet_eat",
 };
 
 bool sounds_path(sound_id_t id, char *out, size_t n)

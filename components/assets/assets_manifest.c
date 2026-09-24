@@ -66,5 +66,8 @@ const ui_image_pos_t UI_IMAGE_POS[] = {
     {"ui/paw_hint", 0, 0},
     {"ui/mic_glyph", 62, 38},
     {"ui/cave_arch", 63, 19},
+    {"ui/fish", 27, 51},
+    {"ui/ball", 0, 0},
+    {"ui/heart", 0, 0},
 };
-const size_t UI_IMAGE_POS_COUNT = 3;
+const size_t UI_IMAGE_POS_COUNT = 6;

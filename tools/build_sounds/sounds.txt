@@ -53,6 +53,9 @@ piano_g5      pitch   meow_1:7
 piano_a5      pitch   meow_1:9
 boot          concat  mrrrow+chime_boot
 open          concat  pop+idemo
+pet_rub       concat  giggle+hihihi
+pet_dizzy     concat  wheee+boing
+pet_eat       concat  crunch+crunch+njam
 costume_mouse concat  squeak+bok@mouse
 costume_lion  concat  roar+bok@lion
 costume_robot concat  beep_boop+bok@robot

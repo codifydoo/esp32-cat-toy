@@ -22,4 +22,28 @@ export const UI_IMAGES = [
       `<path d="${ARCH}" fill="none" stroke="#3B2F5C" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>` +
       `<path d="${ARCH}" fill="none" stroke="#5A4A8A" stroke-width="10" stroke-linecap="round" stroke-dasharray="16 30"/>`,
   },
+  {
+    name: 'ui/fish',
+    viewBox: [0, 0, 150, 150],
+    crop: true,
+    svg:
+      '<path d="M30 75 Q64 42 100 75 Q64 108 30 75 Z" fill="#FFF6E6" stroke="#0F5A85" stroke-width="6" stroke-linejoin="round"/>' +
+      '<path d="M98 75 L122 54 L122 96 Z" fill="#FFF6E6" stroke="#0F5A85" stroke-width="6" stroke-linejoin="round"/>' +
+      '<circle cx="50" cy="70" r="6" fill="#0F5A85"/>',
+  },
+  {
+    name: 'ui/ball',
+    viewBox: [0, 0, 48, 48],
+    crop: false,
+    svg:
+      '<circle cx="24" cy="24" r="20" fill="#FFD84A" stroke="#9A7A00" stroke-width="5"/>' +
+      '<path d="M14 18 Q24 8 34 18" fill="none" stroke="#FFF6B0" stroke-width="4" stroke-linecap="round"/>',
+  },
+  {
+    name: 'ui/heart',
+    viewBox: [0, 0, 30, 30],
+    size: 34,
+    crop: false,
+    svg: '<path d="M15 27 C4 19 1 12 4 7 C7 2 13 3 15 8 C17 3 23 2 26 7 C29 12 26 19 15 27 Z" fill="#FF7FB0"/>',
+  },
 ];
