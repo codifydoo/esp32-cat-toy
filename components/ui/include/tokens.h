@@ -216,7 +216,7 @@
 #define YARN_CONFETTI_DELAY_MAX 1400
 #define YARN_CONFETTI_FALL      520
 #define YARN_CONFETTI_MS        1600
-#define YARN_CONFETTI_SPIN      1    /* 0 = the spec §3.11 fallback: confetti falls without spinning */
+#define YARN_CONFETTI_SPIN      0    /* 0: the spec §3.11 fallback, measured 13-17 FPS with spin on the device */
 #define YARN_CONFETTI_TURN      5400 /* 540°, in 0.1° */
 
 /* Meow piano (Screen.dc.html piano view; spec §3.11) */
