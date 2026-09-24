@@ -3,6 +3,7 @@
 #include "audio.h"
 #include "boot.h"
 #include "cat.h"
+#include "clock.h"
 #include "display.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -30,6 +31,9 @@ void app_main(void)
      * 1 power-on, 3 software, 4 panic, 5-7 watchdogs, 9 brownout, 11 USB, 14 power glitch). */
     ESP_LOGI(TAG, "reset reason %d", (int)esp_reset_reason());
     ESP_ERROR_CHECK(settings_init());
+    if (clock_init() != ESP_OK) {
+        ESP_LOGE(TAG, "network stack unavailable: no NTP");
+    }
     if (assets_init() != ESP_OK) {
         ESP_LOGE(TAG, "assets missing: images show as magenta dots and sounds are silent");
     }
@@ -63,6 +67,7 @@ void app_main(void)
     if (sensors_start() != ESP_OK) {
         ESP_LOGE(TAG, "sensors unavailable: no buttons, shake or tilt");
     }
+    clock_sync_start(); /* NTP at boot, in the background (spec §3.2) */
 #if CONFIG_CAT_DEV_SOAK
     soak_start();
 #endif

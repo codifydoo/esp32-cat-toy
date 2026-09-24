@@ -25,6 +25,19 @@ one listener can hold the port: let a running one finish (or stop it) before fla
 | FPS overlay | same with `perf` |
 | Soak test | same with `soak` |
 
+## Wi-Fi for the clock (optional)
+
+The toy sets its clock over NTP at boot and at the wake-up minute when it knows a Wi-Fi network
+(spec §3.2). Without one, set the time in the parent area (Sleep → Now). Put the network in
+`sdkconfig.secrets` next to `sdkconfig.defaults`. The file is git-ignored; never commit it:
+
+    CONFIG_CAT_WIFI_SSID="network name"
+    CONFIG_CAT_WIFI_PASSWORD="password"
+
+A build directory reads it only when it creates its `sdkconfig`, so delete `sdkconfig` after creating or
+changing the file, then build. Developer builds that pass `SDKCONFIG_DEFAULTS` read it only if you add
+it to their list.
+
 ## Host tests
 
 `test/run.sh` (add `-R name` to run one test)
