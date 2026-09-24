@@ -22,7 +22,7 @@ static const uint32_t CONFETTI_COLORS[] = RAINBOW_COLORS;
 static lv_obj_t *s_yarn; /* NULL once destroy() has run: every callback checks it first (app.h) */
 static lv_obj_t *s_screen, *s_basket, *s_cat, *s_hint, *s_win;
 static lv_obj_t *s_confetti[YARN_CONFETTI];
-static lv_timer_t *s_hint_timer, *s_win_timer, *s_round_timer;
+static lv_timer_t *s_hint_timer, *s_win_timer, *s_round_timer, *s_rumble_timer;
 static phase_t s_phase;
 static uint8_t s_round;        /* which basket spot */
 static int16_t s_bx, s_by;     /* the basket's center */
@@ -32,7 +32,7 @@ static float s_look_x, s_look_y;
 static uint8_t s_frame;
 static float s_frame_px; /* rolled since the last frame change */
 static bool s_rumbling;
-static uint32_t s_last_tilt_ms, s_last_roll_ms;
+static uint32_t s_last_tilt_ms;
 
 /* ---- helpers ---- */
 
@@ -45,7 +45,7 @@ static lv_timer_t *one_shot(lv_timer_cb_t cb, uint32_t ms)
 
 static void cancel_timers(void)
 {
-    lv_timer_t **all[] = {&s_hint_timer, &s_win_timer, &s_round_timer};
+    lv_timer_t **all[] = {&s_hint_timer, &s_win_timer, &s_round_timer, &s_rumble_timer};
     for (size_t i = 0; i < sizeof(all) / sizeof(all[0]); i++) {
         if (*all[i]) {
             lv_timer_delete(*all[i]);
@@ -65,6 +65,16 @@ static void rumble(bool on)
     } else {
         audio_loop_stop();
     }
+}
+
+static void rumble_done(lv_timer_t *t)
+{
+    (void)t;
+    s_rumble_timer = NULL; /* one-shot timers delete themselves */
+    if (!s_yarn) {
+        return; /* destroy() already ran; the screen can outlive it briefly, see app.h */
+    }
+    rumble(false); /* also when on_tilt stopped coming (PWR, dimming) */
 }
 
 /* ---- tilt hint ---- */
@@ -221,6 +231,10 @@ static void win_show(lv_timer_t *t)
 static void hit(void)
 {
     s_phase = Y_HIT; /* the yarn stays put until the win scene (spec §3.11) */
+    if (s_rumble_timer) {
+        lv_timer_delete(s_rumble_timer);
+        s_rumble_timer = NULL; /* it must not fire into the win */
+    }
     rumble(false);
     s_win_timer = one_shot(win_show, YARN_WIN_DELAY_MS);
 }
@@ -244,11 +258,13 @@ static void yarn_tilt(float x_deg, float y_deg)
     }
     if (moved >= YARN_ROLL_MIN_PX) {
         lv_display_trigger_activity(NULL); /* rolling is play; resting against the rim is not */
-        s_last_roll_ms = s_last_tilt_ms;
         roll_frames(moved, (s_x - ox) + (s_y - oy) >= 0.0f);
         rumble(true);
-    } else if (lv_tick_elaps(s_last_roll_ms) >= YARN_RUMBLE_STOP_MS) {
-        rumble(false);
+        if (!s_rumble_timer) {
+            s_rumble_timer = one_shot(rumble_done, YARN_RUMBLE_STOP_MS);
+        } else {
+            lv_timer_reset(s_rumble_timer);
+        }
     }
     chase(dt, false);
     if (yarn_in_basket(s_x, s_y, s_bx, s_by)) {
@@ -296,7 +312,7 @@ static void yarn_create(lv_obj_t *screen)
     s_frame_px = 0.0f;
     s_rumbling = false;
     s_win = NULL;
-    s_last_tilt_ms = s_last_roll_ms = lv_tick_get();
+    s_last_tilt_ms = lv_tick_get();
     build(screen);
     start_round();
     s_hint_timer = one_shot(hint_done, YARN_HINT_MS);
