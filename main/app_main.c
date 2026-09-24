@@ -8,6 +8,7 @@
 #include "esp_system.h"
 #include "imu.h"
 #include "lvgl.h"
+#include "power.h"
 #include "sdkconfig.h"
 #include "sensors.h"
 #include "settings.h"
@@ -50,6 +51,7 @@ void app_main(void)
     cat_set_variant(CAT_VARIANT_ORANGE);
     gallery_start();
 #else
+    power_init();
     cat_set_variant((cat_variant_t)settings_cat_variant());
     display_lock(-1);
     app_manager_init();

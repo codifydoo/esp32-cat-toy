@@ -3,14 +3,17 @@
 #include "esp_log.h"
 #include "nvs.h"
 #include "nvs_flash.h"
+#include "schedule.h"
 
 static const char *TAG = "settings";
 static nvs_handle_t s_nvs;
 static uint8_t s_volume = SETTINGS_VOLUME_DEFAULT;
 static uint8_t s_variant;
 static uint32_t s_hidden;
+static uint16_t s_bed = SETTINGS_BEDTIME_DEFAULT, s_wake = SETTINGS_WAKE_DEFAULT;
 
 static uint8_t clamp_volume(uint8_t v) { return v > SETTINGS_VOLUME_MAX ? SETTINGS_VOLUME_MAX : v; }
+static uint16_t valid_min(uint16_t v, uint16_t fallback) { return v < SCHEDULE_DAY_MIN ? v : fallback; }
 
 esp_err_t settings_init(void)
 {
@@ -24,11 +27,16 @@ esp_err_t settings_init(void)
     nvs_get_u8(s_nvs, "vol", &s_volume); /* NOT_FOUND leaves the default in place */
     nvs_get_u8(s_nvs, "variant", &s_variant);
     nvs_get_u32(s_nvs, "hidden", &s_hidden);
+    nvs_get_u16(s_nvs, "bed", &s_bed);
+    nvs_get_u16(s_nvs, "wake", &s_wake);
+    s_bed = valid_min(s_bed, SETTINGS_BEDTIME_DEFAULT);
+    s_wake = valid_min(s_wake, SETTINGS_WAKE_DEFAULT);
     s_volume = clamp_volume(s_volume);
     if (s_variant > 2) {
         s_variant = 0;
     }
     ESP_LOGI(TAG, "volume cap %u%%, cat %u, hidden apps 0x%08lx", s_volume, s_variant, (unsigned long)s_hidden);
+    ESP_LOGI(TAG, "bedtime %02u:%02u, wake-up %02u:%02u", s_bed / 60, s_bed % 60, s_wake / 60, s_wake % 60);
     return ESP_OK;
 }
 
@@ -61,4 +69,18 @@ void settings_set_hidden_apps(uint32_t mask)
 {
     s_hidden = mask;
     commit(nvs_set_u32(s_nvs, "hidden", s_hidden), "hidden");
+}
+
+uint16_t settings_bedtime(void) { return s_bed; }
+void settings_set_bedtime(uint16_t min)
+{
+    s_bed = valid_min(min, SETTINGS_BEDTIME_DEFAULT);
+    commit(nvs_set_u16(s_nvs, "bed", s_bed), "bed");
+}
+
+uint16_t settings_wake(void) { return s_wake; }
+void settings_set_wake(uint16_t min)
+{
+    s_wake = valid_min(min, SETTINGS_WAKE_DEFAULT);
+    commit(nvs_set_u16(s_nvs, "wake", s_wake), "wake");
 }

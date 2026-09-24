@@ -27,6 +27,9 @@ esp_err_t audio_init(uint8_t volume_pct);
 bool audio_available(void);
 void audio_set_volume(uint8_t pct);
 void audio_play(sound_id_t id);
+/* Like audio_play(), at gain_pct % (at most 100) of the current volume: a mixer gain, so the parent's
+ * cap still applies (spec §3.12: the bedtime whisper at 30 %). */
+void audio_play_quiet(sound_id_t id, uint8_t gain_pct);
 void audio_loop_start(sound_id_t id);
 void audio_loop_stop(void);
 void audio_stop_all(void);
