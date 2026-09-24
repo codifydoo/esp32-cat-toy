@@ -220,6 +220,55 @@ The design leaves these open; they apply to Pet the cat (M4), and the tilt rules
   drains, together with the latest tilt. The sensors task never waits for the LVGL lock, so a slow
   frame cannot swallow a quick second button press.
 
+### 3.11 Magic paws, Yarn roll and Meow piano details (2026-09-24)
+
+The design leaves these open for M5. Everything else follows the design.
+
+- **Magic paws: her drawing is kept.**
+  - The drawing stays in memory when the app closes, by Home or by the 60 s idle timeout. It is back
+    when she reopens the app, until she shakes it clean or the toy restarts.
+  - It is one 466 × 466 RGB565 picture (434 KB of PSRAM), allocated on the first open and never
+    freed. This is the one exception to "`destroy` leaves no PSRAM behind" (§4.4).
+- **Magic paws: how strokes are painted.**
+  - Strokes are painted into that picture, not built from objects, so there is no limit on dots.
+    The design's 600-dot and 120-print caps were for the prototype.
+  - Rainbow dots are placed every 7 px along the stroke, including between touch samples, so fast
+    strokes stay continuous. Paw prints are placed every 40 px the same way.
+  - Each rainbow dot is painted with its 28 % halo just before it. Where strokes cross, the newer
+    halo tints the older dots slightly (the design keeps every dot above every halo).
+  - Paw prints are painted as five round blobs (pad and toes), turned along the stroke.
+  - The picture is only painted within r 212 of the center.
+  - A sparkle tick plays every 8 dots, and a soft "pat" for each paw print, each at most 8 per
+    second.
+  - The empty canvas shows the design's twinkling rainbow-dot hint.
+- **Magic paws: sweep.** A shake dims the drawing to 30 %. The cat (scale M) sweeps its broom
+  sideways ±60 px, three swings in 1.6 s, to a broom swish. The broom itself does not rotate.
+  "Čisto!" plays 0.9 s in, and at 1.7 s the canvas is clean and the cat is gone. Touches and shakes
+  are ignored while it sweeps. Home or the idle timeout during the sweep still leaves the canvas
+  clean.
+- **Yarn roll: rolling.**
+  - The yarn rolls by the §3.10 tilt rules, with its center kept within r 185 of the screen center.
+    Its four roll frames advance with the distance rolled. A rumble loop plays while it rolls.
+  - The cat (scale S, surprised face) follows 92 px behind the yarn on the side toward the screen
+    center, eases into place, and looks at the yarn.
+  - The tilt hint shows for the first 4 s after the app opens.
+  - A shake puts the yarn back in the middle (not during the win).
+- **Yarn roll: winning.**
+  - The basket is at (330, 318), (136, 318), (330, 150) or (136, 150), moving to the next one each
+    round. She wins when the yarn's center comes within 62 px of the point 10 px above the basket's
+    center. The yarn stops there, and 0.32 s later the win scene replaces the play scene.
+  - The win scene shows the full basket, the proud cat (scale M), 24 falling confetti pieces, the
+    fanfare and "Bravo!". The next round starts 3.5 s later with the yarn back in the middle.
+  - The confetti is built as designed first, spinning as it falls. If it measures below 24 fps, the
+    fallback drops the spin.
+- **Meow piano.**
+  - Five cats sit on a ring of r 140, starting at the top, one per note C, D, E, G, A. Each cat is
+    recolored in its note's colors as the design draws them: fur, outline, a light muzzle, no
+    stripes. These palettes are exported at scale S only.
+  - A tap plays that note's meow. The cat sings, bounces (up 22 px, down, a 6 px rebound, 400 ms),
+    and its pad fills at 25 %. The center note takes its color. The cat returns to happy after
+    700 ms, and a new tap replaces the previous meow.
+
 ## 4. Architecture
 
 ### 4.1 Toolchain and dependencies
@@ -313,7 +362,8 @@ typedef struct {
 
 Rules for apps:
 - **Owned resources:** an app owns only what it creates. `destroy` must leave no timers,
-  animations, audio or PSRAM behind; a leak test checks this (section 7).
+  animations, audio or PSRAM behind; a leak test checks this (section 7). The one exception is
+  Magic paws' drawing, which is kept on purpose (§3.11).
 - **No blocking:** apps never block the LVGL thread. Recording and effect processing run on the
   audio task, and results come back through `lv_async_call`.
 - **No global state:** apps do not touch buttons or settings directly. The app manager handles Home.
