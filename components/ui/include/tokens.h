@@ -67,7 +67,7 @@
 #define BOOT_MS         2600
 #define BOOT_RING_COLOR 0xFFB547
 
-/* Placeholder apps: an L-scale cat centered on the screen */
+/* An L-scale cat centered on the screen (the boot animation) */
 #define PLACEHOLDER_CAT_X 103
 #define PLACEHOLDER_CAT_Y 70
 
@@ -232,3 +232,39 @@
 #define PIANO_NOTE_X       183
 #define PIANO_NOTE_Y       183
 #define PIANO_SING_MS      700
+
+/* Sleepy clock scenes (Screen.dc.html clock view; spec §3.12) */
+#define COLOR_MOON            0xFFE58A
+#define NIGHT_MOON_CX         118  /* an r 40 disc ... */
+#define NIGHT_MOON_CY         114
+#define NIGHT_MOON_D          80
+#define NIGHT_MOON_CUT_CX     138  /* ... with an r 34 black disc cut out of it */
+#define NIGHT_MOON_CUT_CY     100
+#define NIGHT_MOON_CUT_D      68
+#define NIGHT_STARS           9
+#define NIGHT_TWINKLE_MS      3000 /* 30 % -> 100 % -> 30 % */
+#define NIGHT_TWINKLE_LOW_OPA 77   /* 30 % */
+#define NIGHT_CAT_X           133  /* scale M origin: the design's 210 px sleeping cat, centered */
+#define NIGHT_CAT_Y           176
+#define HOUR_STARS            5
+#define HOUR_STAR_SIZE        26
+#define HOUR_STAR_R           200  /* on r 200, 12° apart around 6 o'clock */
+#define HOUR_STAR_STEP_DEG    12
+#define COLOR_SUN             0xFFC83A
+#define COLOR_SUN_EDGE        0xD98A00
+#define DAY_SUN_X             123  /* the 220 px sun box */
+#define DAY_SUN_Y             2
+#define DAY_SUN_BOX           220
+#define DAY_SUN_D             126  /* r 60 with its 6 px stroke centered on it */
+#define DAY_SUN_BORDER        6
+#define DAY_RAYS              12
+#define DAY_RAY_R0            74
+#define DAY_RAY_R1            98
+#define DAY_RAY_W             10
+#define DAY_RAY_TURN_MS       2000 /* one ray's 30° per 2 s: the design's 24 s turn */
+#define DAY_RISE_PX           110
+#define DAY_RISE_MS           4000
+#define DAY_CAT_X             133  /* scale M origin (the design's 200 px proud cat) */
+#define DAY_CAT_Y             196
+#define DAY_CAT_W             200  /* the scale M cat's box: a tap inside it purrs */
+#define DAY_CAT_H             210

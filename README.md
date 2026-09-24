@@ -47,7 +47,6 @@ it to their list.
 1. Create `components/ui/apps/<name>.c` that defines `const app_t app_<name>` (see `components/ui/include/app.h`
    and `apps/voices.c` for a full example).
 2. Add `X(app_<name>)` to `APP_LIST` in `components/ui/apps/registry.c`.
-3. If it replaces a placeholder, delete that line from `apps/placeholder.c`.
 
 ## Replacing placeholder sounds
 
