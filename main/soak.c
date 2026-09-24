@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "app.h"
 #include "app_manager.h"
+#include "audio.h"
 #include "display.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
@@ -74,6 +75,7 @@ static void soak_task(void *arg)
 {
     (void)arg;
     vTaskDelay(pdMS_TO_TICKS(6000)); /* boot animation */
+    audio_set_volume(0); /* silent: every sound still loads and plays through the mixer, at volume 0 */
     /* warm-up: fills the image and sound caches. First opens load images and sounds, and the
      * piano's first open blocks the UI long enough that one round can miss animation frames that
      * are then cached forever, so several rounds are needed to reliably reach every frame. */
