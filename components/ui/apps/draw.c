@@ -248,6 +248,8 @@ static void build(lv_obj_t *scr)
     lv_obj_remove_flag(s_canvas, LV_OBJ_FLAG_CLICKABLE); /* touches go to the screen */
     lv_obj_set_pos(s_canvas, 0, 0);
     if (s_pixels) {
+        /* paint.c writes rows of SCREEN_SIZE pixels back to back; LVGL must agree (stride alignment 1). */
+        LV_ASSERT(lv_draw_buf_width_to_stride(SCREEN_SIZE, LV_COLOR_FORMAT_RGB565) == SCREEN_SIZE * sizeof(uint16_t));
         lv_canvas_set_buffer(s_canvas, s_pixels, SCREEN_SIZE, SCREEN_SIZE, LV_COLOR_FORMAT_RGB565);
     }
     s_hint = ui_image(scr, "ui/draw_hint", DRAW_HINT_X, DRAW_HINT_Y);
