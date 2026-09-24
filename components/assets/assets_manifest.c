@@ -71,5 +71,17 @@ const ui_image_pos_t UI_IMAGE_POS[] = {
     {"ui/fish", 27, 51},
     {"ui/ball", 0, 0},
     {"ui/heart", 0, 0},
+    {"ui/brush_rainbow", 0, 0},
+    {"ui/brush_paw", 0, 0},
+    {"ui/draw_hint", 0, 0},
+    {"ui/dust", 0, 0},
+    {"ui/yarn_f0", 0, 0},
+    {"ui/yarn_f1", 0, 0},
+    {"ui/yarn_f2", 0, 0},
+    {"ui/yarn_f3", 0, 0},
+    {"ui/yarn_basket", 0, 0},
+    {"ui/yarn_basket_full", 0, 0},
+    {"ui/tilt_hint", 0, 0},
+    {"ui/piano_note", 0, 0},
 };
-const size_t UI_IMAGE_POS_COUNT = 6;
+const size_t UI_IMAGE_POS_COUNT = 18;

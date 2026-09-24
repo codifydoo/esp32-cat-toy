@@ -26,6 +26,7 @@ sparkle       synth   sparkle
 bell_tick     synth   bell_tick
 beep_boop     synth   beep_boop
 fanfare       synth   fanfare
+pat           synth   pat
 # Organic sounds (CC0 or own recordings win; otherwise a synth placeholder)
 meow_1        organic meow
 meow_2        organic meow_high
@@ -66,3 +67,4 @@ swipe_draw    concat  whoosh+name_draw
 swipe_yarn    concat  whoosh+name_yarn
 swipe_clock   concat  whoosh+name_clock
 swipe_piano   concat  whoosh+name_piano
+yarn_win      concat  fanfare+bravo

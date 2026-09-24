@@ -93,6 +93,7 @@ RECIPES = {
     "chime_wake": lambda: notes([C5, E5, G5, C6], 0.18, harmonics=BELL, release=0.8),
     "sparkle": lambda: sweep(3000, 3400, 0.04, harmonics=BELL, release=0.9),
     "bell_tick": lambda: sweep(2000, 2000, 0.06, harmonics=BELL, release=0.9),
+    "pat": lambda: sweep(700, 500, 0.06, harmonics=(1, 0, 0.11, 0, 0.04), release=0.8),  # design: 700->500 Hz triangle
     "beep_boop": lambda: square(800, 0.12) + silence(0.04) + square(500, 0.14),
     "fanfare": lambda: notes([C5, E5, G5], 0.12, gap=0.02, harmonics=(1, 0.5, 0.25))
     + sweep(C6, C6, 0.5, harmonics=(1, 0.5, 0.25)),

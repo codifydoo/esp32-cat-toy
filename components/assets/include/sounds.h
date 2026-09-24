@@ -30,6 +30,17 @@ typedef enum {
     SND_PET_RUB,
     SND_PET_DIZZY,
     SND_PET_EAT,
+    SND_SPARKLE,
+    SND_PAT,
+    SND_SWISH,
+    SND_CISTO,
+    SND_RUMBLE, /* a loop: audio_loop_start() */
+    SND_YARN_WIN,
+    SND_PIANO_C5,
+    SND_PIANO_D5,
+    SND_PIANO_E5,
+    SND_PIANO_G5,
+    SND_PIANO_A5,
     SND_COUNT
 } sound_id_t;
 
