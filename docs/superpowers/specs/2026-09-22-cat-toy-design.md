@@ -305,7 +305,8 @@ The design leaves these open for M6. Everything else follows the design and §3.
 - **USB power** is the AXP2101's "VBUS good" status bit.
 - **Sunrise** plays at wake time if the lock is showing: the sun rises 110 px over 4 s while the
   brightness goes from 10 to 100 %, then the rising four-note chime, a happy meow and "Dobro
-  jutro!". The menu follows 60 s later, or on a tap once the sun is up, without the Home mew.
+  jutro!". The menu follows 60 s later, on a tap once the sun is up, or at once on Home, without the
+  Home mew.
 - **The Sleepy clock app** shows the day scene: the sun with slowly turning rays, the hills and the
   proud cat. A tap on the cat purrs, as in Pet the cat (purring face, the purr loop for 1.5 s). The
   app is never open at night, because the lock closes it.
