@@ -186,6 +186,38 @@ without pupils, and two shared parts are added:
 
 The pupils are offset at runtime by up to ±4 px at M, matching `Cat.dc.html`.
 
+### 3.10 Pet the cat details (2026-09-24)
+
+The design leaves these open; they apply to Pet the cat (M4), and the tilt rules to Yarn roll (M5).
+
+- **Level is her grip.** The way the toy is held when an app opens counts as level. Tilt is how far
+  the direction of gravity has moved from that grip, so rolling works the same in all four
+  directions whether she holds it flat or tipped toward her face.
+- **Tilt input:** the accelerometer is read at 50 Hz and lightly smoothed, so a single bump does not
+  roll the ball. Shake and tilt are ignored while the screen is dark and on the menu.
+- **The ball** appears on the first tilt past the 8° dead zone, starting at (330, 110). Its center
+  stays within r 190 of the screen center, and it hides 3 s after the tilt returns inside the dead
+  zone. One bell tick plays per 60 px rolled, only while no other reaction is playing.
+- **Pupils follow the ball** only while the cat shows its plain face. During a reaction the ball
+  keeps rolling and the eyes do whatever that reaction's face does.
+- **Reactions:**
+  - Tap: purr face for 1.8 s, with the purr loop for 1.5 s.
+  - Rub: laughing face for 1.8 s, with the giggle and then "Hihihi!".
+  - Shake: dizzy for 2 s, with "wheee" and a boing.
+  - Fish: eating for 2.4 s, with crunch, crunch, "Njam!". The fish button drops to 50 % while she eats.
+
+  A new reaction replaces the current one, sound included.
+- **Rub** counts finger travel in steps of 10 px or more, so touch jitter under a finger held still
+  never adds up to a giggle.
+- **Activity:** rolling the ball and shaking count as activity, so tilt-only play is not closed by
+  the 60 s idle timeout. A ball resting against the rim does not count, so a toy left tilted on a
+  table still returns to the menu.
+- **Size:** the design's 250 px cat is drawn at scale L (1.3×), centered on the design's head center
+  (233, 159).
+- **Sensor events** (buttons, shake) reach the LVGL task through a queue that a 20 ms LVGL timer
+  drains, together with the latest tilt. The sensors task never waits for the LVGL lock, so a slow
+  frame cannot swallow a quick second button press.
+
 ## 4. Architecture
 
 ### 4.1 Toolchain and dependencies
@@ -291,7 +323,7 @@ Rules for apps:
 | --- | --- | --- |
 | LVGL | 1 | Owned by the board support package's LVGL port. All UI runs here. |
 | Audio | 0 | Mixes two channels: `fx` (one-shot; a new sound replaces the playing one) and `loop` (at most one looping sound, such as purr, rumble or munching, started and stopped by the app). Also records up to 5 s and runs `voice_fx`. |
-| Sensors | 0 | IMU at 50 Hz, buttons, battery every 5 s. Posts events to the LVGL thread with `lv_async_call`, where `app_manager` routes them to the launcher or the current app. |
+| Sensors | 0 | IMU at 50 Hz, buttons, battery every 5 s. Queues button and shake events and keeps the latest tilt; a 20 ms LVGL timer in `app_manager` drains them and routes them to the launcher or the current app (§3.10). |
 
 - **Settings:** loaded once at boot. The parent area writes through `settings_set_*`, which
   persists to NVS immediately.
