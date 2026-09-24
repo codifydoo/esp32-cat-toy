@@ -9,6 +9,7 @@
 #define CLOCK_VALID_FROM      1767225600                   /* 2026-01-01 00:00 UTC */
 #define CLOCK_NTP_SERVER      "pool.ntp.org"
 #define CLOCK_SYNC_TIMEOUT_MS 10000 /* Wi-Fi connect and NTP together */
+#define CLOCK_SNTP_RESEND_MS  2000  /* an unanswered NTP request is sent again after this (lwIP waits 15 s) */
 
 /* Sets the time zone and, when Wi-Fi is configured, the network stack. Call after settings_init()
  * (Wi-Fi keeps its calibration in NVS). */

@@ -133,7 +133,17 @@ static bool sync_once(int64_t *correction_us)
                 struct timeval t0, t1;
                 gettimeofday(&t0, NULL);
                 const int64_t m0 = esp_timer_get_time();
-                ok = esp_netif_sntp_sync_wait(ticks_left(deadline)) == ESP_OK;
+                /* lwIP retries an unanswered request only after 15 s, and on the device the first request
+                 * often goes unanswered: send it again every 2 s until the deadline (measured: synced 2 s
+                 * after the start, against 30 s with lwIP's own retry). */
+                while (!ok && ticks_left(deadline) > 0) {
+                    const TickType_t left = ticks_left(deadline);
+                    const TickType_t wait = left < pdMS_TO_TICKS(CLOCK_SNTP_RESEND_MS) ? left : pdMS_TO_TICKS(CLOCK_SNTP_RESEND_MS);
+                    ok = esp_netif_sntp_sync_wait(wait) == ESP_OK;
+                    if (!ok && ticks_left(deadline) > 0) {
+                        esp_netif_sntp_start(); /* restarts the client: a new request at once */
+                    }
+                }
                 if (ok) {
                     gettimeofday(&t1, NULL);
                     const int64_t m1 = esp_timer_get_time();

@@ -31,3 +31,5 @@ CONFIG_LV_FONT_MONTSERRAT_40=y
 CONFIG_LV_FONT_MONTSERRAT_48=y
 # Wi-Fi for the clock's NTP sync (spec §3.2): Wi-Fi and lwIP buffers may use PSRAM
 CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+# NTP within the 10 s budget (spec §3.2): no random 0-5 s wait before each request; clock.c resends every 2 s
+# CONFIG_LWIP_SNTP_STARTUP_DELAY is not set
