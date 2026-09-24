@@ -11,6 +11,11 @@ idf.py build
 tools/flash_and_log.sh 15      # flash and show 15 s of logs
 ```
 
+`tools/flash_and_log.sh` waits 3 s after flashing and then listens without resetting the board.
+Opening the port the usual way resets it, and a second reset within about a second of the flasher's
+can hang early boot (`docs/device-checks.md`). So the first ~3 s of the boot log are not shown. Only
+one listener can hold the port: let a running one finish (or stop it) before flashing again.
+
 ## Developer builds
 
 | Build | Command |
