@@ -256,11 +256,18 @@ static void build(lv_obj_t *scr)
     ui_set_hidden(s_dust, true);
     s_button = ui_image(scr, button_image(), DRAW_BUTTON_X, DRAW_BUTTON_Y);
     lv_obj_add_flag(s_button, LV_OBJ_FLAG_CLICKABLE); /* presses on it never reach the screen */
+    /* Unlocked, a press that starts on the button and slides off loses it: no brush switch on release,
+     * and the screen only gets PRESSING (never PRESSED), so nothing is painted either (design: click =
+     * press and release on the button). */
+    lv_obj_remove_flag(s_button, LV_OBJ_FLAG_PRESS_LOCK);
     lv_obj_add_event_cb(s_button, tool_tapped, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(scr, touch, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(scr, touch, LV_EVENT_PRESSING, NULL);
     lv_obj_add_event_cb(scr, touch, LV_EVENT_RELEASED, NULL);
     lv_obj_add_event_cb(scr, touch, LV_EVENT_PRESS_LOST, NULL);
+    /* A stroke keeps its finger across the brush button (design: setPointerCapture). A screen has no
+     * press lock by default (LVGL only locks objects with a parent). */
+    lv_obj_add_flag(scr, LV_OBJ_FLAG_PRESS_LOCK);
 }
 
 static void draw_create(lv_obj_t *screen)
