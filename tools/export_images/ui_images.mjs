@@ -15,6 +15,25 @@ const basket = (y0) =>
   BASKET_WEAVE(y0) +
   `<path d="M6 ${y0} L114 ${y0}" fill="none" stroke="#E6A865" stroke-width="10" stroke-linecap="round"/>`;
 
+// Sleepy clock (Screen.dc.html clock view): the night sky's stars, the hour stars and the hills.
+const STAR4 = 'M10 0 Q10 10 20 10 Q10 10 10 20 Q10 10 0 10 Q10 10 10 0 Z';
+const HOUR_STAR = 'M10 1 Q10 10 19 10 Q10 10 10 19 Q10 10 1 10 Q10 10 10 1 Z';
+const HILLS = 'M0 404 Q116 346 233 396 Q350 346 466 404 L466 466 L0 466 Z';
+// Parent-area line icons (Screen.dc.html ICON); `clock` is new, for the Now row.
+const ICON = {
+  vol: 'M4 9 L8 9 L13 5 L13 19 L8 15 L4 15 Z M16.5 9 Q18.5 12 16.5 15 M19 6.5 Q22.5 12 19 17.5',
+  moon: 'M20 14.5 A8.5 8.5 0 1 1 9.5 4 A7 7 0 0 0 20 14.5 Z',
+  sun: 'M12 8 A4 4 0 1 1 11.99 8 Z M12 2 L12 4 M12 20 L12 22 M2 12 L4 12 M20 12 L22 12 M5 5 L6.5 6.5 M17.5 17.5 L19 19 M5 19 L6.5 17.5 M17.5 6.5 L19 5',
+  clock: 'M12 3 A9 9 0 1 1 11.99 3 Z M12 7 L12 12 L15.5 14',
+};
+const lineIcon = (name, d, size, color) => ({
+  name,
+  viewBox: [0, 0, 24, 24],
+  size,
+  crop: false,
+  svg: `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+});
+
 export const UI_IMAGES = [
   { name: 'ui/paw_hint', viewBox: [0, 0, 24, 24], crop: false, svg: `<path d="${PAW}" fill="#FFFFFF"/>` },
   {
@@ -121,4 +140,30 @@ export const UI_IMAGES = [
       '<ellipse cx="48" cy="64" rx="12" ry="9" fill="#FFFFFF"/>' +
       '<path d="M58 26 Q74 30 76 46 Q68 38 58 38 Z" fill="#FFFFFF"/>',
   },
+  { name: 'ui/star', viewBox: [0, 0, 20, 20], size: 22, crop: false, svg: `<path d="${STAR4}" fill="#FFE58A"/>` },
+  {
+    name: 'ui/hour_star_on',
+    viewBox: [0, 0, 20, 20],
+    size: 26,
+    crop: false,
+    svg: `<path d="${HOUR_STAR}" fill="#FFE58A" stroke="#FFE58A" stroke-width="2"/>`,
+  },
+  {
+    name: 'ui/hour_star_off',
+    viewBox: [0, 0, 20, 20],
+    size: 26,
+    crop: false,
+    svg: `<path d="${HOUR_STAR}" fill="none" stroke="#6B6B8A" stroke-width="2"/>`,
+  },
+  {
+    name: 'ui/hills',
+    viewBox: [0, 0, 466, 466],
+    crop: true,
+    svg: `<path d="${HILLS}" fill="#3FCB6A" stroke="#1D7A3A" stroke-width="6" stroke-linejoin="round"/>`,
+  },
+  lineIcon('ui/p_vol', ICON.vol, 36, '#F2EFFA'),
+  lineIcon('ui/p_moon', ICON.moon, 36, '#F2EFFA'),
+  lineIcon('ui/p_moon_row', ICON.moon, 24, '#FFC76B'),
+  lineIcon('ui/p_sun_row', ICON.sun, 24, '#FFC76B'),
+  lineIcon('ui/p_clock_row', ICON.clock, 24, '#FFC76B'),
 ];

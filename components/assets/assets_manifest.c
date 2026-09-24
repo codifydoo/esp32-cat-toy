@@ -83,5 +83,14 @@ const ui_image_pos_t UI_IMAGE_POS[] = {
     {"ui/yarn_basket_full", 0, 0},
     {"ui/tilt_hint", 0, 0},
     {"ui/piano_note", 0, 0},
+    {"ui/star", 0, 0},
+    {"ui/hour_star_on", 0, 0},
+    {"ui/hour_star_off", 0, 0},
+    {"ui/hills", 0, 368},
+    {"ui/p_vol", 0, 0},
+    {"ui/p_moon", 0, 0},
+    {"ui/p_moon_row", 0, 0},
+    {"ui/p_sun_row", 0, 0},
+    {"ui/p_clock_row", 0, 0},
 };
-const size_t UI_IMAGE_POS_COUNT = 18;
+const size_t UI_IMAGE_POS_COUNT = 27;

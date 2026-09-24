@@ -41,6 +41,8 @@ typedef enum {
     SND_PIANO_E5,
     SND_PIANO_G5,
     SND_PIANO_A5,
+    SND_WHISPER, /* "Pssst… spavaj": play it with audio_play_quiet() (spec §3.12) */
+    SND_WAKE,    /* the sunrise: the rising chime, a happy meow and "Dobro jutro!" */
     SND_COUNT
 } sound_id_t;
 
