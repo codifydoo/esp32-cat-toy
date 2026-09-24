@@ -84,6 +84,7 @@ typedef struct {
     lv_obj_t *img[L_COUNT];
     const char *shown[L_COUNT];
     cat_scale_t scale;
+    const char *palette; /* NULL: the chosen variant (cat_set_variant) */
     cat_state_t state;
     cat_costume_t costume;
     float look_x, look_y;
@@ -107,10 +108,16 @@ static const cat_part_pos_t *find_part(const char *part)
     return NULL;
 }
 
-void cat_part_asset(char *out, size_t n, cat_scale_t scale, const char *part)
+static void asset_name(char *out, size_t n, cat_scale_t scale, const char *palette, const char *part)
 {
     const cat_part_pos_t *p = find_part(part);
-    snprintf(out, n, "cat/%s/%c/%s", p && p->shared ? "shared" : VARIANT_NAME[s_variant], SCALE_C[scale], part);
+    const char *owner = p && p->shared ? "shared" : palette ? palette : VARIANT_NAME[s_variant];
+    snprintf(out, n, "cat/%s/%c/%s", owner, SCALE_C[scale], part);
+}
+
+void cat_part_asset(char *out, size_t n, cat_scale_t scale, const char *part)
+{
+    asset_name(out, n, scale, NULL, part);
 }
 
 static int16_t sc(const cat_t *c, float design_px) { return (int16_t)lroundf(design_px * SCALE_F[c->scale]); }
@@ -128,7 +135,7 @@ static void place(cat_t *c, layer_t l, const char *part, int16_t dx, int16_t dy)
     }
     if (!c->shown[l] || strcmp(c->shown[l], part) != 0) {
         char name[64];
-        cat_part_asset(name, sizeof(name), c->scale, part);
+        asset_name(name, sizeof(name), c->scale, c->palette, part);
         lv_image_set_src(img, assets_image(name));
         lv_obj_remove_flag(img, LV_OBJ_FLAG_HIDDEN);
         c->shown[l] = part;
@@ -154,14 +161,17 @@ static void apply(cat_t *c)
     place(c, L_BLUSH, e->blush ? "blush" : NULL, 0, 0);
 
     const char *eyes;
-    bool pupils = false;
+    bool pupils = false, big = false;
     switch (e->eyes) {
     case EYES_OPEN:
         eyes = BLINK_PART[c->blink];
         pupils = c->blink == 0;
         break;
     case EYES_HAPPY: eyes = "eyes_happy"; break;
-    case EYES_BIG: eyes = "eyes_big"; break;
+    case EYES_BIG:
+        eyes = "eyes_big"; /* irises only: the big pupils follow cat_set_look like the open ones (design) */
+        pupils = big = true;
+        break;
     case EYES_HALF: eyes = "eyes_half"; break;
     case EYES_CLOSED: eyes = "eyes_closed"; break;
     default: eyes = SPIRAL_PART[t % 4]; break;
@@ -170,10 +180,11 @@ static void apply(cat_t *c)
     float lx = c->look_set ? c->look_x : e->look_x10 / 10.0f;
     float ly = c->look_set ? c->look_y : e->look_y10 / 10.0f;
     int16_t ox = sc(c, lx * LOOK_RANGE), oy = sc(c, ly * LOOK_RANGE), gap = sc(c, EYE_SPACING);
-    place(c, L_PUPIL_L, pupils ? "pupil" : NULL, ox, oy);
-    place(c, L_PUPIL_R, pupils ? "pupil" : NULL, (int16_t)(gap + ox), oy);
-    place(c, L_HL_L, pupils ? "highlight" : NULL, ox, oy);
-    place(c, L_HL_R, pupils ? "highlight" : NULL, (int16_t)(gap + ox), oy);
+    const char *pupil = big ? "pupil_big" : "pupil", *hl = big ? "highlight_big" : "highlight";
+    place(c, L_PUPIL_L, pupils ? pupil : NULL, ox, oy);
+    place(c, L_PUPIL_R, pupils ? pupil : NULL, (int16_t)(gap + ox), oy);
+    place(c, L_HL_L, pupils ? hl : NULL, ox, oy);
+    place(c, L_HL_R, pupils ? hl : NULL, (int16_t)(gap + ox), oy);
 
     const char *mouth = e->mouth;
     if (talking) {
@@ -240,11 +251,12 @@ static cat_t *get(lv_obj_t *obj) { return (cat_t *)lv_obj_get_user_data(obj); }
 
 void cat_set_variant(cat_variant_t variant) { s_variant = variant < CAT_VARIANT_COUNT ? variant : CAT_VARIANT_ORANGE; }
 
-lv_obj_t *cat_create(lv_obj_t *parent, cat_scale_t scale)
+lv_obj_t *cat_create_colored(lv_obj_t *parent, cat_scale_t scale, const char *palette)
 {
     cat_t *c = lv_malloc_zeroed(sizeof(cat_t));
     LV_ASSERT_MALLOC(c);
     c->scale = scale;
+    c->palette = palette;
     c->state = CAT_HAPPY;
     c->next_blink = 40;
     const int32_t w = CAT_CANVAS_W[scale], h = CAT_CANVAS_H[scale];
@@ -272,6 +284,8 @@ lv_obj_t *cat_create(lv_obj_t *parent, cat_scale_t scale)
     c->timer = lv_timer_create(on_timer, FRAME_MS, c);
     return c->root;
 }
+
+lv_obj_t *cat_create(lv_obj_t *parent, cat_scale_t scale) { return cat_create_colored(parent, scale, NULL); }
 
 void cat_set_origin(lv_obj_t *cat, int32_t x, int32_t y)
 {

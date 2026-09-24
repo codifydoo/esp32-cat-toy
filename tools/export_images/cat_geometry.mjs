@@ -8,6 +8,25 @@ export const VARIANTS = {
   tux: { fur: '#3B3B52', stripe: '#3B3B52', muzzle: '#F6F6FA', line: '#C9CDEB', iris: '#FFD84A', nose: '#FF7FA0', ear: '#FF9DB5', stripes: false, blaze: true },
 };
 
+// Meow piano: one cat per note (Spec.dc.html "Piano pitches"), recolored the way Cat.dc.html recolors a
+// cat given `fur` and `line` (on the orange base). Exported at scale S only (spec §3.11).
+export const PIANO_CATS = {
+  piano_c: { fur: '#FF5A5A', line: '#6E1616' },
+  piano_d: { fur: '#FF9F3A', line: '#6B3A06' },
+  piano_e: { fur: '#FFD84A', line: '#6B5400' },
+  piano_g: { fur: '#5CD67A', line: '#1D5A2B' },
+  piano_a: { fur: '#5AA8FF', line: '#173F74' },
+};
+export const pianoPalette = ({ fur, line }) => ({
+  ...VARIANTS.orange,
+  fur,
+  line,
+  stripes: false,
+  blaze: false,
+  muzzle: '#FFF3E0',
+  iris: '#2A1633',
+});
+
 const circ = (x, y, r) => `M${x - r} ${y} a${r} ${r} 0 1 0 ${2 * r} 0 a${r} ${r} 0 1 0 ${-2 * r} 0 Z `;
 const star4 = (x, y, r) => `M${x} ${y - r} Q${x} ${y} ${x + r} ${y} Q${x} ${y} ${x} ${y + r} Q${x} ${y} ${x - r} ${y} Q${x} ${y} ${x} ${y - r} Z `;
 
@@ -85,16 +104,15 @@ export function catParts(c) {
       line('M54 103 L90 103 M110 103 L146 103', 7),
     eyes_closed: line('M60 102 Q72 114 84 102 M116 102 Q128 114 140 102', 7),
     eyes_happy: line('M60 108 Q72 94 84 108 M116 108 Q128 94 140 108', 7),
-    eyes_big:
-      irises(17) +
-      '<circle cx="72" cy="104" r="12" fill="#140C1C"/><circle cx="128" cy="104" r="12" fill="#140C1C"/>' +
-      '<circle cx="76" cy="98" r="5" fill="#FFFFFF"/><circle cx="132" cy="98" r="5" fill="#FFFFFF"/>',
+    eyes_big: irises(17), // the pupils are separate so they can look around (design: big eyes move too)
     eyes_spiral_f0: spiralEyes(0),
     eyes_spiral_f1: spiralEyes(90),
     eyes_spiral_f2: spiralEyes(180),
     eyes_spiral_f3: spiralEyes(270),
     pupil: '<circle cx="72" cy="104" r="9" fill="#140C1C"/>',
     highlight: '<circle cx="76" cy="99" r="4" fill="#FFFFFF"/>',
+    pupil_big: '<circle cx="72" cy="104" r="12" fill="#140C1C"/>',
+    highlight_big: '<circle cx="76" cy="98" r="5" fill="#FFFFFF"/>',
     mouth_w: line('M84 128 Q92 138 100 128 Q108 138 116 128', 5),
     mouth_smallw: line('M90 130 Q95 135 100 130 Q105 135 110 130', 5),
     mouth_small: line('M92 132 Q100 137 108 132', 5),
