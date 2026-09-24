@@ -22,8 +22,17 @@ static void step(const app_t *app)
     display_lock(-1);
     lv_display_trigger_activity(NULL); /* keep idle dimming out of the measurement */
     app_manager_open(app);
+    if (app->on_shake) {
+        app->on_shake(); /* a reaction that Home cuts short must still clean up after itself */
+    }
     display_unlock();
-    vTaskDelay(pdMS_TO_TICKS(SOAK_STEP_MS));
+    vTaskDelay(pdMS_TO_TICKS(SOAK_STEP_MS / 2));
+    display_lock(-1);
+    if (app->on_tilt) {
+        app->on_tilt(20.0f, 20.0f); /* shows and rolls the ball */
+    }
+    display_unlock();
+    vTaskDelay(pdMS_TO_TICKS(SOAK_STEP_MS / 2));
     display_lock(-1);
     app_manager_home();
     display_unlock();
