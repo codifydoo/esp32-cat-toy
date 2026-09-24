@@ -48,20 +48,20 @@ static void tapped(lv_event_t *e)
     refresh_label();
 }
 
-static void on_button(button_id_t id)
+static void poll_buttons(lv_timer_t *t) /* LVGL task, so no lock is needed */
 {
-    if (!display_lock(-1)) {
-        return;
+    (void)t;
+    sensor_ev_t ev;
+    while (sensors_next(&ev)) {
+        if (ev == SENSOR_EV_HOME) {
+            s_costume = (cat_costume_t)((s_costume + 1) % CAT_COSTUME_COUNT);
+            cat_set_costume(s_cat, s_costume);
+            refresh_label();
+        } else if (ev == SENSOR_EV_POWER) {
+            s_combo = (uint8_t)((s_combo + 1) % 9);
+            rebuild();
+        }
     }
-    if (id == BUTTON_HOME) {
-        s_costume = (cat_costume_t)((s_costume + 1) % CAT_COSTUME_COUNT);
-        cat_set_costume(s_cat, s_costume);
-        refresh_label();
-    } else {
-        s_combo = (uint8_t)((s_combo + 1) % 9);
-        rebuild();
-    }
-    display_unlock();
 }
 
 void gallery_start(void)
@@ -77,8 +77,8 @@ void gallery_start(void)
     lv_obj_align(s_label, LV_ALIGN_BOTTOM_MID, 0, -50);
     s_combo = 3; /* orange, M */
     rebuild();
+    lv_timer_create(poll_buttons, 50, NULL);
     display_unlock();
-    const sensors_listener_t listener = {.on_button = on_button};
-    sensors_start(&listener);
+    sensors_start();
 }
 #endif

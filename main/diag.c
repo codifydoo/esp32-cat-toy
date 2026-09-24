@@ -73,24 +73,30 @@ static void screen_touch(lv_event_t *e)
     }
 }
 
-static void on_button(button_id_t id)
+static void on_event(sensor_ev_t ev) /* LVGL task (tick below), so no lock is needed */
 {
-    if (id == BUTTON_HOME) {
+    if (ev == SENSOR_EV_SHAKE) {
+        ESP_LOGI(TAG, "shake");
+        audio_play(SND_BLIP_UP);
+        return;
+    }
+    if (ev == SENSOR_EV_HOME) {
         s_home++;
     } else {
         s_power++;
     }
-    ESP_LOGI(TAG, "button %s", id == BUTTON_HOME ? "HOME" : "POWER");
-    audio_play(id == BUTTON_HOME ? SND_BLIP_UP : SND_BLIP_DOWN);
-    if (display_lock(-1)) {
-        lv_label_set_text_fmt(s_buttons, "HOME %lu  POWER %lu", (unsigned long)s_home, (unsigned long)s_power);
-        display_unlock();
-    }
+    ESP_LOGI(TAG, "button %s", ev == SENSOR_EV_HOME ? "HOME" : "POWER");
+    audio_play(ev == SENSOR_EV_HOME ? SND_BLIP_UP : SND_BLIP_DOWN);
+    lv_label_set_text_fmt(s_buttons, "HOME %lu  POWER %lu", (unsigned long)s_home, (unsigned long)s_power);
 }
 
 static void tick(lv_timer_t *t)
 {
     (void)t;
+    sensor_ev_t ev;
+    while (sensors_next(&ev)) {
+        on_event(ev);
+    }
     touch_raw_t raw = touch_raw_get();
     if (raw.count != s_points) {
         s_points = raw.count;
@@ -103,8 +109,10 @@ static void tick(lv_timer_t *t)
     }
     lv_label_set_text_fmt(s_accel, "%.2f  %.2f  %.2f g", (double)x, (double)y, (double)z);
     if (++s_ticks % 5 == 0) {
-        ESP_LOGI(TAG, "accel x=%.2f y=%.2f z=%.2f psram free=%u", (double)x, (double)y, (double)z,
-                 (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+        float tx = 0.0f, ty = 0.0f;
+        sensors_tilt(&tx, &ty);
+        ESP_LOGI(TAG, "accel x=%.2f y=%.2f z=%.2f tilt x=%.1f y=%.1f psram free=%u", (double)x, (double)y, (double)z,
+                 (double)tx, (double)ty, (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
     }
 }
 
@@ -149,8 +157,7 @@ void diag_start(void)
     lv_timer_create(tick, 200, NULL);
     display_unlock();
 
-    const sensors_listener_t buttons = {.on_button = on_button};
-    if (sensors_start(&buttons) != ESP_OK) {
+    if (sensors_start() != ESP_OK) {
         ESP_LOGE(TAG, "buttons unavailable");
     }
     ESP_LOGI(TAG, "ready");

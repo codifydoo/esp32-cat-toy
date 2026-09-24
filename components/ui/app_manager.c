@@ -2,11 +2,20 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "audio.h"
+#include "buttons.h"
+#include "esp_log.h"
+#include "sensors.h"
 #include "idle.h"
 #include "launcher.h"
 #include "sdkconfig.h"
 #include "tokens.h"
 #include "ui_util.h"
+
+#define SENSOR_POLL_MS 20 /* matches the sensors task's 50 Hz */
+
+static const char *TAG = "app";
+
+static void poll_sensors(lv_timer_t *t);
 
 static const app_t *s_current;
 static lv_obj_t *s_screen;  /* the current app's screen; NULL when none is open */
@@ -22,6 +31,7 @@ void app_manager_init(void)
 {
     launcher_create();
     idle_init();
+    lv_timer_create(poll_sensors, SENSOR_POLL_MS, NULL);
 }
 
 void app_manager_start(void)
@@ -134,6 +144,7 @@ void app_manager_open(const app_t *app)
     s_pending_home = false;
     s_screen = ui_screen();
     lv_obj_add_event_cb(s_screen, on_screen_loaded, LV_EVENT_SCREEN_LOADED, NULL);
+    sensors_tilt_recenter(); /* the grip she opens it with is level (spec §3.10) */
     app->create(s_screen);
     lv_screen_load_anim(s_screen, LV_SCR_LOAD_ANIM_FADE_IN, ANIM_OPEN_FADE_MS, 0, false);
 }
@@ -182,12 +193,9 @@ static void pending_home_cb(lv_timer_t *t)
 }
 #endif
 
-/* Runs on the LVGL task (queued from app_manager_on_button() below via lv_async_call, since
- * brightness changes -- reached through idle_wake()/idle_power_toggle() -- must only happen on
- * the LVGL task; see display.h). */
-static void handle_button(void *user_data)
+/* Runs on the LVGL task (poll_sensors below). */
+static void handle_button(button_id_t id)
 {
-    button_id_t id = (button_id_t)(uintptr_t)user_data;
     if (!s_started) {
         return; /* ignore presses until app_manager_start() has shown the menu (boot animation) */
     }
@@ -221,7 +229,25 @@ static void handle_button(void *user_data)
     do_home();
 }
 
-void app_manager_on_button(button_id_t id)
+/* Runs on the LVGL task: drains the sensors task's queue and passes the tilt to the open app. */
+static void poll_sensors(lv_timer_t *t)
 {
-    lv_async_call(handle_button, (void *)(uintptr_t)id);
+    (void)t;
+    sensor_ev_t ev;
+    while (sensors_next(&ev)) {
+        if (ev == SENSOR_EV_SHAKE) {
+            if (s_current && s_current->on_shake && idle_level() == 0) {
+                lv_display_trigger_activity(NULL); /* a shake is play (spec §3.10) */
+                s_current->on_shake();
+            }
+            continue;
+        }
+        const button_id_t id = ev == SENSOR_EV_HOME ? BUTTON_HOME : BUTTON_POWER;
+        ESP_LOGI(TAG, "button %s", id == BUTTON_HOME ? "HOME" : "POWER");
+        handle_button(id);
+    }
+    float x, y;
+    if (s_current && s_current->on_tilt && idle_level() == 0 && sensors_tilt(&x, &y)) {
+        s_current->on_tilt(x, y);
+    }
 }

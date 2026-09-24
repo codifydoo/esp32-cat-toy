@@ -22,8 +22,14 @@ typedef struct {
      * its children (tap handlers, timers, ...) must therefore check the app's own state first
      * and no-op if destroy() already ran, rather than assume it cannot be called afterward. */
     void (*destroy)(void);
-    void (*on_shake)(void);           /* optional, NULL if unused */
-    void (*on_tilt)(float x_deg, float y_deg); /* optional, NULL if unused */
+    /* Optional, NULL if unused. Both run on the LVGL task, only while this app is open and the
+     * screen is awake (spec §3.10). */
+    void (*on_shake)(void); /* once per shake; the app manager counts it as activity */
+    /* 50 Hz. Degrees from the grip the toy had when the app opened: x_deg > 0 means the right edge
+     * is lower (a ball rolls right), y_deg > 0 the bottom edge (it rolls toward the bottom). Tilt
+     * alone is not activity: call lv_display_trigger_activity(NULL) when it visibly moves
+     * something, so play by tilting alone is not closed by the 60 s idle timeout. */
+    void (*on_tilt)(float x_deg, float y_deg);
 } app_t;
 
 extern const app_t *const APPS[];
