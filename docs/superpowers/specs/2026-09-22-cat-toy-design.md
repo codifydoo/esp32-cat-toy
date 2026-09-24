@@ -211,7 +211,9 @@ The design leaves these open; they apply to Pet the cat (M4), and the tilt rules
   never adds up to a giggle.
 - **Activity:** rolling the ball and shaking count as activity, so tilt-only play is not closed by
   the 60 s idle timeout. A ball resting against the rim does not count, so a toy left tilted on a
-  table still returns to the menu.
+  table still returns to the menu. Movement under about 25 px/s (a tilt within about 2° of the dead
+  zone) neither ticks nor counts as activity, so accelerometer noise can't hold a pinned ball
+  "awake"; M8 tunes this.
 - **Size:** the design's 250 px cat is drawn at scale L (1.3×), centered on the design's head center
   (233, 159).
 - **Sensor events** (buttons, shake) reach the LVGL task through a queue that a 20 ms LVGL timer

@@ -50,8 +50,9 @@ static void sensors_task(void *arg)
 {
     (void)arg;
     for (;;) {
-        /* Re-based every loop: after a slow I2C read (a PMU timeout is 50 ms) the next poll waits a
-         * full period instead of firing back-to-back, which the debounce's 20 ms spacing relies on. */
+        /* Re-based every loop: a slow I2C read (a PMU timeout is 50 ms) can overrun the period,
+         * so vTaskDelayUntil returns immediately; either way, polls start at least 20 ms apart,
+         * which the debounce's 20 ms spacing relies on. */
         TickType_t last = xTaskGetTickCount();
         uint8_t ev = buttons_poll();
         if (ev & BUTTON_EV_HOME) {

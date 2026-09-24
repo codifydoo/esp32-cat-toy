@@ -26,7 +26,7 @@ bool shake_update(shake_t *s, float x, float y, float z, uint32_t t_ms);
 #define TILT_DEAD_DEG  8.0f
 #define TILT_FULL_DEG  25.0f
 #define TILT_MAX_PX_S  240.0f
-#define TILT_SMOOTHING 0.25f /* weight of each new 50 Hz sample: one bump alone stays under 8° */
+#define TILT_SMOOTHING 0.25f /* weight of each new 50 Hz sample: a 30° bump or 0.5 g spike stays under 8° */
 #define ROLL_MAX_DT_MS 100u  /* a longer gap (a stall) rolls as if 100 ms passed */
 
 typedef struct {

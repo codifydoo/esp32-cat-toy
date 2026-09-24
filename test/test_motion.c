@@ -198,6 +198,19 @@ static void test_one_bump_stays_inside_the_dead_zone(void)
     TEST_ASSERT_TRUE(tilt_is_level(x, y));
 }
 
+static void test_one_sideways_spike_of_half_a_g_stays_inside_the_dead_zone(void)
+{
+    /* A knock is an acceleration spike, not a rotation: one sample with 0.5 g sideways on top of
+     * gravity is smoothed to 7.1°. (0.6 g would read 8.5°: harder knocks are an M8 tuning item.) */
+    tilt_t t;
+    tilt_reset(&t);
+    float x, y;
+    hold_at(&t, 0, 0);
+    tilt_feed(&t, 0.5f, 0.0f, 1.0f);
+    read_angles(&t, &x, &y);
+    TEST_ASSERT_TRUE(tilt_is_level(x, y));
+}
+
 static void test_a_face_down_grip_gives_finite_angles(void)
 {
     tilt_t t;
@@ -293,6 +306,7 @@ int main(void)
     RUN_TEST(test_turning_at_the_grip_rolls_sideways);
     RUN_TEST(test_recenter_before_any_reading_uses_the_first_one);
     RUN_TEST(test_one_bump_stays_inside_the_dead_zone);
+    RUN_TEST(test_one_sideways_spike_of_half_a_g_stays_inside_the_dead_zone);
     RUN_TEST(test_a_face_down_grip_gives_finite_angles);
     RUN_TEST(test_dead_zone_and_speed_curve);
     RUN_TEST(test_speed_follows_the_tilt_direction);
