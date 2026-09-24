@@ -6,7 +6,7 @@ Status: approved in chat, pending written-spec review
 ## 1. What we are building
 
 A handheld cat toy for a 5-year-old, running on a Waveshare ESP32-S3-Touch-AMOLED-1.75
-(1.75" round 466 × 466 AMOLED, touch, IMU, 2 mics, speaker, battery, RTC). A cartoon cat hosts
+(1.75" round 466 × 466 AMOLED, touch, IMU, 2 mics, speaker, battery; the 1.75C has no RTC chip, §3.2). A cartoon cat hosts
 everything: it lives on the menu, announces each app in Croatian, and does silly voices.
 
 **Who it is for:** a 5-year-old who loves cats and silly voices, cannot read yet, and speaks Croatian.
@@ -88,16 +88,23 @@ four-tile home screen (M7).
 
 ### 3.2 Time source
 
-- At boot, if Wi-Fi credentials are configured, the device connects, syncs time over NTP
-  (`pool.ntp.org`), writes it to the PCF85063 RTC, and turns Wi-Fi off again. The timeout is 10 s,
-  and a failure is silent.
-- Otherwise the time comes from the RTC.
+The 1.75C has no RTC chip (docs/device-checks.md), so the ESP32-S3 keeps the time itself. Its clock
+survives restarts and deep sleep, but not a power loss. Decided 2026-09-24:
+
+- **NTP:** if Wi-Fi credentials are configured, the device connects and syncs over NTP
+  (`pool.ntp.org`) at boot, and again once a day when the clock reaches the wake-up minute. Then it
+  turns Wi-Fi off and releases it. The timeout is 10 s, and a failure is silent.
+- **Manual:** the parent area's **Sleep times** screen gains a third row, **Now**, which sets the
+  clock by hand (± buttons, press-and-hold to repeat). A manual set keeps today's date, or uses
+  2 January 2026 when the clock has no date yet. Without NTP the date is then not the real one, so a
+  DST change can come on the wrong night, leaving the clock an hour off until Now is set again.
 - Time zone: `Europe/Zagreb` (POSIX `CET-1CEST,M3.5.0,M10.5.0/3`).
-- The parent area's **Sleep times** screen gains a third row, **Now**, which sets the clock
-  manually (hours and minutes, ± buttons, press-and-hold to repeat). The parent area stays at 4 tiles.
-- If the time is invalid (the RTC lost power and there is no NTP), the time-based features switch
+- **Valid time** means the clock reads 2026-01-01 or later, which only an NTP sync or a manual set
+  since the last power-on can make true. If the time is invalid, the time-based features switch
   off rather than guess: no bedtime lock, and the Sleepy clock shows the day scene. Play is never
   blocked by a bad clock.
+- The internal oscillator drifts. M6 measures how much (docs/device-checks.md), and the daily NTP
+  sync bounds it when Wi-Fi is available.
 
 ### 3.3 Silly voice effects
 
@@ -270,6 +277,45 @@ The design leaves these open for M5. Everything else follows the design.
     and its pad fills at 25 %. The center note takes its color. The cat returns to happy after
     700 ms, and a new tap replaces the previous meow.
 
+### 3.12 Time and bedtime details (2026-09-24)
+
+The design leaves these open for M6. Everything else follows the design and §3.8.
+
+- **Night** runs from bedtime to wake time, across midnight. If the two are equal there is no night.
+  The schedule is checked every second.
+- **Bedtime starts:** at the bedtime minute any open app closes, without the Home "mew", and the
+  bedtime lock shows. A power-on or restart inside the night plays the boot animation, then shows the
+  lock. Changing the sleep times in the parent area takes effect when the parent leaves the area.
+- **The lock's scene** is the design's Sleepy clock night scene: the moon, nine twinkling stars
+  (3 s each, staggered by the design's delays, 30 → 100 %), the sleeping cat (scale M) and five hour
+  stars along the bottom. The panel runs at 35 % brightness.
+- **Hour stars:** a lit star for each hour left until wake time, rounded up, at most five. All five
+  are lit while more than four hours are left, and the last one goes out at wake time.
+- **On the lock:**
+  - Home does nothing. PWR still turns the panel off and on.
+  - A touch whispers "Pssst… spavaj" at 30 % of the playing volume (a gain in the mixer, so the
+    parent's cap still applies), at most once every 5 s. With the whisper the cat shows its shh face
+    for 2.2 s, as in the design.
+  - On battery the panel turns off after 30 s, and a touch shows the scene again for 5 s. Deep
+    sleep arrives in M7; until then the device stays on through the night.
+  - On USB power the scene stays on all night, shifted ±4 px every 60 s.
+  - The parent two-finger hold works, with its progress ring around the sleeping cat's head.
+    Leaving the parent area returns to the lock while it is still night. If the parent moved the
+    times so that it is no longer night, leaving goes to the menu, without the sunrise.
+- **USB power** is the AXP2101's "VBUS good" status bit.
+- **Sunrise** plays at wake time if the lock is showing: the sun rises 110 px over 4 s while the
+  brightness goes from 10 to 100 %, then the rising four-note chime, a happy meow and "Dobro
+  jutro!". The menu follows 60 s later, or on a tap once the sun is up, without the Home mew.
+- **The Sleepy clock app** shows the day scene: the sun with slowly turning rays, the hills and the
+  proud cat. A tap on the cat purrs, as in Pet the cat (purring face, the purr loop for 1.5 s). The
+  app is never open at night, because the lock closes it.
+- **The parent area in M6:**
+  - The home screen has two of the design's four tiles, Volume and Sleep. Apps, Cat and the
+    battery in the center arrive in M7. The text is still Montserrat.
+  - Sleep times has three rows: Bedtime and Wake up in 15-minute steps, and Now in 1-minute steps.
+    Holding ± repeats, and after 2 s the Now row steps by 10 minutes.
+  - Now shows "--:--" while the time is invalid, and its first press starts from 12:00.
+
 ## 4. Architecture
 
 ### 4.1 Toolchain and dependencies
@@ -281,7 +327,7 @@ The design leaves these open for M5. Everything else follows the design.
 | Graphics | LVGL 9.4 |
 | IMU | `waveshare/qmi8658` |
 | Power | XPowersLib for the AXP2101, as in Waveshare example `01_AXP2101` |
-| RTC | A small local driver for the PCF85063 (read/write time only) |
+| Time | The ESP32-S3's own clock with SNTP (`esp_netif_sntp`); the 1.75C has no PCF85063 (§3.2) |
 | Filesystem | LittleFS (`joltwallet/littlefs`) on an internal flash partition holding every image and sound. The SD card is not used. |
 | Host tests | CMake plus Unity for pure-logic modules, run on the Mac |
 
@@ -308,8 +354,9 @@ cat-toy/
       touch_raw.c/.h      two-point reads for the parent gesture
       imu.c/.h            50 Hz sampling task -> shake and tilt events
       audio.c/.h          play clip, record clip, global volume cap
-      power.c/.h          battery %, charging state, deep sleep
-      clock.c/.h          RTC, NTP sync, time zone, validity
+      pmu.c/.h            AXP2101 register access, shared by buttons and power
+      power.c/.h          USB power (M6); battery %, charging state, deep sleep (M7)
+      clock.c/.h          system time, NTP sync, time zone, validity
       settings.c/.h       NVS-backed settings
     logic/                pure C, no ESP-IDF includes, host-tested
       gestures.c/.h       tap, swipe, rub, two-finger hold classification
@@ -327,7 +374,10 @@ cat-toy/
       tokens.h            design constants: colors, sizes, durations, thresholds
       launcher.c/.h       carousel, idle dim, parent gesture entry
       app_manager.c/.h    open, close, Home, event routing
-      overlays.c/.h       low battery, charging, bedtime lock, sunrise
+      bedtime.c/.h        bedtime lock and sunrise
+      scenes.c/.h         the Sleepy clock's night and day scenes
+      hold_ring.c/.h      the parent two-finger hold and its ring (menu and lock)
+      overlays.c/.h       low battery, charging
       parent.c/.h         parent area screens
       first_run.c/.h      cat picker
     apps/
@@ -413,7 +463,7 @@ The rule: failures degrade play gracefully, and they never raise the volume or l
 | Missing sound | Log it and stay silent |
 | Audio codec init fails | Everything runs silently; Silly voices shows the cat with the mic disabled (grey) |
 | IMU init fails | Shake and tilt do nothing; the apps still work by touch |
-| RTC invalid and no NTP | Time features off (section 3.2) |
+| Time invalid (power lost, no NTP and no manual set) | Time features off (section 3.2) |
 | Battery gauge unavailable | Hide battery screens; never force low-battery mode |
 | NVS corrupt | Erase and use defaults, and run first-run again |
 
@@ -489,7 +539,8 @@ swish, rolling rumble loop, whoosh, squeak, roar, yawn, munching loop, snore.
   The board and its lithium battery are never handed over bare.
 - The volume cap defaults to 100 % (the codec's 0 dB; 60 % measured far too quiet on the device,
   2026-09-23), and the parent area can lower it. Check the real loudness at the kid test (M8).
-- No cloud, no accounts. The network is used only for NTP at boot, then Wi-Fi turns off.
+- No cloud, no accounts. The network is used only for NTP at boot and once a day at wake time.
+  Wi-Fi is off the rest of the time.
 - Recordings are held in RAM only and discarded when Silly voices closes or the device sleeps.
 - Wi-Fi credentials live in a gitignored `sdkconfig.secrets`, never in the repository. The generated
   `sdkconfig` is gitignored too, because it contains them after a build; the committed baseline is
@@ -507,7 +558,7 @@ Each milestone ends with a flashed, working device.
 | M3 | Silly voices | Record, the 4 effects, talking mouth, costume cycling. **First kid test.** |
 | M4 | Pet the cat | Tap, rub, shake, tilt, fish. |
 | M5 | Magic paws, Yarn roll, Meow piano | All three apps. |
-| M6 | Time and bedtime | NTP and RTC, Sleepy clock, bedtime lock, sunrise, night light. |
+| M6 | Time and bedtime | NTP and the manual clock, Sleepy clock, bedtime lock, sunrise, night light. |
 | M7 | System and parent | Cat picker, low battery, charging, parent area, deep sleep, burn-in shifts. |
 | M8 | Tuning | Kid-test fixes, volume and sensitivity tuning, battery life measurement. |
 
