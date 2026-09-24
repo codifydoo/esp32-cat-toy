@@ -237,7 +237,8 @@ The design leaves these open for M5. Everything else follows the design.
   - Each rainbow dot is painted with its 28 % halo just before it. Where strokes cross, the newer
     halo tints the older dots slightly (the design keeps every dot above every halo).
   - Paw prints are painted as five round blobs (pad and toes), turned along the stroke.
-  - The picture is only painted within r 212 of the center.
+  - Dots and prints are placed only where the stroke is within r 212 of the center (their edges may
+    reach a little further).
   - A sparkle tick plays every 8 dots, and a soft "pat" for each paw print, each at most 8 per
     second.
   - The empty canvas shows the design's twinkling rainbow-dot hint.
@@ -398,6 +399,7 @@ Rules for apps:
 | Chosen cat, all three scales (loaded at boot) | ~1.3 MB |
 | Menu icons, 6 × 240 px (loaded at boot) | ~1.0 MB |
 | Largest app's own assets (loaded on open, freed on close) | ≤ 1.5 MB |
+| Magic paws' picture (allocated on first open, kept until restart, §3.11) | 434 KB |
 | Audio: 5 s record buffer, effect output buffer, playback buffer | ~0.8 MB |
 | Headroom | ≥ 2 MB |
 
