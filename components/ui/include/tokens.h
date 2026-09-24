@@ -179,3 +179,42 @@
 #define DRAW_SWING_MS        550   /* one swing there and back */
 #define DRAW_CISTO_MS        900
 #define DRAW_CLEAN_MS        1700
+
+/* Yarn roll (Screen.dc.html yarn and yarnwin views; spec §3.11). Range, chase and win: yarn_rules.h. */
+#define YARN_SIZE               64
+#define YARN_FRAMES             4
+#define YARN_FRAME_PX           42   /* a quarter turn of the r 27 yarn per 42 px rolled */
+#define YARN_ROLL_MIN_PX        0.5f /* less than this per step is not rolling (not activity, no rumble) */
+#define YARN_RUMBLE_STOP_MS     150  /* the rumble stops this long after the yarn stops */
+#define YARN_BASKET_W           120
+#define YARN_BASKET_H           96
+#define YARN_CAT_DX             65   /* scale S: from the cat's center to its origin */
+#define YARN_CAT_DY             68
+#define YARN_LOOK_STEP          0.1f /* re-aim the eyes only when the look moves this much */
+#define YARN_HINT_X             203
+#define YARN_HINT_Y             386
+#define YARN_HINT_MS            4000
+#define YARN_HINT_WOBBLE        70   /* ±7°, in 0.1° */
+#define YARN_HINT_WOBBLE_MS     600  /* there and back */
+#define YARN_HINT_PIVOT_X       30   /* 50 % and 80 % of the 60 x 44 hint */
+#define YARN_HINT_PIVOT_Y       35
+#define YARN_WIN_DELAY_MS       320
+#define YARN_NEXT_ROUND_MS      3500
+#define YARN_WIN_CAT_X          133  /* scale M origin, centered where the design's 220 px proud cat is */
+#define YARN_WIN_CAT_Y          68
+#define YARN_FULL_BASKET_X      173
+#define YARN_FULL_BASKET_Y      296
+#define YARN_CONFETTI           24
+#define YARN_CONFETTI_W         12
+#define YARN_CONFETTI_H         22
+#define YARN_CONFETTI_R         3
+#define YARN_CONFETTI_X0        60   /* x = 60 + (i * 53 mod 346) */
+#define YARN_CONFETTI_X_STEP    53
+#define YARN_CONFETTI_X_SPAN    346
+#define YARN_CONFETTI_TOP       (-30)
+#define YARN_CONFETTI_DELAY     97   /* delay = i * 97 mod 1400 ms */
+#define YARN_CONFETTI_DELAY_MAX 1400
+#define YARN_CONFETTI_FALL      520
+#define YARN_CONFETTI_MS        1600
+#define YARN_CONFETTI_SPIN      1    /* 0 = the spec §3.11 fallback: confetti falls without spinning */
+#define YARN_CONFETTI_TURN      5400 /* 540°, in 0.1° */
