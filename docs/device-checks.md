@@ -358,3 +358,19 @@ M3 passes.
 | None of tonight's settings (`-Og`, default caches, no XIP, no style cache) | hang at cycle 22 (1 in 22) |
 
 So it predates tonight's changes and does not depend on those settings. It needs two resets close together during early boot; a normal power-on is a full power cycle and was never affected. Suspect: the chip (ESP32-S3 rev v0.2 with AP octal PSRAM; compare esp-idf issue 18806). Open: test with `CONFIG_SPIRAM_MEMTEST` off and with Waveshare's own firmware under the same script.
+
+## Serial listener and accelerometer axes (M4) — 2026-09-24
+
+**Listener.** Setting `dtr=False` and `rts=False` before `open()` still reset the board: the log showed
+a boot cut off by `rst:0x15 (USB_UART_CHIP_RESET)` 3 s after the flasher's own reset. The chip is held
+in reset while RTS is high and DTR low. macOS raises both lines on open, and pyserial then clears DTR
+before RTS, passing through that state. `tools/serial_log.py` now skips pyserial's DTR update on open
+(`dsrdtr=True`, which on POSIX does nothing else), drops RTS, then drops DTR. Result: it joined the
+running diagnostics build mid-stream (first line at 75 s of uptime) with no reset.
+
+**Axes.** Two rounds of pose instructions were unclear, so the dedicated check was dropped. Evidence
+so far: flat, face up reads x −0.02, y 0.03, z +0.97; held in the hand facing the user, raw y read
+−0.75 to −1.0 with z near 0, so raw y points toward the bottom (USB) edge like screen y. With raw z out
+of the glass and a right-handed sensor, raw x then points left. The firmware starts with screen
+x = −ax, screen y = ay. The Pet the cat walkthrough (does the ball roll downhill?) confirms or flips
+this.

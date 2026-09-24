@@ -9,7 +9,20 @@ import serial
 def open_port(port, deadline):
     while True:
         try:
-            return serial.Serial(port, 115200, timeout=0.2)
+            s = serial.Serial()
+            s.port = port
+            s.baudrate = 115200
+            s.timeout = 0.2
+            # Opening the port must not reset the board: a second reset within ~1 s of the flasher's
+            # can hang early boot (docs/device-checks.md). The chip is held in reset while RTS is high
+            # and DTR low. The OS raises both on open, and pyserial then clears DTR before RTS, which
+            # passes through that state. So skip pyserial's DTR update on open (on POSIX dsrdtr only
+            # does that), let it drop RTS, and drop DTR afterwards.
+            s.dsrdtr = True
+            s.rts = False
+            s.open()
+            s.dtr = False
+            return s
         except serial.SerialException:
             if time.time() > deadline:
                 raise
