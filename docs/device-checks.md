@@ -438,3 +438,35 @@ instrumented) nor in the silent runs (120 and 50 rounds). Its source is not iden
 backtraces, printed at each checkpoint. At the user's request the soak now runs silent (32e26f9).
 
 The kid test (spec §7) is still open for M3, M4 and M5.
+
+## Time and bedtime (M6) — 2026-09-24
+
+Builds of 2bbf0a1: without Wi-Fi (`build-m6`, `SDKCONFIG_DEFAULTS="sdkconfig.defaults"`, so NTP could not reset the hand-set clock), soak, and perf. Also the Wi-Fi build (from `sdkconfig.secrets`), two instrumented NTP builds (not committed), and the NTP fix and 68eaf5c.
+
+| Check | Result |
+| --- | --- |
+| A: menu two-finger hold (ring at 1 s, parent area at 5 s); PWR off/on; Home from apps with the mew | PASS |
+| A: Sleepy clock: the sun rises, the rays turn, hills and the proud cat; a tap on the cat purrs, a tap on the sky does nothing | PASS |
+| B: parent home ("Parents", Volume and Sleep tiles, "Home button exits"); Max volume with "‹ Parents" | PASS |
+| B: Sleep times: Now shows "--:--" until the first press sets 12:00 (log); 1-minute steps, 10-minute after a 2 s hold (log); Bedtime and Wake up in 15-minute steps with repeat; 00:30 stays valid; the Sleep tile shows the saved bedtime | PASS |
+| C1-C2: bedtime closes an app without the mew and shows the lock; bedtime over the menu; moving the times out of the night in the parent area goes to the menu without a sunrise | PASS (log: one `lock shown` per transition, `lock dropped` on the move) |
+| C3: bedtime while the parent area is open shows the lock only on leaving | PASS, user-reported (not in the log) |
+| D: on the lock: Home ignored; the whisper quiet but audible, shh face, 5 s gap; PWR off/on; USB night light past 30 s; on battery dark after 30 s and 5 s per touch; the hold ring around the cat, back to the lock after the parent area | PASS, user-reported (the log holds only the PWR and Home presses) |
+| E: sunrise: the sun rises while the screen brightens, then the chime, the meow and "Dobro jutro!"; a tap only after the rise; Home at once; the menu by itself after 60 s | PASS, user-reported (not in the log) |
+| F: a reset inside the night: the boot animation, then the lock | PASS (log: `lock shown` 5.2 s after boot) |
+| FPS (perf build) | The lock: 30 FPS, render 7-8 ms, CPU 36-38 % (the twinkles redraw continuously; on battery the scene is hidden while dark). The Sleepy clock's turning rays: **not measured**, the user declined further hands-on tests |
+| Soak | PASS (silent, 2bbf0a1): `SOAK: PASS: internal delta=-1032 psram delta=0 over 50 rounds`, with the real Sleepy clock |
+| NTP | PASS after two fixes (6b23e71, 68eaf5c): the Wi-Fi build gets an IP 5.06 s after boot, the NTP answer 68 ms later, and the correct local time. A made-up network gives up at 5.2 s and the lock still shows. The first Wi-Fi build failed; see below |
+| Log | no Guru Meditation, abort, assert or unexpected reset |
+
+**Log gap.** The serial log holds none of the events of C3, D and E (no clock sets, no Home presses, no sunrise lines), and the user's answers came faster than those steps take. The user confirmed twice that everything behaved as described. Those rows are the user's report, not backed by the log. The listener was running throughout. One console drop is expected: unplugging USB in D6 cuts it off.
+
+**NTP.** The first Wi-Fi build (2bbf0a1) joined the network (WPA2, RSSI −77 dBm) and got an IP at 5.4 s, but had no NTP answer by the 10 s deadline. With a temporary 40 s budget the answer came 30.2 s after the client started. lwIP waits a random 0-5 s before the first request and repeats an unanswered request only after 15 s, and here the first request goes unanswered. **Fix 6b23e71:** no startup delay (`CONFIG_LWIP_SNTP_STARTUP_DELAY` off), and `esp_netif_sntp_start()` resends every 2 s until the deadline. The debug build then synced 2 s after the start.
+
+A second fault showed only in builds whose config was generated fresh from `sdkconfig.defaults`. `CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP` (Task 3) raises the Wi-Fi static RX buffers from 10 to 16 and the block-ack window from 6 to 16. Every fresh-config Wi-Fi run then dropped display frames while Wi-Fi was up: `Failed to allocate priv TX buffer`, then `Draw bitmap failed: ESP_ERR_NO_MEM`, 33-200 times per sync. The display needs a 46.6 KB internal DMA bounce buffer per flush. The long-lived `sdkconfig` kept 10/6 and never failed. **Fix 68eaf5c:** pin 10/6 in `sdkconfig.defaults`. A fresh config then logged 0 failures.
+
+**Not measured:**
+- Heap across repeated syncs: the before/after deltas at boot are dominated by the boot itself, and the daily sync at steady state was not run.
+- Audio during a sync: Wi-Fi shares core 0 with the audio task, and nobody listened for glitches.
+
+**Drift.** Not measured. This session's corrections (+213 ms, −488 ms) span resets and hand-set times, so they do not isolate the oscillator. While the chip runs, the clock follows the 40 MHz crystal (`CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER`). The daily wake-minute sync logs `NTP: corrected by X ms, Y s after the previous sync`, which gives the drift directly on a toy left running on Wi-Fi. This is open for M7, where deep sleep runs on the RTC slow clock, which drifts far more.
