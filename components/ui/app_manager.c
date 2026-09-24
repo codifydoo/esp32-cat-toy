@@ -8,6 +8,7 @@
 #include "sensors.h"
 #include "idle.h"
 #include "launcher.h"
+#include "parent.h"
 #include "sdkconfig.h"
 #include "tokens.h"
 #include "ui_util.h"
@@ -136,6 +137,9 @@ void app_manager_open(const app_t *app)
     if (s_current || !app) {
         return;
     }
+    if (app != &PARENT_APP && bedtime_showing()) {
+        return; /* the menu's open zoom can end after bedtime took over: no app at night (spec §3.12) */
+    }
 #if CONFIG_CAT_HOME_ON_POWER
     /* Opening an app is itself fresh activity; a PWR-Home queued just before this touch must not
      * fire against the app that is about to open. */
@@ -184,7 +188,8 @@ static void do_home(void)
     cancel_pending_home(); /* a Home about to run makes any pending PWR-Home stale */
 #endif
     if (bedtime_showing()) {
-        return; /* Home does nothing on the lock (spec §3.12); also a PWR-Home queued before it showed */
+        bedtime_home(); /* does nothing on the lock, ends the sunrise; also drops a PWR-Home queued before it showed */
+        return;
     }
     if (idle_wake_if_asleep()) {
         return; /* the press only wakes the screen */
@@ -214,7 +219,9 @@ static void handle_button(button_id_t id)
     lv_display_trigger_activity(NULL); /* a button press counts as activity */
     if (bedtime_showing()) {
         if (id == BUTTON_POWER) {
-            bedtime_power(); /* PWR still turns the lock's panel off and on; Home does nothing */
+            bedtime_power(); /* PWR still turns the lock's panel off and on */
+        } else {
+            bedtime_home(); /* Home does nothing on the lock; it ends the sunrise */
         }
         return;
     }

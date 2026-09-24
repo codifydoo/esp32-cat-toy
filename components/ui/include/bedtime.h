@@ -11,3 +11,6 @@ bool bedtime_take_over(void);
 bool bedtime_showing(void);
 /* PWR while bedtime_showing(): the lock's panel off or back on. During the sunrise: the menu, dark. */
 void bedtime_power(void);
+/* Home while bedtime_showing(): nothing on the lock (spec §3.12); the sunrise goes straight to the menu,
+ * without the mew (spec §1: only the lock ignores Home). */
+void bedtime_home(void);

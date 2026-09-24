@@ -350,3 +350,10 @@ void bedtime_power(void)
         update_panel();
     }
 }
+
+void bedtime_home(void)
+{
+    if (s_state == BT_SUNRISE) {
+        finish_sunrise();
+    }
+}
