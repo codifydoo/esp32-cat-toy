@@ -218,3 +218,17 @@
 #define YARN_CONFETTI_MS        1600
 #define YARN_CONFETTI_SPIN      1    /* 0 = the spec §3.11 fallback: confetti falls without spinning */
 #define YARN_CONFETTI_TURN      5400 /* 540°, in 0.1° */
+
+/* Meow piano (Screen.dc.html piano view; spec §3.11) */
+#define PIANO_KEYS         5
+#define PIANO_RING_R       140
+#define PIANO_PAD_SIZE     145 /* r 70 with its 5 px stroke centered on it */
+#define PIANO_PAD_BORDER   5
+#define PIANO_PAD_LINE_OPA 179 /* 70 % */
+#define PIANO_PAD_FILL_OPA 64  /* 25 % while it sings */
+#define PIANO_TAP_SIZE     150
+#define PIANO_CAT_DX       65  /* scale S origin from the key's point on the ring */
+#define PIANO_CAT_DY       70
+#define PIANO_NOTE_X       183
+#define PIANO_NOTE_Y       183
+#define PIANO_SING_MS      700
