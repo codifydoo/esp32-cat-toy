@@ -268,3 +268,16 @@
 #define DAY_CAT_Y             196
 #define DAY_CAT_W             200  /* the scale M cat's box: a tap inside it purrs */
 #define DAY_CAT_H             210
+
+/* Bedtime lock and sunrise (spec §3.12) */
+#define BEDTIME_TICK_MS        1000
+#define BEDTIME_BRIGHTNESS     35
+#define BEDTIME_ON_MS          30000 /* battery: the panel turns off 30 s after the lock shows */
+#define BEDTIME_TOUCH_ON_MS    5000  /* a touch shows the scene for 5 s */
+#define BEDTIME_WHISPER_GAP_MS 5000
+#define BEDTIME_WHISPER_GAIN   30    /* % of the playing volume */
+#define BEDTIME_SHH_MS         2200  /* design: the shh face after a night tap */
+#define BEDTIME_RING_CX        233   /* the hold ring around the sleeping cat's head */
+#define BEDTIME_RING_CY        279
+#define SUNRISE_FROM_PCT       10
+#define SUNRISE_MENU_MS        60000

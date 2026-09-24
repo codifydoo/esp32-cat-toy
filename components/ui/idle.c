@@ -1,5 +1,6 @@
 #include "idle.h"
 #include "app_manager.h"
+#include "bedtime.h"
 #include "display.h"
 #include "launcher.h"
 #include "tokens.h"
@@ -108,9 +109,22 @@ void idle_power_toggle(void)
 
 uint8_t idle_level(void) { return s_level; }
 
+void idle_hand_over(void)
+{
+    lv_anim_delete(&s_anim_var, set_brightness);
+    s_forced_off = false;
+    s_level = 0;
+    show_catcher(false);
+    lv_display_trigger_activity(NULL);
+    launcher_set_idle_level(0); /* the menu's cat is awake when the menu comes back */
+}
+
 static void tick(lv_timer_t *t)
 {
     (void)t;
+    if (bedtime_showing()) {
+        return; /* the lock and the sunrise run their own panel rules (spec §3.12) */
+    }
     uint32_t inactive = lv_display_get_inactive_time(NULL);
     if (app_manager_current()) {
         if (inactive >= IDLE_APP_HOME_MS) {

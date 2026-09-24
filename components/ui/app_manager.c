@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "audio.h"
+#include "bedtime.h"
 #include "buttons.h"
 #include "esp_log.h"
 #include "sensors.h"
@@ -31,14 +32,19 @@ void app_manager_init(void)
 {
     launcher_create();
     idle_init();
+    bedtime_init();
     lv_timer_create(poll_sensors, SENSOR_POLL_MS, NULL);
 }
 
 void app_manager_start(void)
 {
-    launcher_show();
+    if (!bedtime_take_over()) { /* a start inside the night shows the lock after the boot animation */
+        launcher_show();
+    }
     s_started = true; /* buttons are ignored until this point -- see handle_button() */
 }
+
+bool app_manager_started(void) { return s_started; }
 
 #if CONFIG_CAT_HOME_ON_POWER
 static void cancel_pending_home(void)
@@ -87,6 +93,9 @@ static void close_current_app(void)
 
     app->destroy();
     audio_stop_all();
+    if (bedtime_take_over()) {
+        return; /* night: the lock instead of the menu, without the Home mew (spec §3.12) */
+    }
     if (idle_level() != 3) {
         /* Screen is dark (e.g. Power turned it off, then this app's own idle timeout closed it):
          * don't mew in the dark. */
@@ -174,6 +183,9 @@ static void do_home(void)
 #if CONFIG_CAT_HOME_ON_POWER
     cancel_pending_home(); /* a Home about to run makes any pending PWR-Home stale */
 #endif
+    if (bedtime_showing()) {
+        return; /* Home does nothing on the lock (spec §3.12); also a PWR-Home queued before it showed */
+    }
     if (idle_wake_if_asleep()) {
         return; /* the press only wakes the screen */
     }
@@ -200,6 +212,12 @@ static void handle_button(button_id_t id)
         return; /* ignore presses until app_manager_start() has shown the menu (boot animation) */
     }
     lv_display_trigger_activity(NULL); /* a button press counts as activity */
+    if (bedtime_showing()) {
+        if (id == BUTTON_POWER) {
+            bedtime_power(); /* PWR still turns the lock's panel off and on; Home does nothing */
+        }
+        return;
+    }
 #if CONFIG_CAT_HOME_ON_POWER
     if (id == BUTTON_POWER) {
         if (idle_wake_if_asleep()) {
