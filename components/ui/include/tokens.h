@@ -122,3 +122,35 @@
 #define HOLD_RING_W   6
 #define HOLD_RING_OPA 140 /* 55 % */
 #define HOLD_POLL_MS  50
+
+/* Pet the cat (Screen.dc.html pet view; spec §3.10). The design's 250 px cat (1.25x) is drawn at
+ * scale L (1.3x), centered on the design's head center (233, 159). */
+#define PET_CAT_ORIGIN_X  103
+#define PET_CAT_ORIGIN_Y  19
+#define PET_EYES_X        233 /* between the eyes: design (100, 104) at 1.3x */
+#define PET_EYES_Y        154
+#define PET_HIT_CX        233 /* the whole head is the touch area */
+#define PET_HIT_CY        155
+#define PET_HIT_SIZE      230
+#define PET_FISH_CX       233
+#define PET_FISH_CY       373
+#define PET_FISH_SIZE     150 /* touch target */
+#define PET_FISH_RING     146 /* the drawn circle: r 68 with its 10 px stroke centered on it */
+#define PET_FISH_BORDER   10
+#define PET_FISH_EAT_OPA  128 /* 50 % while eating */
+#define COLOR_FISH        0x3FB6FF
+#define COLOR_FISH_RING   0x0F5A85
+#define PET_BALL_SIZE     48
+#define PET_BALL_START_X  330
+#define PET_BALL_START_Y  110
+#define PET_BALL_RANGE    190  /* the ball's center stays this close to the screen center */
+#define PET_BALL_HIDE_MS  3000 /* back to the plain face 3 s after the last tilt */
+#define PET_ROLL_MIN_PX   0.5f /* less than this per step is not rolling (not activity, no tick) */
+#define PET_TICK_PX       60   /* one bell tick per 60 px rolled */
+#define PET_HEART_RISE    44
+#define PET_HEART_MS      1200
+#define PET_PURR_SOUND_MS 1500
+#define PET_PURR_MS       1800
+#define PET_GIGGLE_MS     1800
+#define PET_DIZZY_MS      2000
+#define PET_EAT_MS        2400
