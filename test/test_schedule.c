@@ -128,6 +128,43 @@ static void test_sync_due_wraps_past_midnight(void)
     TEST_ASSERT_FALSE(schedule_sync_due(true, wake, wake, UINT32_MAX));
 }
 
+static void test_sleep_allowed_except_in_the_last_quarter_hour_before_wake(void)
+{
+    const uint16_t bed = HM(19, 30), wake = HM(7, 0);
+    TEST_ASSERT_TRUE(schedule_sleep_allowed(true, HM(15, 0), bed, wake));
+    TEST_ASSERT_TRUE(schedule_sleep_allowed(true, HM(22, 0), bed, wake));
+    TEST_ASSERT_TRUE(schedule_sleep_allowed(true, HM(6, 44), bed, wake)); /* 16 minutes before */
+    TEST_ASSERT_FALSE(schedule_sleep_allowed(true, HM(6, 45), bed, wake)); /* 15 minutes before */
+    TEST_ASSERT_FALSE(schedule_sleep_allowed(true, HM(6, 59), bed, wake));
+    TEST_ASSERT_FALSE(schedule_sleep_allowed(true, HM(7, 0), bed, wake)); /* the wake minute: the sunrise */
+    TEST_ASSERT_TRUE(schedule_sleep_allowed(true, HM(7, 1), bed, wake));
+}
+
+static void test_sleep_allowed_any_time_without_a_night_or_a_valid_clock(void)
+{
+    TEST_ASSERT_TRUE(schedule_sleep_allowed(true, HM(6, 55), HM(7, 0), HM(7, 0))); /* bed == wake */
+    TEST_ASSERT_TRUE(schedule_sleep_allowed(false, HM(6, 55), HM(19, 30), HM(7, 0)));
+}
+
+static void test_sleep_guard_wraps_past_midnight(void)
+{
+    const uint16_t bed = HM(22, 0), wake = HM(0, 5);
+    TEST_ASSERT_FALSE(schedule_sleep_allowed(true, HM(23, 55), bed, wake));
+    TEST_ASSERT_TRUE(schedule_sleep_allowed(true, HM(23, 49), bed, wake));
+}
+
+static void test_wake_timer_minute_is_ten_minutes_before_wake(void)
+{
+    TEST_ASSERT_EQUAL_INT32(HM(6, 50), schedule_wake_timer_min(true, HM(19, 30), HM(7, 0)));
+    TEST_ASSERT_EQUAL_INT32(HM(23, 55), schedule_wake_timer_min(true, HM(22, 0), HM(0, 5)));
+}
+
+static void test_no_wake_timer_without_a_night_or_a_valid_clock(void)
+{
+    TEST_ASSERT_EQUAL_INT32(-1, schedule_wake_timer_min(false, HM(19, 30), HM(7, 0)));
+    TEST_ASSERT_EQUAL_INT32(-1, schedule_wake_timer_min(true, HM(7, 0), HM(7, 0)));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -144,5 +181,10 @@ int main(void)
     RUN_TEST(test_sync_due_ten_minutes_before_wake);
     RUN_TEST(test_sync_not_due_at_other_minutes);
     RUN_TEST(test_sync_due_wraps_past_midnight);
+    RUN_TEST(test_sleep_allowed_except_in_the_last_quarter_hour_before_wake);
+    RUN_TEST(test_sleep_allowed_any_time_without_a_night_or_a_valid_clock);
+    RUN_TEST(test_sleep_guard_wraps_past_midnight);
+    RUN_TEST(test_wake_timer_minute_is_ten_minutes_before_wake);
+    RUN_TEST(test_no_wake_timer_without_a_night_or_a_valid_clock);
     return UNITY_END();
 }

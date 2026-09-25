@@ -52,3 +52,19 @@ bool schedule_sync_due(bool valid, uint16_t now, uint16_t wake, uint32_t secs_si
     }
     return now == schedule_step(wake, -SCHEDULE_SYNC_BEFORE_MIN) && secs_since_attempt >= SCHEDULE_SYNC_GAP_S;
 }
+
+bool schedule_sleep_allowed(bool valid, uint16_t now, uint16_t bed, uint16_t wake)
+{
+    if (!valid || bed == wake) {
+        return true;
+    }
+    return schedule_minutes_until(now, wake) > SCHEDULE_SLEEP_GUARD_MIN;
+}
+
+int32_t schedule_wake_timer_min(bool valid, uint16_t bed, uint16_t wake)
+{
+    if (!valid || bed == wake) {
+        return -1;
+    }
+    return schedule_step(wake, -SCHEDULE_WAKE_LEAD_MIN);
+}

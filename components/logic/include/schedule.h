@@ -14,6 +14,10 @@
 #define SCHEDULE_SYNC_RETRY_S    300  /* while the clock is not valid, a sync is retried this often */
 #define SCHEDULE_SYNC_GAP_S      3600 /* the daily sync never follows another attempt closer than this */
 
+#define SCHEDULE_WAKE_LEAD_MIN   SCHEDULE_SYNC_BEFORE_MIN /* the deep-sleep timer wakes the toy this long before
+                                                           * wake time, the minute the daily sync is due */
+#define SCHEDULE_SLEEP_GUARD_MIN 15 /* no deep sleep in this many minutes before wake time (spec §3.13) */
+
 /* Night runs from bed to wake, across midnight when bed > wake; bed == wake means no night. */
 bool schedule_is_night(uint16_t now, uint16_t bed, uint16_t wake);
 /* Minutes from now forward to target, 0-1439 (0 when they are equal). */
@@ -29,3 +33,9 @@ uint16_t schedule_now_step(uint32_t held_ms);
 /* Whether to start an NTP sync now (spec §3.2). secs_since_attempt: since the last attempt started,
  * UINT32_MAX before the first. */
 bool schedule_sync_due(bool valid, uint16_t now, uint16_t wake, uint32_t secs_since_attempt);
+/* Deep sleep may start now: never from SCHEDULE_SLEEP_GUARD_MIN minutes before wake time up to and including
+ * the wake minute, while the clock is valid and there is a night (spec §3.13). */
+bool schedule_sleep_allowed(bool valid, uint16_t now, uint16_t bed, uint16_t wake);
+/* The local minute the deep-sleep timer wakes the toy (SCHEDULE_WAKE_LEAD_MIN before wake time), or -1 for no
+ * timer: the clock is not valid, or bed == wake (no night). */
+int32_t schedule_wake_timer_min(bool valid, uint16_t bed, uint16_t wake);
