@@ -9,7 +9,8 @@ void bedtime_init(void); /* starts the 1 s schedule check; app_manager_init() ca
 bool bedtime_take_over(void);
 /* True while the lock or the sunrise is on screen (not while the parent area is open over it). */
 bool bedtime_showing(void);
-/* PWR while bedtime_showing(): the lock's panel off or back on. During the sunrise: the menu, dark. */
+/* PWR while bedtime_showing(): the lock's panel off or back on. During the sunrise: the menu, dark (with
+ * CONFIG_CAT_HOME_ON_POWER, PWR is Home: the menu, lit). */
 void bedtime_power(void);
 /* Home while bedtime_showing(): nothing on the lock (spec §3.12); the sunrise goes straight to the menu,
  * without the mew (spec §1: only the lock ignores Home). */

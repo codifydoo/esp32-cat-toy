@@ -208,15 +208,14 @@ void clock_sync_start(void)
     portENTER_CRITICAL(&s_mux);
     const bool start = !s_running;
     s_running = true;
+    if (start) {
+        s_attempt_start_us = esp_timer_get_time(); /* a start that fails for memory counts too: no retry each tick */
+    }
     portEXIT_CRITICAL(&s_mux);
     if (!start) {
         return;
     }
-    if (xTaskCreatePinnedToCore(sync_task, "ntp", SYNC_STACK, NULL, 2, NULL, 0) == pdPASS) {
-        portENTER_CRITICAL(&s_mux);
-        s_attempt_start_us = esp_timer_get_time();
-        portEXIT_CRITICAL(&s_mux);
-    } else {
+    if (xTaskCreatePinnedToCore(sync_task, "ntp", SYNC_STACK, NULL, 2, NULL, 0) != pdPASS) {
         ESP_LOGE(TAG, "no memory for the NTP task");
         portENTER_CRITICAL(&s_mux);
         s_running = false;
