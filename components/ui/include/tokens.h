@@ -354,3 +354,22 @@
 #define COLOR_FUR_ORANGE  0xFF9F43
 #define COLOR_FUR_GREY    0xA9B6C9
 #define COLOR_FUR_TUX     0x3B3B52
+
+/* Low battery and charging screens (Screen.dc.html lowbatt and charging views; spec §3.13) */
+#define OVERLAY_MS            4000
+#define OVERLAY_BATT_X        197  /* the 72 x 38 battery glyph */
+#define OVERLAY_BATT_Y        26
+#define OVERLAY_CAT_X         133  /* scale M origin: the design's 220 px cat, centered */
+#define OVERLAY_CAT_Y         86
+#define OVERLAY_BOWL_X        153
+#define OVERLAY_BOWL_EMPTY_Y  316
+#define OVERLAY_BOWL_FULL_Y   304
+#define OVERLAY_BLINK_MS      1600 /* the red battery: 30 % -> 100 % -> 30 % (.blink-slow) */
+#define OVERLAY_BLINK_LOW_OPA 77
+#define CHARGE_FILL_X         11   /* the growing fill, inside the glyph */
+#define CHARGE_FILL_Y         11
+#define CHARGE_FILL_W         42
+#define CHARGE_FILL_MIN_W     6    /* the design's scaleX(0.15) */
+#define CHARGE_FILL_H         16
+#define CHARGE_FILL_R         3
+#define CHARGE_FILL_MS        2000

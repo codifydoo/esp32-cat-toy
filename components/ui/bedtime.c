@@ -343,6 +343,8 @@ bool bedtime_take_over(void)
 
 bool bedtime_showing(void) { return s_state != BT_DAY && !app_manager_current(); }
 
+bool bedtime_panel_lit(void) { return s_state == BT_SUNRISE || s_lit; }
+
 void bedtime_power(void)
 {
     if (s_state == BT_SUNRISE) {

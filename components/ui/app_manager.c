@@ -9,7 +9,9 @@
 #include "first_run.h"
 #include "idle.h"
 #include "launcher.h"
+#include "overlays.h"
 #include "parent.h"
+#include "power_watch.h"
 #include "sdkconfig.h"
 #include "tokens.h"
 #include "ui_util.h"
@@ -35,6 +37,7 @@ void app_manager_init(void)
     launcher_create();
     idle_init();
     bedtime_init();
+    power_watch_init();
     lv_timer_create(poll_sensors, SENSOR_POLL_MS, NULL);
 }
 
@@ -210,6 +213,9 @@ static void handle_button(button_id_t id)
         return; /* ignore presses until app_manager_start() has shown the menu (boot animation) */
     }
     lv_display_trigger_activity(NULL); /* a button press counts as activity */
+    if (overlay_showing()) {
+        overlay_close(); /* Home and PWR work as always; the battery screen ends first (spec §3.13) */
+    }
     if (bedtime_showing()) {
         if (id == BUTTON_POWER) {
             bedtime_power(); /* PWR still turns the lock's panel off and on */
@@ -254,21 +260,22 @@ static void poll_sensors(lv_timer_t *t)
     sensor_ev_t ev;
     while (sensors_next(&ev)) {
         if (ev == SENSOR_EV_SHAKE) {
-            if (s_current && s_current->on_shake && idle_level() == 0) {
+            if (s_current && s_current->on_shake && idle_level() == 0 && !overlay_showing()) {
                 lv_display_trigger_activity(NULL); /* a shake is play (spec §3.10) */
                 s_current->on_shake();
             }
             continue;
         }
         if (ev == SENSOR_EV_USB_IN) {
-            continue; /* nothing shows for it yet */
+            power_watch_usb_in();
+            continue;
         }
         const button_id_t id = ev == SENSOR_EV_HOME ? BUTTON_HOME : BUTTON_POWER;
         ESP_LOGI(TAG, "button %s", id == BUTTON_HOME ? "HOME" : "POWER");
         handle_button(id);
     }
     float x, y;
-    if (s_current && s_current->on_tilt && idle_level() == 0 && sensors_tilt(&x, &y)) {
+    if (s_current && s_current->on_tilt && idle_level() == 0 && !overlay_showing() && sensors_tilt(&x, &y)) {
         s_current->on_tilt(x, y);
     }
 }
