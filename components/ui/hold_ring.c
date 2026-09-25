@@ -1,6 +1,7 @@
 #include "hold_ring.h"
 #include "app_manager.h"
 #include "gestures.h"
+#include "overlays.h"
 #include "tokens.h"
 #include "touch_raw.h"
 #include "ui_util.h"
@@ -26,8 +27,8 @@ static void swallow_touch(void)
 static void poll(lv_timer_t *t)
 {
     hold_ring_t *h = lv_timer_get_user_data(t);
-    if (app_manager_current() || lv_screen_active() != h->screen) {
-        hold_reset(&h->track); /* only while this screen shows */
+    if (app_manager_current() || lv_screen_active() != h->screen || overlay_showing()) {
+        hold_reset(&h->track); /* only while this screen shows, with no battery screen over it */
         ui_set_hidden(h->ring, true);
         return;
     }

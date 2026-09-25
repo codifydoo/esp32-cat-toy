@@ -43,6 +43,7 @@ static void tick(lv_timer_t *t)
         if (panel_dark()) {
             sleep_for_battery();
         } else {
+            idle_wake_if_asleep(); /* a dim menu lights up: she sees the hungry cat before the toy sleeps */
             overlay_show(OVERLAY_HUNGRY, sleep_for_battery); /* from anywhere: the clock must survive */
         }
         return;
