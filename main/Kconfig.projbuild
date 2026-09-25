@@ -8,6 +8,9 @@ menu "Cat toy"
     config CAT_DEV_SOAK
         bool "Run the app open/close soak test after boot"
         default n
+    config CAT_DEV_POWER_DIAG
+        bool "Boot into the power diagnostics (gauge, touch INT, PWR pin, deep-sleep wakes)"
+        default n
     config CAT_HOME_ON_POWER
         bool "Use PWR as Home (only if BOOT cannot be pressed through the case)"
         default n

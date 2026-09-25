@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Print the board's serial output for N seconds (a non-interactive idf.py monitor)."""
+"""Print the board's serial output for N seconds (a non-interactive idf.py monitor).
+
+Usage: serial_log.py PORT [SECONDS] [-t]
+-t prefixes each line with the host time (HH:MM:SS.mmm), to time deep sleep against the RTC. The port
+vanishes while the chip deep-sleeps (USB goes down with it); the logger waits for it and says so."""
 import sys
 import time
 
@@ -29,16 +33,54 @@ def open_port(port, deadline):
             time.sleep(0.2)
 
 
+def stamp():
+    t = time.time()
+    return time.strftime("%H:%M:%S", time.localtime(t)) + ".%03d " % int((t % 1) * 1000)
+
+
 def main():
-    port = sys.argv[1]
-    seconds = float(sys.argv[2]) if len(sys.argv) > 2 else 10.0
+    stamps = "-t" in sys.argv[1:]
+    args = [a for a in sys.argv[1:] if a != "-t"]
+    port = args[0]
+    seconds = float(args[1]) if len(args) > 1 else 10.0
     end = time.time() + seconds
-    with open_port(port, time.time() + 5) as s:
+    s = open_port(port, time.time() + 5)
+    at_line_start = True
+    try:
         while time.time() < end:
-            data = s.read(4096)
-            if data:
-                sys.stdout.write(data.decode("utf-8", "replace"))
+            try:
+                data = s.read(4096)
+            except serial.SerialException:
+                # Deep sleep takes USB down with the chip: wait for the port to come back.
+                s.close()
+                sys.stdout.write("\n[port gone at %s]\n" % stamp().strip())
                 sys.stdout.flush()
+                try:
+                    s = open_port(port, end)
+                except serial.SerialException:
+                    return
+                sys.stdout.write("[port back at %s]\n" % stamp().strip())
+                at_line_start = True
+                continue
+            if not data:
+                continue
+            text = data.decode("utf-8", "replace")
+            if stamps:
+                pieces = text.split("\n")
+                out = []
+                for i, piece in enumerate(pieces):
+                    if at_line_start and piece:
+                        out.append(stamp())
+                        at_line_start = False
+                    out.append(piece)
+                    if i < len(pieces) - 1:
+                        out.append("\n")
+                        at_line_start = True
+                text = "".join(out)
+            sys.stdout.write(text)
+            sys.stdout.flush()
+    finally:
+        s.close()
 
 
 if __name__ == "__main__":

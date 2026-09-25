@@ -22,6 +22,9 @@
 #if CONFIG_CAT_DEV_SOAK
 #include "soak.h"
 #endif
+#if CONFIG_CAT_DEV_POWER_DIAG
+#include "power_diag.h"
+#endif
 
 static const char *TAG = "main";
 
@@ -54,6 +57,8 @@ void app_main(void)
 #elif CONFIG_CAT_DEV_GALLERY
     cat_set_variant(CAT_VARIANT_ORANGE);
     gallery_start();
+#elif CONFIG_CAT_DEV_POWER_DIAG
+    power_diag_start();
 #else
     power_init();
     cat_set_variant((cat_variant_t)settings_cat_variant());
