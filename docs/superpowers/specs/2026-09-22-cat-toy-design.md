@@ -81,10 +81,10 @@ the point count directly from the touch driver (`esp_lcd_touch`). The Waveshare 
 stops at one point, so the count and the second point come from the controller's own report
 (`touch_report.c`), read alongside the driver.
 
-The first slice of the parent area (2026-09-23) opens straight on **Max volume**: the design's
-270° arc, 10 % steps from 10 % to 100 %, and a "Home button exits" hint in place of the "‹ Parents"
-button. It uses LVGL's built-in Montserrat until the full parent area brings Fredoka and the
-four-tile home screen (M7).
+Since M6 (2026-09-24) the parent area opens on a home screen with two of the design's four tiles,
+Volume and Sleep; Max volume has its "‹ Parents" button back, and Sleep times sets Bedtime, Wake up
+and Now (§3.12). It still uses LVGL's built-in Montserrat until M7 brings Fredoka and the other two
+tiles.
 
 ### 3.2 Time source
 
@@ -106,8 +106,8 @@ survives restarts and deep sleep, but not a power loss. Decided 2026-09-24:
   since the last power-on can make true. If the time is invalid, the time-based features switch
   off rather than guess: no bedtime lock, and the Sleepy clock shows the day scene. Play is never
   blocked by a bad clock.
-- The internal oscillator drifts. M6 measures how much (docs/device-checks.md), and the daily NTP
-  sync bounds it when Wi-Fi is available.
+- The internal oscillator drifts. Measuring how much is open for M7 (docs/device-checks.md), and the
+  daily NTP sync bounds it when Wi-Fi is available.
 
 ### 3.3 Silly voice effects
 

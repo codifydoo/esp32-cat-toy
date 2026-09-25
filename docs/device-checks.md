@@ -477,5 +477,12 @@ A second fault showed only in builds whose config was generated fresh from `sdkc
 **Not measured:**
 - Heap across repeated syncs: the before/after deltas at boot are dominated by the boot itself, and the daily sync at steady state was not run.
 - Audio during a sync: Wi-Fi shares core 0 with the audio task, and nobody listened for glitches.
+- The daily sync 10 minutes before wake, and the retry every 5 minutes while the clock is not valid: neither was run on the device (the user declined further hands-on tests).
 
-**Drift.** Not measured. This session's corrections (+213 ms, −488 ms) span resets and hand-set times, so they do not isolate the oscillator. While the chip runs, the clock follows the 40 MHz crystal (`CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER`). The daily wake-minute sync logs `NTP: corrected by X ms, Y s after the previous sync`, which gives the drift directly on a toy left running on Wi-Fi. This is open for M7, where deep sleep runs on the RTC slow clock, which drifts far more.
+**Drift.** Not measured. This session's corrections (+213 ms, −488 ms) span resets and hand-set times, so they do not isolate the oscillator. While the chip runs, the clock follows the 40 MHz crystal (`CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER`). The daily sync (10 minutes before wake) logs `NTP: corrected by X ms, Y s after the previous sync`, which gives the drift directly on a toy left running on Wi-Fi. This is open for M7, where deep sleep runs on the RTC slow clock, which drifts far more.
+
+**Final-review fixes.** After these checks, the whole-branch review changed the following, none of it re-checked by hand on the device (the user declined further hands-on tests); only host tests and the two builds (`build-m6`, `build`) cover it: the daily sync moved from the wake-up minute to 10 minutes before it; a failed sync while the clock is not valid retries every 5 minutes; a dropped Wi-Fi connection reconnects within one attempt instead of giving up; the lock's whisper moved from press to release; nightfall now cuts a touch in flight on the menu before showing the lock; PWR during the sunrise in `CONFIG_CAT_HOME_ON_POWER` builds ends it into the menu (lit) instead of turning the screen dark; and the Wi-Fi driver's log level is now WARN.
+
+**Boot check after the fixes.** BOOTCHECK
+
+The kid test (spec §7) is still open for M3, M4, M5 and M6.
