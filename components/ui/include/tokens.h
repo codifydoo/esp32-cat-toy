@@ -272,11 +272,12 @@
 /* Parent home and Sleep times (design "Parent · home", "Parent · sleep times"; spec §3.12) */
 #define COLOR_P_VALUE        0xFFC76B /* tile values and the row icons */
 #define PARENT_TILE_SIZE     140
-#define PARENT_TILE_Y        88
-#define PARENT_TILE_VOL_X    88
-#define PARENT_TILE_SLEEP_X  238
+#define PARENT_TILE_X1       88       /* the home's 2 x 2 tiles: Volume, Sleep / Apps, Cat */
+#define PARENT_TILE_X2       238
+#define PARENT_TILE_Y1       88
+#define PARENT_TILE_Y2       238
 #define PARENT_TILE_PAD_ROW  2        /* gap between a tile's icon, label and value */
-#define PARENT_BACK_X        158      /* "< Parents" */
+#define PARENT_BACK_X        158      /* "‹ Parents" */
 #define PARENT_BACK_Y        34
 #define PARENT_BACK_W        150
 #define PARENT_BACK_H        52
@@ -303,6 +304,29 @@
 #define PARENT_TIMES_NOTE_X  118
 #define PARENT_TIMES_NOTE_Y  394
 #define PARENT_TIMES_NOTE_W  230
+
+/* Parent home battery and Show apps (design "Parent · home", "Parent · show apps"; spec §3.13) */
+#define COLOR_CHARGE        0x5CD67A /* the battery ring, the charging glyph */
+#define COLOR_BATT_LOW      0xFF4D4D /* the low-battery glyph; the home's battery at 10 % or less */
+#define COLOR_P_BATT_TEXT   0xBDF5C9
+#define COLOR_P_OFF         0x77738C /* a hidden app's label */
+#define PARENT_BATT_X       197      /* the 72 px battery circle in the middle of the tiles */
+#define PARENT_BATT_Y       197
+#define PARENT_BATT_D       72
+#define PARENT_BATT_BORDER  3
+#define PARENT_APPS_TITLE_Y 96
+#define PARENT_APPS_MAX     6        /* the 3 x 2 grid */
+#define PARENT_APP_X0       83
+#define PARENT_APP_Y0       128
+#define PARENT_APP_DX       100
+#define PARENT_APP_DY       124
+#define PARENT_APP_W        100
+#define PARENT_APP_H        126
+#define PARENT_APP_ICON     96
+#define PARENT_APP_LABEL_Y  100
+#define PARENT_APP_OFF_OPA  77       /* a hidden app's icon at 30 % */
+#define PARENT_EYE_X        66       /* the crossed-eye badge, from the app's top-left */
+#define PARENT_EYE_Y        (-2)
 
 /* Bedtime lock and sunrise (spec §3.12) */
 #define BEDTIME_TICK_MS        1000
