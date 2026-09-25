@@ -10,6 +10,10 @@ FetchContent_MakeAvailable(unity)
 # Our code is strict; Unity (added above) is not affected by these flags.
 add_compile_options(-Wall -Wextra -Werror)
 
+# Undefined behaviour (e.g. signed overflow) aborts the test instead of passing by luck.
+add_compile_options(-fsanitize=undefined -fno-sanitize-recover=undefined)
+add_link_options(-fsanitize=undefined)
+
 set(LOGIC_DIR ${CMAKE_CURRENT_LIST_DIR}/../components/logic)
 file(GLOB LOGIC_SRCS CONFIGURE_DEPENDS ${LOGIC_DIR}/*.c)
 add_library(logic STATIC ${LOGIC_SRCS})

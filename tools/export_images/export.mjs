@@ -67,7 +67,7 @@ for (const app of APP_ICONS) {
 // UI images; cropped ones record where their top-left belongs.
 const uiRows = [];
 for (const u of UI_IMAGES) {
-  let img = render(svgDoc(u.viewBox, u.svg), u.viewBox[2]);
+  let img = render(svgDoc(u.viewBox, u.svg), u.size ?? u.viewBox[2]);
   let x = 0;
   let y = 0;
   if (u.crop) {

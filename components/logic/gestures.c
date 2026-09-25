@@ -1,5 +1,13 @@
 #include "gestures.h"
 #include <stdlib.h>
+#include <math.h>
+
+/* Squared distance, saturating: int16 points can be 65535 apart, and 65535 squared overflows int32. */
+static uint32_t dist2(int32_t dx, int32_t dy)
+{
+    uint64_t d2 = (uint64_t)((int64_t)dx * dx) + (uint64_t)((int64_t)dy * dy);
+    return d2 > UINT32_MAX ? UINT32_MAX : (uint32_t)d2;
+}
 
 void gesture_begin(gesture_track_t *g, int16_t x, int16_t y, uint32_t t_ms)
 {
@@ -12,9 +20,7 @@ void gesture_begin(gesture_track_t *g, int16_t x, int16_t y, uint32_t t_ms)
 
 static void track(gesture_track_t *g, int16_t x, int16_t y)
 {
-    int32_t dx = x - g->x0;
-    int32_t dy = y - g->y0;
-    uint32_t d2 = (uint32_t)(dx * dx + dy * dy);
+    uint32_t d2 = dist2(x - g->x0, y - g->y0);
     if (d2 > g->max_dist2) {
         g->max_dist2 = d2;
     }
@@ -52,13 +58,6 @@ void hold_reset(hold_track_t *h)
     *h = (hold_track_t){0};
 }
 
-static uint32_t dist2(int16_t ax, int16_t ay, int16_t bx, int16_t by)
-{
-    int32_t dx = ax - bx;
-    int32_t dy = ay - by;
-    return (uint32_t)(dx * dx + dy * dy);
-}
-
 static uint32_t max2(uint32_t a, uint32_t b) { return a > b ? a : b; }
 
 hold_state_t hold_update(hold_track_t *h, uint8_t n, const int16_t x[2], const int16_t y[2],
@@ -82,8 +81,8 @@ hold_state_t hold_update(hold_track_t *h, uint8_t n, const int16_t x[2], const i
         return HOLD_WAITING;
     }
     /* The controller may report the two fingers in either order, so use the pairing that moved less. */
-    uint32_t same = max2(dist2(x[0], y[0], h->x0[0], h->y0[0]), dist2(x[1], y[1], h->x0[1], h->y0[1]));
-    uint32_t swapped = max2(dist2(x[0], y[0], h->x0[1], h->y0[1]), dist2(x[1], y[1], h->x0[0], h->y0[0]));
+    uint32_t same = max2(dist2(x[0] - h->x0[0], y[0] - h->y0[0]), dist2(x[1] - h->x0[1], y[1] - h->y0[1]));
+    uint32_t swapped = max2(dist2(x[0] - h->x0[1], y[0] - h->y0[1]), dist2(x[1] - h->x0[0], y[1] - h->y0[0]));
     uint32_t moved = same < swapped ? same : swapped;
     if (moved > (uint32_t)(GESTURE_HOLD_MAX_PX * GESTURE_HOLD_MAX_PX)) {
         h->active = false;
@@ -108,4 +107,41 @@ hold_state_t hold_update(hold_track_t *h, uint8_t n, const int16_t x[2], const i
 bool hold_owns_touch(hold_state_t st)
 {
     return st == HOLD_PROGRESS || st == HOLD_DONE;
+}
+
+void rub_begin(rub_track_t *r, int16_t x, int16_t y, uint32_t t_ms)
+{
+    gesture_begin(&r->tap, x, y, t_ms);
+    r->ax = x;
+    r->ay = y;
+    r->travel = 0;
+    r->fired = false;
+}
+
+bool rub_move(rub_track_t *r, int16_t x, int16_t y)
+{
+    if (!r->tap.active) {
+        return false;
+    }
+    gesture_move(&r->tap, x, y);
+    uint32_t d2 = dist2(x - r->ax, y - r->ay);
+    if (d2 < (uint32_t)(GESTURE_RUB_STEP_PX * GESTURE_RUB_STEP_PX)) {
+        return false; /* jitter, or a step still in progress */
+    }
+    r->travel += (uint32_t)lroundf(sqrtf((float)d2));
+    r->ax = x;
+    r->ay = y;
+    if (!r->fired && r->travel >= GESTURE_RUB_PX) {
+        r->fired = true;
+        return true;
+    }
+    return false;
+}
+
+bool rub_end(rub_track_t *r, int16_t x, int16_t y, uint32_t t_ms)
+{
+    if (!r->tap.active) {
+        return false;
+    }
+    return gesture_end(&r->tap, x, y, t_ms) == GESTURE_TAP && !r->fired;
 }

@@ -170,6 +170,125 @@ static void test_the_hold_takes_over_the_touch_only_once_the_ring_shows(void)
     TEST_ASSERT_TRUE(hold_owns_touch(HOLD_DONE));
 }
 
+static void test_far_apart_points_do_not_overflow(void)
+{
+    /* int16 coordinates can be 65535 apart, and 65535 squared overflows int32 (UBSan aborts). */
+    gesture_track_t g;
+    gesture_begin(&g, -32768, -32768, 0);
+    TEST_ASSERT_EQUAL(GESTURE_NONE, gesture_end(&g, 32767, 32767, 100));
+}
+
+static void test_hold_with_far_apart_points_does_not_overflow(void)
+{
+    hold_track_t h;
+    hold_reset(&h);
+    uint16_t p;
+    two(&h, -32768, -32768, 32767, 32767, 0, &p);
+    /* the same two points reported in the other order: not a move */
+    TEST_ASSERT_EQUAL(HOLD_WAITING, two(&h, 32767, 32767, -32768, -32768, 100, &p));
+}
+
+/* A finger rubbing along y = 150, starting at x = 200, reported every 2 px. */
+typedef struct {
+    rub_track_t r;
+    int16_t x;
+    int fired;
+} rubber_t;
+
+static void rub_start(rubber_t *f)
+{
+    f->x = 200;
+    f->fired = 0;
+    rub_begin(&f->r, 200, 150, 0);
+}
+
+/* One stroke of len px to the right (dir 1) or left (dir -1). */
+static void stroke(rubber_t *f, int dir, int len)
+{
+    for (int i = 0; i < len / 2; i++) {
+        f->x = (int16_t)(f->x + 2 * dir);
+        f->fired += rub_move(&f->r, f->x, 150);
+    }
+}
+
+static void test_a_still_press_is_a_tap(void)
+{
+    rub_track_t r;
+    rub_begin(&r, 233, 150, 0);
+    TEST_ASSERT_FALSE(rub_move(&r, 236, 152));
+    TEST_ASSERT_TRUE(rub_end(&r, 236, 152, 120));
+}
+
+static void test_rub_fires_once_after_150px_of_travel(void)
+{
+    rubber_t f;
+    rub_start(&f);
+    stroke(&f, 1, 40);
+    stroke(&f, -1, 40);
+    stroke(&f, 1, 40); /* 120 px */
+    TEST_ASSERT_EQUAL(0, f.fired);
+    stroke(&f, -1, 40); /* 160 px */
+    TEST_ASSERT_EQUAL(1, f.fired);
+    stroke(&f, 1, 40);
+    stroke(&f, -1, 40);
+    TEST_ASSERT_EQUAL(1, f.fired);                    /* once per press */
+    TEST_ASSERT_FALSE(rub_end(&f.r, f.x, 150, 3000)); /* and a rub is never also a tap */
+}
+
+static void test_short_quick_strokes_still_rub(void)
+{
+    /* 20 px scratches: each counts 20 px in two 10 px steps */
+    rubber_t f;
+    rub_start(&f);
+    for (int i = 0; i < 12; i++) {
+        stroke(&f, i % 2 ? -1 : 1, 20);
+    }
+    TEST_ASSERT_EQUAL(1, f.fired);
+}
+
+static void test_a_short_stroke_is_neither_rub_nor_tap(void)
+{
+    rubber_t f;
+    rub_start(&f);
+    stroke(&f, 1, 100);
+    TEST_ASSERT_EQUAL(0, f.fired);
+    TEST_ASSERT_FALSE(rub_end(&f.r, f.x, 150, 500));
+}
+
+static void test_a_still_finger_never_rubs(void)
+{
+    /* Touch jitter of up to 3 px under a finger that does not move, starting from the worst
+     * corner: two opposite corners are 8.5 px apart, still under the 10 px step. */
+    static const int8_t J[][2] = {{3, -3}, {-3, 3}, {3, 3}, {-3, -3}, {0, 3}, {3, 0}, {-3, 0}, {0, -3}};
+    rub_track_t r;
+    rub_begin(&r, 236, 147, 0);
+    int fired = 0;
+    for (int i = 0; i < 400; i++) {
+        fired += rub_move(&r, (int16_t)(233 + J[i % 8][0]), (int16_t)(150 + J[i % 8][1]));
+    }
+    TEST_ASSERT_EQUAL(0, fired);
+    TEST_ASSERT_TRUE(rub_end(&r, 233, 150, 8000)); /* a long still press is a tap */
+}
+
+static void test_each_press_can_rub_again(void)
+{
+    rubber_t f;
+    rub_start(&f);
+    stroke(&f, 1, 160);
+    TEST_ASSERT_EQUAL(1, f.fired);
+    rub_end(&f.r, f.x, 150, 1000);
+    rub_start(&f);
+    stroke(&f, 1, 160);
+    TEST_ASSERT_EQUAL(1, f.fired);
+}
+
+static void test_rub_without_begin_does_nothing(void)
+{
+    rub_track_t r = {0};
+    TEST_ASSERT_FALSE(rub_move(&r, 300, 300));
+    TEST_ASSERT_FALSE(rub_end(&r, 300, 300, 10));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -188,5 +307,14 @@ int main(void)
     RUN_TEST(test_fingers_reported_in_swapped_order_are_not_a_move);
     RUN_TEST(test_hold_survives_the_millisecond_counter_wrapping);
     RUN_TEST(test_the_hold_takes_over_the_touch_only_once_the_ring_shows);
+    RUN_TEST(test_far_apart_points_do_not_overflow);
+    RUN_TEST(test_hold_with_far_apart_points_does_not_overflow);
+    RUN_TEST(test_a_still_press_is_a_tap);
+    RUN_TEST(test_rub_fires_once_after_150px_of_travel);
+    RUN_TEST(test_short_quick_strokes_still_rub);
+    RUN_TEST(test_a_short_stroke_is_neither_rub_nor_tap);
+    RUN_TEST(test_a_still_finger_never_rubs);
+    RUN_TEST(test_each_press_can_rub_again);
+    RUN_TEST(test_rub_without_begin_does_nothing);
     return UNITY_END();
 }

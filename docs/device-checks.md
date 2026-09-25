@@ -359,6 +359,49 @@ M3 passes.
 
 So it predates tonight's changes and does not depend on those settings. It needs two resets close together during early boot; a normal power-on is a full power cycle and was never affected. Suspect: the chip (ESP32-S3 rev v0.2 with AP octal PSRAM; compare esp-idf issue 18806). Open: test with `CONFIG_SPIRAM_MEMTEST` off and with Waveshare's own firmware under the same script.
 
+## Serial listener and accelerometer axes (M4) — 2026-09-24
+
+**Listener.** Setting `dtr=False` and `rts=False` before `open()` still reset the board: the log showed
+a boot cut off by `rst:0x15 (USB_UART_CHIP_RESET)` 3 s after the flasher's own reset. The chip is held
+in reset while RTS is high and DTR low. macOS raises both lines on open, and pyserial then clears DTR
+before RTS, passing through that state. `tools/serial_log.py` now skips pyserial's DTR update on open
+(`dsrdtr=True`, which on POSIX does nothing else), drops RTS, then drops DTR. Result: it joined the
+running diagnostics build mid-stream (first line at 75 s of uptime) with no reset.
+
+**Axes.** Two rounds of pose instructions were unclear, so the dedicated check was dropped. Evidence
+so far: flat, face up reads x −0.02, y 0.03, z +0.97; held in the hand facing the user, raw y read
+−0.75 to −1.0 with z near 0, so raw y points toward the bottom (USB) edge like screen y. With raw z out
+of the glass and a right-handed sensor, raw x then points left. The firmware starts with screen
+x = −ax, screen y = ay. **Confirmed** in the Pet the cat walkthrough below: the ball rolls downhill
+in all four directions.
+
+## Pet the cat (M4) — 2026-09-24
+
+Normal build 968e970, then the perf and soak builds of 476a3b5.
+
+| Check | Result |
+| --- | --- |
+| Layout: big cat, fish button, no ball; opens within ~0.5 s | PASS |
+| Tap: purr ~1.5 s, hearts, back to the plain face | PASS |
+| Rub: giggle + "Hihihi", laughing face; a finger held still for 5 s never rubs (it purrs on release) | PASS |
+| Fish: crunch crunch "Njam!", eating, ring at 50 %; rapid taps restart cleanly | PASS |
+| Shake: "wheee" + boing, dizzy 2 s, 1.5 s lockout; walking and a light knock do nothing | PASS |
+| Tilt from the grip: the ball rolls downhill in all four directions, with ticks and following eyes, and stays inside the rim (slides along it) | PASS (confirms the axis mapping) |
+| Level for 3 s hides the ball; no ticks while the cat purrs | PASS |
+| Tilt-only play for 90 s stays open; left tilted and untouched, back to the menu after ~60 s | PASS |
+| PWR off: shake and tilt stay dark and silent; a shake on the menu does nothing | PASS |
+| BOOT during purr, dizzy, eating and rolling: the menu is back at once and the purr stops | PASS |
+| 5 quick double BOOT presses on the menu | PASS: 10 of 10 `button HOME` lines, 209–455 ms apart. The M0 finding (a quick second press can be missed) is not reproduced with the sensor queue |
+| FPS (perf build) | PASS: rubbing, hearts, dizzy wobble, rolling ball and fish all 25–30 FPS; the user saw them as smooth. Below 24 only the boot animation right after the reset (10–22) and one sample each for the menu swipe settle (23) and the app-open zoom (14, the accepted §3.4 fallback) |
+| Soak | PASS on the committed build: `SOAK: PASS: internal delta=-8 psram delta=0 over 50 rounds` (run 3, board untouched). Each step now shakes and tilts the open app before Home. Run 1 failed: free PSRAM held at 6,096,360 through round 40, then dropped once by 37,436 bytes by round 50. No button presses were logged, and the board may have been handled then. No sound or image file matches that size. An instrumented run 2 (untouched) logged every first-time sound or image load and free PSRAM after each of the 300 steps. PSRAM never changed after the warm-up and the run passed. Run 1's drop was not reproduced |
+| Log | no missing image or sound, Guru Meditation, abort, assert or unexpected reset |
+
+**Seen on the device:** opening Pet the cat with the toy lying flat and then picking it up makes the
+ball appear at once, because flat became level at open (spec §3.10). Filed as issue #4 with fix
+options, to decide after the kid test.
+
+The kid test (spec §7) is still open for M3 and M4.
+
 ## Cat gallery variants and scales (Task 14) — 2026-09-24
 
 | Check | Result |

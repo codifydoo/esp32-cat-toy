@@ -6,6 +6,7 @@
 #include "display.h"
 #include "esp_log.h"
 #include "esp_system.h"
+#include "imu.h"
 #include "lvgl.h"
 #include "sdkconfig.h"
 #include "sensors.h"
@@ -21,16 +22,6 @@
 #endif
 
 static const char *TAG = "main";
-
-#if !CONFIG_CAT_DEV_DIAG && !CONFIG_CAT_DEV_GALLERY
-static void on_button(button_id_t id)
-{
-    if (display_lock(-1)) {
-        app_manager_on_button(id);
-        display_unlock();
-    }
-}
-#endif
 
 void app_main(void)
 {
@@ -64,9 +55,11 @@ void app_main(void)
     app_manager_init();
     boot_run(app_manager_start);
     display_unlock();
-    const sensors_listener_t listener = {.on_button = on_button};
-    if (sensors_start(&listener) != ESP_OK) {
-        ESP_LOGE(TAG, "buttons unavailable");
+    if (imu_init() != ESP_OK) {
+        ESP_LOGE(TAG, "IMU unavailable: shake and tilt do nothing");
+    }
+    if (sensors_start() != ESP_OK) {
+        ESP_LOGE(TAG, "sensors unavailable: no buttons, shake or tilt");
     }
 #if CONFIG_CAT_DEV_SOAK
     soak_start();

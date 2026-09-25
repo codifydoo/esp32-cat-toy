@@ -25,6 +25,11 @@ typedef enum {
     SND_COSTUME_LION,
     SND_COSTUME_ROBOT,
     SND_COSTUME_CAVE,
+    SND_PURR, /* a loop: audio_loop_start() */
+    SND_BELL_TICK,
+    SND_PET_RUB,
+    SND_PET_DIZZY,
+    SND_PET_EAT,
     SND_COUNT
 } sound_id_t;
 

@@ -52,3 +52,22 @@ hold_state_t hold_update(hold_track_t *h, uint8_t n, const int16_t x[2], const i
 /* Whether the hold has taken over the touch: once the ring shows (1 s). Before that the touch
  * still belongs to the menu, so a quick two-finger tap or a palm still taps or wakes. */
 bool hold_owns_touch(hold_state_t st);
+
+/* Rub (design "Gestures and sensors"): pressed on the cat and 150 px or more of total finger
+ * travel; fires once per press. Travel counts in steps of at least 10 px (spec §3.10), so touch
+ * jitter under a finger held still never adds up to a rub. */
+#define GESTURE_RUB_PX      150u
+#define GESTURE_RUB_STEP_PX 10
+
+typedef struct {
+    gesture_track_t tap; /* the press as a whole, for the tap test */
+    int16_t ax, ay;      /* where the last counted step ended */
+    uint32_t travel;     /* px */
+    bool fired;
+} rub_track_t;
+
+void rub_begin(rub_track_t *r, int16_t x, int16_t y, uint32_t t_ms);
+/* True once per press, on the sample that brings the travel to GESTURE_RUB_PX. */
+bool rub_move(rub_track_t *r, int16_t x, int16_t y);
+/* True if the press was a tap (moved at most GESTURE_TAP_MAX_PX and never rubbed). */
+bool rub_end(rub_track_t *r, int16_t x, int16_t y, uint32_t t_ms);
