@@ -28,7 +28,8 @@ one listener can hold the port: let a running one finish (or stop it) before fla
 ## Wi-Fi for the clock (optional)
 
 The toy sets its clock over NTP at boot and 10 minutes before the wake-up minute when it knows a
-Wi-Fi network (spec §3.2). Without one, set the time in the parent area (Sleep → Now). Put the
+Wi-Fi network, and every 5 minutes while it has no valid time (spec §3.2). Without one, set the time
+in the parent area (Sleep → Now). Put the
 network in `sdkconfig.secrets` next to `sdkconfig.defaults`. The file is git-ignored; never commit it:
 
     CONFIG_CAT_WIFI_SSID="network name"

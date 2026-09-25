@@ -475,7 +475,7 @@ Builds of 2bbf0a1: without Wi-Fi (`build-m6`, `SDKCONFIG_DEFAULTS="sdkconfig.def
 A second fault showed only in builds whose config was generated fresh from `sdkconfig.defaults`. `CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP` (Task 3) raises the Wi-Fi static RX buffers from 10 to 16 and the block-ack window from 6 to 16. Every fresh-config Wi-Fi run then dropped display frames while Wi-Fi was up: `Failed to allocate priv TX buffer`, then `Draw bitmap failed: ESP_ERR_NO_MEM`, 33-200 times per sync. The display needs a 46.6 KB internal DMA bounce buffer per flush. The long-lived `sdkconfig` kept 10/6 and never failed. **Fix 68eaf5c:** pin 10/6 in `sdkconfig.defaults`. A fresh config then logged 0 failures.
 
 **Not measured:**
-- Heap across repeated syncs: the before/after deltas at boot are dominated by the boot itself, and the daily sync at steady state was not run.
+- Heap across repeated syncs: the before/after deltas at boot are dominated by the boot itself, and the daily sync at steady state was not run. This matters more with the retry: an invalid clock and an unreachable network mean up to 288 Wi-Fi start/release cycles a day.
 - Audio during a sync: Wi-Fi shares core 0 with the audio task, and nobody listened for glitches.
 - The daily sync 10 minutes before wake, and the retry every 5 minutes while the clock is not valid: neither was run on the device (the user declined further hands-on tests).
 
@@ -483,6 +483,6 @@ A second fault showed only in builds whose config was generated fresh from `sdkc
 
 **Final-review fixes.** After these checks, the whole-branch review changed the following, none of it re-checked by hand on the device (the user declined further hands-on tests); only host tests and the two builds (`build-m6`, `build`) cover it: the daily sync moved from the wake-up minute to 10 minutes before it; a failed sync while the clock is not valid retries every 5 minutes; a dropped Wi-Fi connection reconnects within one attempt instead of giving up; the lock's whisper moved from press to release; nightfall now cuts a touch in flight on the menu before showing the lock; PWR during the sunrise in `CONFIG_CAT_HOME_ON_POWER` builds ends it into the menu (lit) instead of turning the screen dark; and the Wi-Fi driver's log level is now WARN.
 
-**Boot check after the fixes.** BOOTCHECK
+**Boot check after the fixes.** Not run: the board was not connected when the fixes landed (2026-09-25). The final firmware still has to be flashed; it then shows the boot sync and whether any `wifi:connected with` line is left in the log.
 
 The kid test (spec §7) is still open for M3, M4, M5 and M6.
