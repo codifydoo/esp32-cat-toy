@@ -24,6 +24,8 @@ one listener can hold the port: let a running one finish (or stop it) before fla
 | Cat gallery | same with `gallery` |
 | FPS overlay | same with `perf` |
 | Soak test | same with `soak` |
+| Deep sleep on the USB cable (USB counts as battery; sleep 20 s after the panel goes off) | same with `power` |
+| Battery screens (as `power`, plus a fake battery: 12 % at boot, one point less every 10 s, 1 % after a battery sleep; a reset starts over) | same with `drain` |
 
 ## Wi-Fi for the clock (optional)
 

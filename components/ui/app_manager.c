@@ -253,6 +253,9 @@ static void poll_sensors(lv_timer_t *t)
             }
             continue;
         }
+        if (ev == SENSOR_EV_USB_IN) {
+            continue; /* nothing shows for it yet */
+        }
         const button_id_t id = ev == SENSOR_EV_HOME ? BUTTON_HOME : BUTTON_POWER;
         ESP_LOGI(TAG, "button %s", id == BUTTON_HOME ? "HOME" : "POWER");
         handle_button(id);

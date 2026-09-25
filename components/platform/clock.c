@@ -234,3 +234,33 @@ uint32_t clock_secs_since_attempt(void)
     const int64_t s = (esp_timer_get_time() - start) / 1000000;
     return s > UINT32_MAX ? UINT32_MAX : (uint32_t)s;
 }
+
+static time_t local_at(struct tm tm, uint16_t min)
+{
+    tm.tm_hour = (min % 1440) / 60;
+    tm.tm_min = min % 60;
+    tm.tm_sec = 0;
+    tm.tm_isdst = -1; /* mktime picks CET or CEST for that date */
+    return mktime(&tm);
+}
+
+uint32_t clock_secs_until(uint16_t min)
+{
+    const time_t now = time(NULL);
+    struct tm tm;
+    localtime_r(&now, &tm);
+    time_t at = local_at(tm, min);
+    if (at <= now) {
+        tm.tm_mday += 1; /* tomorrow; mktime normalizes the date */
+        at = local_at(tm, min);
+    }
+    return (uint32_t)(at - now);
+}
+
+bool clock_sync_running(void)
+{
+    portENTER_CRITICAL(&s_mux);
+    const bool running = s_running;
+    portEXIT_CRITICAL(&s_mux);
+    return running;
+}

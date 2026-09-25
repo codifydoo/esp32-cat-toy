@@ -4,6 +4,7 @@
 #include "boot.h"
 #include "cat.h"
 #include "clock.h"
+#include "deepsleep.h"
 #include "display.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -30,6 +31,7 @@ static const char *TAG = "main";
 
 void app_main(void)
 {
+    deepsleep_init();
     /* The ROM's own reset-reason line is often lost over USB, so log it again (esp_reset_reason_t:
      * 1 power-on, 3 software, 4 panic, 5-7 watchdogs, 9 brownout, 11 USB, 14 power glitch). */
     ESP_LOGI(TAG, "reset reason %d", (int)esp_reset_reason());

@@ -6,6 +6,7 @@ typedef enum {
     SENSOR_EV_HOME,  /* BOOT pressed */
     SENSOR_EV_POWER, /* PWR short press */
     SENSOR_EV_SHAKE, /* spec §7 shake (motion.h) */
+    SENSOR_EV_USB_IN, /* USB power connected (spec §3.13: the charging screen); not at boot */
 } sensor_ev_t;
 
 /* Starts the 50 Hz sensors task: the buttons, and the IMU when imu_init() succeeded first. The task

@@ -11,6 +11,7 @@ static uint8_t s_volume = SETTINGS_VOLUME_DEFAULT;
 static uint8_t s_variant;
 static uint32_t s_hidden;
 static uint16_t s_bed = SETTINGS_BEDTIME_DEFAULT, s_wake = SETTINGS_WAKE_DEFAULT;
+static uint8_t s_first_done;
 
 static uint8_t clamp_volume(uint8_t v) { return v > SETTINGS_VOLUME_MAX ? SETTINGS_VOLUME_MAX : v; }
 static uint16_t valid_min(uint16_t v, uint16_t fallback) { return v < SCHEDULE_DAY_MIN ? v : fallback; }
@@ -29,13 +30,15 @@ esp_err_t settings_init(void)
     nvs_get_u32(s_nvs, "hidden", &s_hidden);
     nvs_get_u16(s_nvs, "bed", &s_bed);
     nvs_get_u16(s_nvs, "wake", &s_wake);
+    nvs_get_u8(s_nvs, "first", &s_first_done);
     s_bed = valid_min(s_bed, SETTINGS_BEDTIME_DEFAULT);
     s_wake = valid_min(s_wake, SETTINGS_WAKE_DEFAULT);
     s_volume = clamp_volume(s_volume);
     if (s_variant > 2) {
         s_variant = 0;
     }
-    ESP_LOGI(TAG, "volume cap %u%%, cat %u, hidden apps 0x%08lx", s_volume, s_variant, (unsigned long)s_hidden);
+    ESP_LOGI(TAG, "volume cap %u%%, cat %u, hidden apps 0x%08lx, first run %s", s_volume, s_variant,
+             (unsigned long)s_hidden, s_first_done ? "done" : "pending");
     ESP_LOGI(TAG, "bedtime %02u:%02u, wake-up %02u:%02u", s_bed / 60, s_bed % 60, s_wake / 60, s_wake % 60);
     return ESP_OK;
 }
@@ -83,4 +86,11 @@ void settings_set_wake(uint16_t min)
 {
     s_wake = valid_min(min, SETTINGS_WAKE_DEFAULT);
     commit(nvs_set_u16(s_nvs, "wake", s_wake), "wake");
+}
+
+bool settings_first_run_done(void) { return s_first_done != 0; }
+void settings_set_first_run_done(void)
+{
+    s_first_done = 1;
+    commit(nvs_set_u8(s_nvs, "first", s_first_done), "first");
 }
