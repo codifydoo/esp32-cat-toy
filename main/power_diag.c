@@ -3,6 +3,7 @@
 #include "power_diag.h"
 #include <inttypes.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include "bsp/esp-bsp.h"
@@ -149,22 +150,31 @@ static void watch(void)
              presses, s_pwr_pins, s_int_edges);
 }
 
-static void sleep_now(uint32_t seconds, uint32_t pwr_bits, const char *text)
+static void sleep_now(uint32_t seconds, bool pins, uint32_t pwr_bits, const char *text)
 {
     say("%s (the screen goes dark in %d s)", text, READ_S);
     vTaskDelay(pdMS_TO_TICKS(READ_S * 1000));
-    uint64_t mask = BIT64(GPIO_NUM_0) | BIT64(BSP_LCD_TOUCH_INT);
-    for (size_t i = 0; i < N_CAND; i++) {
-        if (pwr_bits & (1u << i)) {
-            mask |= BIT64(CANDIDATES[i]);
+    uint64_t mask = 0;
+    if (pins) {
+        mask = BIT64(GPIO_NUM_0) | BIT64(BSP_LCD_TOUCH_INT);
+        for (size_t i = 0; i < N_CAND; i++) {
+            if (pwr_bits & (1u << i)) {
+                mask |= BIT64(CANDIDATES[i]);
+            }
         }
-    }
-    ESP_ERROR_CHECK(esp_sleep_enable_ext1_wakeup_io(mask, ESP_EXT1_WAKEUP_ANY_LOW));
-    ESP_ERROR_CHECK(esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON)); /* keeps the pull-ups */
-    for (int pin = 0; pin < 22; pin++) {
-        if (mask & BIT64(pin)) {
-            rtc_gpio_pullup_en((gpio_num_t)pin);
-            rtc_gpio_pulldown_dis((gpio_num_t)pin);
+        for (int pin = 0; pin < 22; pin++) {
+            if (mask & BIT64(pin)) {
+                const int level = gpio_get_level((gpio_num_t)pin);
+                ESP_LOGI(TAG, "gpio%d is %d at sleep entry%s", pin, level, level ? "" : " (low: it may wake at once)");
+            }
+        }
+        ESP_ERROR_CHECK(esp_sleep_enable_ext1_wakeup_io(mask, ESP_EXT1_WAKEUP_ANY_LOW));
+        ESP_ERROR_CHECK(esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON)); /* keeps the pull-ups */
+        for (int pin = 0; pin < 22; pin++) {
+            if (mask & BIT64(pin)) {
+                rtc_gpio_pullup_en((gpio_num_t)pin);
+                rtc_gpio_pulldown_dis((gpio_num_t)pin);
+            }
         }
     }
     ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup((uint64_t)seconds * 1000000));
@@ -199,13 +209,13 @@ static void diag_task(void *arg)
     switch (s_round) {
     case 0:
         watch();
-        sleep_now(TIMER_SLEEP_S, 0, "Round 1: sleeping 3 minutes. Don't touch anything: it wakes by itself.");
+        sleep_now(TIMER_SLEEP_S, false, 0, "Round 1: sleeping 3 minutes. Don't touch anything: it wakes by itself.");
         break;
-    case 1: sleep_now(FALLBACK_S, 0, "Round 2: sleeping. Wait 20 s, then touch the screen once to wake it."); break;
-    case 2: sleep_now(FALLBACK_S, 0, "Round 3: sleeping. Wait 20 s, then press BOOT to wake it."); break;
+    case 1: sleep_now(FALLBACK_S, true, 0, "Round 2: sleeping. Wait 20 s, then touch the screen once to wake it."); break;
+    case 2: sleep_now(FALLBACK_S, true, 0, "Round 3: sleeping. Wait 20 s, then press BOOT to wake it."); break;
     case 3:
         if (s_pwr_pins) {
-            sleep_now(FALLBACK_S, s_pwr_pins, "Round 4: sleeping. Wait 20 s, then press PWR (short) to wake it.");
+            sleep_now(FALLBACK_S, true, s_pwr_pins, "Round 4: sleeping. Wait 20 s, then press PWR (short) to wake it.");
         }
         break;
     default: break;
