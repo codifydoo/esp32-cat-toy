@@ -29,12 +29,12 @@ static bt_state_t s_state;
 static lv_obj_t *s_scr;      /* the lock's screen, reused by the sunrise; NULL in the day */
 static night_scene_t s_night;
 static day_scene_t s_day;    /* the rays read their points from here */
-static uint16_t s_prev_min;  /* the minute at the last tick, for the daily NTP sync */
 /* The lock's panel (spec §3.12): lit all night on USB unless PWR turned it off; otherwise lit until
  * s_on_until (30 s after the lock shows, 5 s after a touch). */
 static bool s_lit, s_user_off, s_usb;
 static uint32_t s_on_until;
 static bool s_whispered; /* s_last_whisper is set */
+static bool s_parent_hold; /* a two-finger parent hold is in progress: suppress the whisper on release */
 static uint32_t s_last_whisper, s_last_shift;
 static lv_timer_t *s_shh_timer, *s_menu_timer;
 static bool s_sun_up;   /* the sun has risen: a tap goes to the menu */
@@ -107,15 +107,26 @@ static void shh_done(lv_timer_t *t)
     }
 }
 
-/* A touch shows the scene for 5 s; the cat whispers "Pssst… spavaj", at most once every 5 s. */
+/* A touch shows the scene for 5 s. PRESSED only lights it; the whisper "Pssst… spavaj", at most once
+ * every 5 s, moves to RELEASED so a parent's two-finger hold into the parent area never whispers --
+ * s_parent_hold makes that independent of the hold ring's own lv_indev_wait_release(). */
 static void lock_pressed(lv_event_t *e)
 {
     (void)e;
     if (s_state != BT_LOCK) {
         return;
     }
+    s_parent_hold = false;
     keep_lit(BEDTIME_TOUCH_ON_MS);
     update_panel();
+}
+
+static void lock_released(lv_event_t *e)
+{
+    (void)e;
+    if (s_state != BT_LOCK || s_parent_hold) {
+        return;
+    }
     if (s_whispered && lv_tick_elaps(s_last_whisper) < BEDTIME_WHISPER_GAP_MS) {
         return;
     }
@@ -129,6 +140,7 @@ static void lock_pressed(lv_event_t *e)
 
 static void hold_holding(void)
 {
+    s_parent_hold = true;
     keep_lit(BEDTIME_TOUCH_ON_MS); /* the ring stays visible while the parent holds */
     update_panel();
 }
@@ -145,6 +157,7 @@ static void build_lock(void)
     s_scr = ui_screen();
     scene_night_create(&s_night, s_scr);
     lv_obj_add_event_cb(s_scr, lock_pressed, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(s_scr, lock_released, LV_EVENT_RELEASED, NULL);
     static const hold_ring_cb_t HOLD = {.holding = hold_holding, .done = hold_done};
     hold_ring_attach(s_scr, BEDTIME_RING_CX, BEDTIME_RING_CY, &HOLD);
 }
@@ -178,6 +191,7 @@ static void drop_lock(void)
         lv_obj_delete(s_scr);
     }
     s_scr = NULL;
+    s_night = (night_scene_t){0}; /* its objects are gone with the screen: don't keep pointers to them */
     s_state = BT_DAY;
     log_heap("lock dropped");
 }
@@ -283,6 +297,7 @@ static void start_night(void)
     if (lv_screen_active() != launcher_screen() || lv_display_get_screen_loading(NULL)) {
         return; /* the menu is still fading in: try again next second */
     }
+    ui_cut_touch(launcher_screen()); /* a swipe or hold may be mid-touch on the menu (review M2) */
     show_lock(false); /* the menu screen stays for the morning */
 }
 
@@ -290,12 +305,11 @@ static void tick(lv_timer_t *t)
 {
     (void)t;
     const uint16_t now = clock_now_min();
-    if (clock_valid() && now != s_prev_min && now == settings_wake()) {
-        clock_sync_start(); /* NTP once a day, at the wake-up minute (spec §3.2) */
-    }
-    s_prev_min = now;
     if (!app_manager_started() || app_manager_current() == &PARENT_APP) {
         return; /* the boot animation; parent changes take effect when the parent leaves (spec §3.12) */
+    }
+    if (schedule_sync_due(clock_valid(), now, settings_wake(), clock_secs_since_attempt())) {
+        clock_sync_start(); /* the due sync: boot, daily before wake, or a retry while invalid (spec §3.2) */
     }
     const bool night = night_now();
     if (s_state == BT_DAY && night) {
@@ -309,7 +323,6 @@ static void tick(lv_timer_t *t)
 
 void bedtime_init(void)
 {
-    s_prev_min = clock_now_min();
     lv_timer_create(tick, BEDTIME_TICK_MS, NULL);
 }
 
@@ -333,8 +346,12 @@ bool bedtime_showing(void) { return s_state != BT_DAY && !app_manager_current();
 void bedtime_power(void)
 {
     if (s_state == BT_SUNRISE) {
+#if CONFIG_CAT_HOME_ON_POWER
+        bedtime_home(); /* PWR is this build's Home: the menu, lit (spec §3.12) */
+#else
         finish_sunrise();
         idle_power_toggle(); /* the menu, then dark */
+#endif
         return;
     }
     if (s_state != BT_LOCK) {
