@@ -438,3 +438,12 @@ instrumented) nor in the silent runs (120 and 50 rounds). Its source is not iden
 backtraces, printed at each checkpoint. At the user's request the soak now runs silent (32e26f9).
 
 The kid test (spec §7) is still open for M3, M4 and M5.
+
+## Cat gallery variants and scales (Task 14) — 2026-09-24
+
+| Check | Result |
+| --- | --- |
+| PWR cycles the three cats (orange, grey, tuxedo) at M, L and S | PASS: all 9 look right, nothing clipped or missing (log shows every `scale=/variant=` combination) |
+| Costumes at L and S (BOOT) | PASS: they sit right |
+
+This closes the one M2 check that was blocked on PWR. M2 passes.
