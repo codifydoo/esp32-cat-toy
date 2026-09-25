@@ -66,7 +66,7 @@ void app_main(void)
     cat_set_variant((cat_variant_t)settings_cat_variant());
     display_lock(-1);
     app_manager_init();
-    boot_run(app_manager_start);
+    app_manager_boot();
     display_unlock();
     if (imu_init() != ESP_OK) {
         ESP_LOGE(TAG, "IMU unavailable: shake and tilt do nothing");

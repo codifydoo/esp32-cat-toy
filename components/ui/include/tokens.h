@@ -62,6 +62,7 @@
 #define BRIGHTNESS_FULL  100
 #define BURN_SHIFT_MS    60000
 #define BURN_SHIFT_PX    4
+#define DEEP_SLEEP_AFTER_DARK_MS 600000 /* on battery, 10 minutes after the panel went off (spec §3.13) */
 
 /* Boot (Screens: Boot / wake) */
 #define BOOT_MS         2600

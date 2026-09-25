@@ -376,3 +376,18 @@ void bedtime_home(void)
         finish_sunrise();
     }
 }
+
+bool bedtime_is_night(void) { return night_now(); }
+
+void bedtime_wake(bool dark)
+{
+    show_lock(true); /* the start's blank screen goes */
+    s_on_until = lv_tick_get() + (dark ? 0 : BEDTIME_TOUCH_ON_MS);
+    update_panel();
+}
+
+void bedtime_sunrise_now(void)
+{
+    show_lock(true);
+    start_sunrise();
+}

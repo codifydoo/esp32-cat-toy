@@ -17,3 +17,10 @@ void bedtime_power(void);
 /* Home while bedtime_showing(): nothing on the lock (spec §3.12); the sunrise goes straight to the menu,
  * without the mew (spec §1: only the lock ignores Home). */
 void bedtime_home(void);
+/* The schedule's night now (a valid clock, between bedtime and wake time). */
+bool bedtime_is_night(void);
+/* A deep-sleep wake inside the night (spec §3.13): the lock at once, without the boot animation. It is lit for
+ * BEDTIME_TOUCH_ON_MS, as after a touch, or dark (the timer before wake time) unless USB keeps the night light. */
+void bedtime_wake(bool dark);
+/* The deep-sleep timer woke the toy after wake time: the sunrise at once. */
+void bedtime_sunrise_now(void);

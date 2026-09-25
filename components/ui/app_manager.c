@@ -3,7 +3,10 @@
 #include <stdint.h>
 #include "audio.h"
 #include "bedtime.h"
+#include "boot.h"
 #include "buttons.h"
+#include "deepsleep.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "sensors.h"
 #include "first_run.h"
@@ -11,6 +14,8 @@
 #include "launcher.h"
 #include "overlays.h"
 #include "parent.h"
+#include "power.h"
+#include "power_rules.h"
 #include "power_watch.h"
 #include "sdkconfig.h"
 #include "tokens.h"
@@ -52,6 +57,41 @@ void app_manager_start(void)
 }
 
 bool app_manager_started(void) { return s_started; }
+
+static woke_t woke(void)
+{
+    switch (deepsleep_cause()) {
+    case DEEPSLEEP_BY_PIN: return WOKE_TOUCH;
+    case DEEPSLEEP_BY_TIMER: return WOKE_TIMER;
+    default: return WOKE_COLD;
+    }
+}
+
+static void sleep_again(void) { deepsleep_start(0, true); }
+
+void app_manager_boot(void)
+{
+    const power_state_t ps = power_state(); /* power_init() took a first reading */
+    const wake_plan_t plan = power_wake_plan(woke(), bedtime_is_night(), deepsleep_was_for_battery(),
+                                             battery_critical(ps.pct, ps.usb));
+    static const char *const NAMES[] = {"boot animation", "lock, lit", "lock, dark", "sunrise", "hungry cat"};
+    ESP_LOGI(TAG, "start: %s (free psram %u)", NAMES[plan], (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+    switch (plan) {
+    case WAKE_LOCK_LIT:
+    case WAKE_LOCK_DARK:
+        bedtime_wake(plan == WAKE_LOCK_DARK);
+        s_started = true;
+        break;
+    case WAKE_SUNRISE:
+        bedtime_sunrise_now();
+        s_started = true;
+        break;
+    case WAKE_HUNGRY:
+        overlay_show(OVERLAY_HUNGRY, sleep_again); /* the buttons stay ignored: s_started is false */
+        break;
+    default: boot_run(app_manager_start); break;
+    }
+}
 
 #if CONFIG_CAT_HOME_ON_POWER
 static void cancel_pending_home(void)
