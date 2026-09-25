@@ -13,4 +13,14 @@ menu "Cat toy"
         default n
         help
             Spec 3.6: a short PWR press becomes Home, and a double press turns the screen off/on.
+    config CAT_WIFI_SSID
+        string "Wi-Fi network for setting the clock (NTP)"
+        default ""
+        help
+            Spec 3.2 and 8. Set this and CAT_WIFI_PASSWORD only in the git-ignored sdkconfig.secrets
+            (README, "Wi-Fi for the clock"), never in a committed file. Empty: no NTP, and the parent
+            sets the clock by hand.
+    config CAT_WIFI_PASSWORD
+        string "Wi-Fi password"
+        default ""
 endmenu

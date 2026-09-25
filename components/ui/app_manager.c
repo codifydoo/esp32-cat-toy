@@ -2,11 +2,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "audio.h"
+#include "bedtime.h"
 #include "buttons.h"
 #include "esp_log.h"
 #include "sensors.h"
 #include "idle.h"
 #include "launcher.h"
+#include "parent.h"
 #include "sdkconfig.h"
 #include "tokens.h"
 #include "ui_util.h"
@@ -31,14 +33,19 @@ void app_manager_init(void)
 {
     launcher_create();
     idle_init();
+    bedtime_init();
     lv_timer_create(poll_sensors, SENSOR_POLL_MS, NULL);
 }
 
 void app_manager_start(void)
 {
-    launcher_show();
+    if (!bedtime_take_over()) { /* a start inside the night shows the lock after the boot animation */
+        launcher_show();
+    }
     s_started = true; /* buttons are ignored until this point -- see handle_button() */
 }
+
+bool app_manager_started(void) { return s_started; }
 
 #if CONFIG_CAT_HOME_ON_POWER
 static void cancel_pending_home(void)
@@ -68,25 +75,14 @@ static void close_current_app(void)
 
     /* Cut pointer input to the app screen before destroy(): a press already in flight on it can
      * otherwise still reach the app's event callbacks (e.g. a tap handler) after destroy() has
-     * freed the app's own state. This is the same wait_release + reset pair LVGL itself runs on
-     * every pointer indev before deleting an object it is currently pressing -- see
-     * obj_indev_reset() in managed_components/lvgl__lvgl/src/core/lv_obj_tree.c. wait_release
-     * makes the indev ignore the rest of the current touch; reset(indev, screen) drops this
-     * screen as the indev's pressed/last/scrolled object so the next touch starts fresh once
-     * the finger lifts (see indev_proc_press()/indev_proc_release() in lv_indev.c). */
-    lv_indev_t *indev = lv_indev_get_next(NULL);
-    while (indev) {
-        if (lv_indev_get_type(indev) == LV_INDEV_TYPE_POINTER) {
-            if (lv_indev_get_state(indev) != LV_INDEV_STATE_RELEASED) {
-                lv_indev_wait_release(indev);
-            }
-            lv_indev_reset(indev, screen);
-        }
-        indev = lv_indev_get_next(indev);
-    }
+     * freed the app's own state -- see ui_cut_touch()'s comment in ui_util.c for how. */
+    ui_cut_touch(screen);
 
     app->destroy();
     audio_stop_all();
+    if (bedtime_take_over()) {
+        return; /* night: the lock instead of the menu, without the Home mew (spec §3.12) */
+    }
     if (idle_level() != 3) {
         /* Screen is dark (e.g. Power turned it off, then this app's own idle timeout closed it):
          * don't mew in the dark. */
@@ -126,6 +122,9 @@ void app_manager_open(const app_t *app)
 {
     if (s_current || !app) {
         return;
+    }
+    if (app != &PARENT_APP && bedtime_showing()) {
+        return; /* the menu's open zoom can end after bedtime took over: no app at night (spec §3.12) */
     }
 #if CONFIG_CAT_HOME_ON_POWER
     /* Opening an app is itself fresh activity; a PWR-Home queued just before this touch must not
@@ -174,6 +173,10 @@ static void do_home(void)
 #if CONFIG_CAT_HOME_ON_POWER
     cancel_pending_home(); /* a Home about to run makes any pending PWR-Home stale */
 #endif
+    if (bedtime_showing()) {
+        bedtime_home(); /* does nothing on the lock, ends the sunrise; also drops a PWR-Home queued before it showed */
+        return;
+    }
     if (idle_wake_if_asleep()) {
         return; /* the press only wakes the screen */
     }
@@ -200,6 +203,14 @@ static void handle_button(button_id_t id)
         return; /* ignore presses until app_manager_start() has shown the menu (boot animation) */
     }
     lv_display_trigger_activity(NULL); /* a button press counts as activity */
+    if (bedtime_showing()) {
+        if (id == BUTTON_POWER) {
+            bedtime_power(); /* PWR still turns the lock's panel off and on */
+        } else {
+            bedtime_home(); /* Home does nothing on the lock; it ends the sunrise */
+        }
+        return;
+    }
 #if CONFIG_CAT_HOME_ON_POWER
     if (id == BUTTON_POWER) {
         if (idle_wake_if_asleep()) {

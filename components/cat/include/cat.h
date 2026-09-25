@@ -34,6 +34,10 @@ typedef enum {
 
 void cat_set_variant(cat_variant_t variant);
 lv_obj_t *cat_create(lv_obj_t *parent, cat_scale_t scale);
+/* A cat in one of the extra exported palettes instead of the chosen variant: "piano_c", "piano_d",
+ * "piano_e", "piano_g" or "piano_a" (Meow piano, spec §3.11), which exist at CAT_SCALE_S only.
+ * palette must outlive the cat (use a string literal). */
+lv_obj_t *cat_create_colored(lv_obj_t *parent, cat_scale_t scale, const char *palette);
 void cat_set_origin(lv_obj_t *cat, int32_t x, int32_t y);
 void cat_set_state(lv_obj_t *cat, cat_state_t state);
 void cat_set_costume(lv_obj_t *cat, cat_costume_t costume);

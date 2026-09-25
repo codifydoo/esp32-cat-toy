@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CANVAS, VARIANTS, catParts } from './cat_geometry.mjs';
+import { CANVAS, VARIANTS, PIANO_CATS, pianoPalette, catParts } from './cat_geometry.mjs';
 import { APP_ICONS, appIconSvg } from './icons.mjs';
 import { UI_IMAGES } from './ui_images.mjs';
 import { render, alphaBBox, unionBBox, evenBBox, crop, toLvglBin, toPng } from './raster.mjs';
@@ -33,7 +33,11 @@ fs.rmSync(PREVIEW, { recursive: true, force: true });
 
 // Cat parts: one crop box per (part, scale), shared by all variants so positions never differ.
 const variants = Object.keys(VARIANTS);
-const partsBy = Object.fromEntries(variants.map((v) => [v, catParts(VARIANTS[v])]));
+const pianos = Object.keys(PIANO_CATS);
+const partsBy = Object.fromEntries([
+  ...variants.map((v) => [v, catParts(VARIANTS[v])]),
+  ...pianos.map((p) => [p, catParts(pianoPalette(PIANO_CATS[p]))]),
+]);
 const catRows = Object.keys(partsBy[variants[0]]).map((part) => ({
   part,
   shared: variants.every((v) => partsBy[v][part] === partsBy[variants[0]][part]),
@@ -44,7 +48,8 @@ const canvas = [];
 SCALES.forEach(([tag, scale], si) => {
   const width = Math.round(CANVAS.w * scale);
   for (const row of catRows) {
-    const owners = row.shared ? ['shared'] : variants;
+    // Meow piano's cats exist at S only (spec §3.11). They share the crop box, so positions never differ.
+    const owners = row.shared ? ['shared'] : tag === 'S' ? [...variants, ...pianos] : variants;
     const imgs = owners.map((o) =>
       render(svgDoc([CANVAS.x, CANVAS.y, CANVAS.w, CANVAS.h], partsBy[o === 'shared' ? variants[0] : o][row.part]), width),
     );

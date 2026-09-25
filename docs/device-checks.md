@@ -400,7 +400,44 @@ Normal build 968e970, then the perf and soak builds of 476a3b5.
 ball appear at once, because flat became level at open (spec §3.10). Filed as issue #4 with fix
 options, to decide after the kid test.
 
-The kid test (spec §7) is still open for M3 and M4.
+## Magic paws, Yarn roll and Meow piano (M5) — 2026-09-24
+
+Normal build 55b0a34, then the perf builds of 55b0a34 and 5bb4e4a, the normal build of f3559a3
+(final-review fixes), and the soak builds of 55b0a34, f3559a3 and 32e26f9.
+
+| Check | Result |
+| --- | --- |
+| Menu: the surprised face (Magic paws icon) looks as before | PASS |
+| Magic paws: layout, twinkling hint, rainbow trail with glow and sparkles, fast scribbles unbroken | PASS |
+| Magic paws: paw brush (alternating, turned, pat), edge ring and button stay clean | PASS |
+| Magic paws: drawing kept after Home; shake sweeps it (dim, broom, swish, "Čisto!", clean); Home mid-sweep leaves it clean | PASS |
+| Magic paws (f3559a3): a stroke continues across the brush button; a press dragged off the button neither switches the brush nor paints; a tap still switches | PASS |
+| Yarn roll: layout and 4 s hint; rolls downhill with rumble and turning frames; the cat follows and looks at the yarn | PASS |
+| Yarn roll: win scene (full basket, proud cat, confetti, fanfare + "Bravo!"), three rounds through the basket spots | PASS |
+| Yarn roll: shake recenters; resting against the rim stops the rumble and times out after ~60 s | PASS |
+| Yarn roll (f3559a3): PWR while the yarn rolls silences the rumble at once; win and next round still work | PASS |
+| Meow piano: five colored cats and pads; each tap sings, bounces, fills its pad and colors the note; fast taps never stick | PASS |
+| BOOT mid-sweep, mid-roll, after the hit, during the confetti and mid-song: menu at once, silence | PASS |
+| Tilt-only play in Yarn roll for 90 s stays open; Magic paws and Meow piano time out after ~60 s | PASS |
+| PWR off in Yarn roll: tilt and shake stay dark and silent | PASS |
+| FPS (perf build) | Magic paws scribbling 28-30 (rainbow and paws); sweep 24-30; Yarn rolling 29-30; app-open zoom 3-13 (the accepted §3.4 exception). Confetti with spin measured 13-17, so the spec §3.11 fallback dropped the spin (5bb4e4a): 24-26 over two full win scenes. **Open:** Meow piano measures 15-22 (a few samples to 9) while tapping cats quickly and 26-30 between taps; the user saw it as smooth and deferred it to M8. The first two perf logs recorded only the idle menu; the third captured the run |
+| Soak | PASS on the committed build (32e26f9, silent): `SOAK: PASS: internal delta=-8 psram delta=0 over 50 rounds`. Earlier runs are in the investigation below |
+| Log | no missing image or sound, Guru Meditation, abort, assert or unexpected reset |
+
+**Soak investigation.** The first soak (55b0a34) failed on PSRAM −12,636 B: one drop between the
+baseline and round 10, then flat. An instrumented run logging every image and sound load and the
+free PSRAM after each of 300 steps stayed flat (PSRAM delta 0), but failed on internal RAM: its
+baseline caught a rare high reading (243,671 B; run 1 had the same value once, at round 10), while every other reading sat
+at 219-222 K with no trend. The final-review fixes made the soak warm up three rounds (the piano's
+first open blocks the UI ~440 ms, so one round can miss animation frames that are then cached forever)
+and compare median readings. The next run (f3559a3) still dropped exactly −12,636 B once, between
+rounds 30 and 40. A silent run with heap hooks (a backtrace for any 12-13.5 KB PSRAM allocation after
+the baseline) passed 120 rounds with PSRAM flat and no hook hit. **Open:** a one-time, non-growing
+12,636 B PSRAM hold. It appeared in runs 1 and 3 (sound on, uninstrumented), not in run 2 (sound on,
+instrumented) nor in the silent runs (120 and 50 rounds). Its source is not identified. Next instrument for M8: a table of live PSRAM allocations since the baseline, with
+backtraces, printed at each checkpoint. At the user's request the soak now runs silent (32e26f9).
+
+The kid test (spec §7) is still open for M3, M4 and M5.
 
 ## Cat gallery variants and scales (Task 14) — 2026-09-24
 
@@ -410,3 +447,42 @@ The kid test (spec §7) is still open for M3 and M4.
 | Costumes at L and S (BOOT) | PASS: they sit right |
 
 This closes the one M2 check that was blocked on PWR. M2 passes.
+
+## Time and bedtime (M6) — 2026-09-24
+
+Builds of 2bbf0a1: without Wi-Fi (`build-m6`, `SDKCONFIG_DEFAULTS="sdkconfig.defaults"`, so NTP could not reset the hand-set clock), soak, and perf. Also the Wi-Fi build (from `sdkconfig.secrets`), two instrumented NTP builds (not committed), and the NTP fix and 68eaf5c.
+
+| Check | Result |
+| --- | --- |
+| A: menu two-finger hold (ring at 1 s, parent area at 5 s); PWR off/on; Home from apps with the mew | PASS |
+| A: Sleepy clock: the sun rises, the rays turn, hills and the proud cat; a tap on the cat purrs, a tap on the sky does nothing | PASS |
+| B: parent home ("Parents", Volume and Sleep tiles, "Home button exits"); Max volume with "‹ Parents" | PASS |
+| B: Sleep times: Now shows "--:--" until the first press sets 12:00 (log); 1-minute steps, 10-minute after a 2 s hold (log); Bedtime and Wake up in 15-minute steps with repeat; 00:30 stays valid; the Sleep tile shows the saved bedtime | PASS |
+| C1-C2: bedtime closes an app without the mew and shows the lock; bedtime over the menu; moving the times out of the night in the parent area goes to the menu without a sunrise | PASS (log: one `lock shown` per transition, `lock dropped` on the move) |
+| C3: bedtime while the parent area is open shows the lock only on leaving | PASS, user-reported (not in the log) |
+| D: on the lock: Home ignored; the whisper quiet but audible, shh face, 5 s gap; PWR off/on; USB night light past 30 s; on battery dark after 30 s and 5 s per touch; the hold ring around the cat, back to the lock after the parent area | PASS, user-reported (the log holds only the PWR and Home presses) |
+| E: sunrise: the sun rises while the screen brightens, then the chime, the meow and "Dobro jutro!"; a tap only after the rise; Home at once; the menu by itself after 60 s | PASS, user-reported (not in the log) |
+| F: a reset inside the night: the boot animation, then the lock | PASS (log: `lock shown` 5.2 s after boot) |
+| FPS (perf build) | The lock: 30 FPS, render 7-8 ms, CPU 36-38 % (the twinkles redraw continuously; on battery the scene is hidden while dark). The Sleepy clock's turning rays: **not measured**, the user declined further hands-on tests |
+| Soak | PASS (silent, 2bbf0a1): `SOAK: PASS: internal delta=-1032 psram delta=0 over 50 rounds`, with the real Sleepy clock |
+| NTP | PASS after two fixes (6b23e71, 68eaf5c): the Wi-Fi build gets an IP 5.06 s after boot, the NTP answer 68 ms later, and the correct local time. A made-up network gives up at 5.2 s and the lock still shows. The first Wi-Fi build failed; see below |
+| Log | no Guru Meditation, abort, assert or unexpected reset |
+
+**Log gap.** The serial log holds none of the events of C3, D and E (no clock sets, no Home presses, no sunrise lines), and the user's answers came faster than those steps take. The user confirmed twice that everything behaved as described. Those rows are the user's report, not backed by the log. The listener was running throughout. One console drop is expected: unplugging USB in D6 cuts it off.
+
+**NTP.** The first Wi-Fi build (2bbf0a1) joined the network (WPA2, RSSI −77 dBm) and got an IP at 5.4 s, but had no NTP answer by the 10 s deadline. With a temporary 40 s budget the answer came 30.2 s after the client started. lwIP waits a random 0-5 s before the first request and repeats an unanswered request only after 15 s, and here the first request goes unanswered. **Fix 6b23e71:** no startup delay (`CONFIG_LWIP_SNTP_STARTUP_DELAY` off), and `esp_netif_sntp_start()` resends every 2 s until the deadline. The debug build then synced 2 s after the start.
+
+A second fault showed only in builds whose config was generated fresh from `sdkconfig.defaults`. `CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP` (Task 3) raises the Wi-Fi static RX buffers from 10 to 16 and the block-ack window from 6 to 16. Every fresh-config Wi-Fi run then dropped display frames while Wi-Fi was up: `Failed to allocate priv TX buffer`, then `Draw bitmap failed: ESP_ERR_NO_MEM`, 33-200 times per sync. The display needs a 46.6 KB internal DMA bounce buffer per flush. The long-lived `sdkconfig` kept 10/6 and never failed. **Fix 68eaf5c:** pin 10/6 in `sdkconfig.defaults`. A fresh config then logged 0 failures.
+
+**Not measured:**
+- Heap across repeated syncs: the before/after deltas at boot are dominated by the boot itself, and the daily sync at steady state was not run. This matters more with the retry: an invalid clock and an unreachable network mean up to 288 Wi-Fi start/release cycles a day.
+- Audio during a sync: Wi-Fi shares core 0 with the audio task, and nobody listened for glitches.
+- The daily sync 10 minutes before wake, and the retry every 5 minutes while the clock is not valid: neither was run on the device (the user declined further hands-on tests).
+
+**Drift.** Not measured. This session's corrections (+213 ms, −488 ms) span resets and hand-set times, so they do not isolate the oscillator. While the chip runs, the clock follows the 40 MHz crystal (`CONFIG_ESP_TIME_FUNCS_USE_ESP_TIMER`). The daily sync (10 minutes before wake) logs `NTP: corrected by X ms, Y s after the previous sync`, which gives the drift directly on a toy left running on Wi-Fi. This is open for M7, where deep sleep runs on the RTC slow clock, which drifts far more.
+
+**Final-review fixes.** After these checks, the whole-branch review changed the following, none of it re-checked by hand on the device (the user declined further hands-on tests); only host tests and the two builds (`build-m6`, `build`) cover it: the daily sync moved from the wake-up minute to 10 minutes before it; a failed sync while the clock is not valid retries every 5 minutes; a dropped Wi-Fi connection reconnects within one attempt instead of giving up; the lock's whisper moved from press to release; nightfall now cuts a touch in flight on the menu before showing the lock; PWR during the sunrise in `CONFIG_CAT_HOME_ON_POWER` builds ends it into the menu (lit) instead of turning the screen dark; and the Wi-Fi driver's log level is now WARN.
+
+**Boot check after the fixes.** Not run: the board was not connected when the fixes landed (2026-09-25). The final firmware still has to be flashed; it then shows the boot sync and whether any `wifi:connected with` line is left in the log.
+
+The kid test (spec §7) is still open for M3, M4, M5 and M6.

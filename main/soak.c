@@ -5,15 +5,17 @@
 #include <stdlib.h>
 #include "app.h"
 #include "app_manager.h"
+#include "audio.h"
 #include "display.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define SOAK_ROUNDS    50
-#define SOAK_STEP_MS   500
-#define SOAK_TOLERANCE 4096
+#define SOAK_ROUNDS        50
+#define SOAK_STEP_MS       500
+#define SOAK_TOLERANCE     4096
+#define SOAK_WARMUP_ROUNDS 3
 
 static const char *TAG = "SOAK";
 
@@ -39,28 +41,48 @@ static void step(const app_t *app)
     vTaskDelay(pdMS_TO_TICKS(SOAK_STEP_MS));
 }
 
-/* Free heap as the highest of 10 readings 50 ms apart. A display flush or fade holds a ~25 KB
- * internal buffer for a few ms, and a single reading that lands inside one looks like a leak (seen on
- * the device: readings swung between ~198 KB and ~223 KB from round to round). */
+static void insertion_sort(size_t *a, int n)
+{
+    for (int i = 1; i < n; i++) {
+        size_t v = a[i];
+        int j = i - 1;
+        while (j >= 0 && a[j] > v) {
+            a[j + 1] = a[j];
+            j--;
+        }
+        a[j + 1] = v;
+    }
+}
+
+/* Free heap as the median of 10 readings 50 ms apart. Single readings swing both ways: a display
+ * flush briefly holds ~25 KB of internal RAM, and a rare state frees ~22.5 KB; the median ignores
+ * both, and a real leak still moves it. */
 static void free_heap(size_t *internal, size_t *psram)
 {
-    *internal = 0;
-    *psram = 0;
+    size_t in[10], ps[10];
     for (int i = 0; i < 10; i++) {
-        size_t in = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
-        size_t ps = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-        *internal = in > *internal ? in : *internal;
-        *psram = ps > *psram ? ps : *psram;
+        in[i] = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+        ps[i] = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
         vTaskDelay(pdMS_TO_TICKS(50));
     }
+    insertion_sort(in, 10);
+    insertion_sort(ps, 10);
+    *internal = in[5];
+    *psram = ps[5];
 }
 
 static void soak_task(void *arg)
 {
     (void)arg;
     vTaskDelay(pdMS_TO_TICKS(6000)); /* boot animation */
-    for (size_t i = 0; i < APP_COUNT; i++) {
-        step(APPS[i]); /* warm-up: fills the image and sound caches */
+    audio_set_volume(0); /* silent: every sound still loads and plays through the mixer, at volume 0 */
+    /* warm-up: fills the image and sound caches. First opens load images and sounds, and the
+     * piano's first open blocks the UI long enough that one round can miss animation frames that
+     * are then cached forever, so several rounds are needed to reliably reach every frame. */
+    for (int w = 0; w < SOAK_WARMUP_ROUNDS; w++) {
+        for (size_t i = 0; i < APP_COUNT; i++) {
+            step(APPS[i]);
+        }
     }
     size_t base_int, base_ps;
     free_heap(&base_int, &base_ps);

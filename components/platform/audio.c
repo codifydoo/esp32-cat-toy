@@ -41,6 +41,7 @@ typedef struct {
     uint32_t arg;
     int16_t *pcm;
     size_t n;
+    uint8_t gain; /* CMD_PLAY: % of the volume */
 } cmd_t;
 
 typedef struct {
@@ -63,6 +64,7 @@ static const int16_t *s_fx;
 static int16_t *s_fx_owned;
 static size_t s_fx_n, s_fx_pos;
 static uint32_t s_fx_session;
+static uint8_t s_fx_gain = 100; /* % of the volume for the playing fx clip */
 static const int16_t *s_loop;
 static size_t s_loop_n, s_loop_pos;
 static int16_t *s_rec;
@@ -169,6 +171,7 @@ static void handle(const cmd_t *c)
             fx_finish(true);
             s_fx = clip->pcm;
             s_fx_n = clip->n;
+            s_fx_gain = c->gain;
         }
         break;
     }
@@ -181,6 +184,7 @@ static void handle(const cmd_t *c)
         s_fx = s_fx_owned = c->pcm;
         s_fx_n = c->n;
         s_fx_session = c->session;
+        s_fx_gain = 100;
         break;
     case CMD_LOOP_START: {
         const clip_t *clip = clip_get(c->arg);
@@ -293,7 +297,7 @@ static void play_chunk(void)
     for (size_t i = 0; i < CHUNK_SAMPLES; i++) {
         int32_t v = 0;
         if (s_fx && s_fx_pos < s_fx_n) {
-            v += s_fx[s_fx_pos++];
+            v += (int32_t)s_fx[s_fx_pos++] * s_fx_gain / 100;
         }
         if (s_loop) {
             v += s_loop[s_loop_pos++];
@@ -395,7 +399,11 @@ esp_err_t audio_init(uint8_t volume_pct)
 
 bool audio_available(void) { return s_ok; }
 void audio_set_volume(uint8_t pct) { send((cmd_t){.kind = CMD_VOLUME, .arg = clamp_volume(pct)}); }
-void audio_play(sound_id_t id) { send((cmd_t){.kind = CMD_PLAY, .arg = (uint32_t)id}); }
+void audio_play(sound_id_t id) { send((cmd_t){.kind = CMD_PLAY, .arg = (uint32_t)id, .gain = 100}); }
+void audio_play_quiet(sound_id_t id, uint8_t gain_pct)
+{
+    send((cmd_t){.kind = CMD_PLAY, .arg = (uint32_t)id, .gain = gain_pct > 100 ? 100 : gain_pct});
+}
 void audio_loop_start(sound_id_t id) { send((cmd_t){.kind = CMD_LOOP_START, .arg = (uint32_t)id}); }
 void audio_loop_stop(void) { send((cmd_t){.kind = CMD_LOOP_STOP}); }
 void audio_stop_all(void) { send((cmd_t){.kind = CMD_STOP_ALL}); }

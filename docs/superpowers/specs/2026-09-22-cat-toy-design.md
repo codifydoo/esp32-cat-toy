@@ -6,7 +6,7 @@ Status: approved in chat, pending written-spec review
 ## 1. What we are building
 
 A handheld cat toy for a 5-year-old, running on a Waveshare ESP32-S3-Touch-AMOLED-1.75
-(1.75" round 466 × 466 AMOLED, touch, IMU, 2 mics, speaker, battery, RTC). A cartoon cat hosts
+(1.75" round 466 × 466 AMOLED, touch, IMU, 2 mics, speaker, battery; the 1.75C has no RTC chip, §3.2). A cartoon cat hosts
 everything: it lives on the menu, announces each app in Croatian, and does silly voices.
 
 **Who it is for:** a 5-year-old who loves cats and silly voices, cannot read yet, and speaks Croatian.
@@ -81,23 +81,33 @@ the point count directly from the touch driver (`esp_lcd_touch`). The Waveshare 
 stops at one point, so the count and the second point come from the controller's own report
 (`touch_report.c`), read alongside the driver.
 
-The first slice of the parent area (2026-09-23) opens straight on **Max volume**: the design's
-270° arc, 10 % steps from 10 % to 100 %, and a "Home button exits" hint in place of the "‹ Parents"
-button. It uses LVGL's built-in Montserrat until the full parent area brings Fredoka and the
-four-tile home screen (M7).
+Since M6 (2026-09-24) the parent area opens on a home screen with two of the design's four tiles,
+Volume and Sleep; Max volume has its "‹ Parents" button back, and Sleep times sets Bedtime, Wake up
+and Now (§3.12). It still uses LVGL's built-in Montserrat until M7 brings Fredoka and the other two
+tiles.
 
 ### 3.2 Time source
 
-- At boot, if Wi-Fi credentials are configured, the device connects, syncs time over NTP
-  (`pool.ntp.org`), writes it to the PCF85063 RTC, and turns Wi-Fi off again. The timeout is 10 s,
-  and a failure is silent.
-- Otherwise the time comes from the RTC.
+The 1.75C has no RTC chip (docs/device-checks.md), so the ESP32-S3 keeps the time itself. Its clock
+survives restarts and deep sleep, but not a power loss. Decided 2026-09-24:
+
+- **NTP:** if Wi-Fi credentials are configured, the device connects and syncs over NTP
+  (`pool.ntp.org`) at boot, and again once a day 10 minutes before the wake-up minute, so the
+  sunrise never shares the moment with Wi-Fi and runs on the corrected time. While the clock is not
+  valid, a failed sync is retried every 5 minutes; no sync starts while the parent area is open.
+  Within one attempt, a dropped connection is retried until the timeout. Then it turns Wi-Fi off
+  and releases it. The timeout is 10 s, and a failure is silent. (Amended 2026-09-25.)
+- **Manual:** the parent area's **Sleep times** screen gains a third row, **Now**, which sets the
+  clock by hand (± buttons, press-and-hold to repeat). A manual set keeps today's date, or uses
+  2 January 2026 when the clock has no date yet. Without NTP the date is then not the real one, so a
+  DST change can come on the wrong night, leaving the clock an hour off until Now is set again.
 - Time zone: `Europe/Zagreb` (POSIX `CET-1CEST,M3.5.0,M10.5.0/3`).
-- The parent area's **Sleep times** screen gains a third row, **Now**, which sets the clock
-  manually (hours and minutes, ± buttons, press-and-hold to repeat). The parent area stays at 4 tiles.
-- If the time is invalid (the RTC lost power and there is no NTP), the time-based features switch
+- **Valid time** means the clock reads 2026-01-01 or later, which only an NTP sync or a manual set
+  since the last power-on can make true. If the time is invalid, the time-based features switch
   off rather than guess: no bedtime lock, and the Sleepy clock shows the day scene. Play is never
   blocked by a bad clock.
+- The internal oscillator drifts. Measuring how much is open for M7 (docs/device-checks.md), and the
+  daily NTP sync bounds it when Wi-Fi is available.
 
 ### 3.3 Silly voice effects
 
@@ -220,6 +230,96 @@ The design leaves these open; they apply to Pet the cat (M4), and the tilt rules
   drains, together with the latest tilt. The sensors task never waits for the LVGL lock, so a slow
   frame cannot swallow a quick second button press.
 
+### 3.11 Magic paws, Yarn roll and Meow piano details (2026-09-24)
+
+The design leaves these open for M5. Everything else follows the design.
+
+- **Magic paws: her drawing is kept.**
+  - The drawing stays in memory when the app closes, by Home or by the 60 s idle timeout. It is back
+    when she reopens the app, until she shakes it clean or the toy restarts.
+  - It is one 466 × 466 RGB565 picture (434 KB of PSRAM), allocated on the first open and never
+    freed. This is the one exception to "`destroy` leaves no PSRAM behind" (§4.4).
+- **Magic paws: how strokes are painted.**
+  - Strokes are painted into that picture, not built from objects, so there is no limit on dots.
+    The design's 600-dot and 120-print caps were for the prototype.
+  - Rainbow dots are placed every 7 px along the stroke, including between touch samples, so fast
+    strokes stay continuous. Paw prints are placed every 40 px the same way.
+  - Each rainbow dot is painted with its 28 % halo just before it. Where strokes cross, the newer
+    halo tints the older dots slightly (the design keeps every dot above every halo).
+  - Paw prints are painted as five round blobs (pad and toes), turned along the stroke.
+  - Dots and prints are placed only where the stroke is within r 212 of the center (their edges may
+    reach a little further).
+  - A sparkle tick plays every 8 dots, and a soft "pat" for each paw print, each at most 8 per
+    second.
+  - The empty canvas shows the design's twinkling rainbow-dot hint.
+- **Magic paws: sweep.** A shake dims the drawing to 30 %. The cat (scale M) sweeps its broom
+  sideways ±60 px, three swings in 1.6 s, to a broom swish. The broom itself does not rotate.
+  "Čisto!" plays 0.9 s in, and at 1.7 s the canvas is clean and the cat is gone. Touches and shakes
+  are ignored while it sweeps. Home or the idle timeout during the sweep still leaves the canvas
+  clean.
+- **Yarn roll: rolling.**
+  - The yarn rolls by the §3.10 tilt rules, with its center kept within r 185 of the screen center.
+    Its four roll frames advance with the distance rolled. A rumble loop plays while it rolls.
+  - The cat (scale S, surprised face) follows 92 px behind the yarn on the side toward the screen
+    center, eases into place, and looks at the yarn.
+  - The tilt hint shows for the first 4 s after the app opens.
+  - A shake puts the yarn back in the middle (not during the win).
+- **Yarn roll: winning.**
+  - The basket is at (330, 318), (136, 318), (330, 150) or (136, 150), moving to the next one each
+    round. She wins when the yarn's center comes within 62 px of the point 10 px above the basket's
+    center. The yarn stops there, and 0.32 s later the win scene replaces the play scene.
+  - The win scene shows the full basket, the proud cat (scale M), 24 falling confetti pieces, the
+    fanfare and "Bravo!". The next round starts 3.5 s later with the yarn back in the middle.
+  - The confetti is built as designed first, spinning as it falls. If it measures below 24 fps, the
+    fallback drops the spin.
+- **Meow piano.**
+  - Five cats sit on a ring of r 140, starting at the top, one per note C, D, E, G, A. Each cat is
+    recolored in its note's colors as the design draws them: fur, outline, a light muzzle, no
+    stripes. These palettes are exported at scale S only.
+  - A tap plays that note's meow. The cat sings, bounces (up 22 px, down, a 6 px rebound, 400 ms),
+    and its pad fills at 25 %. The center note takes its color. The cat returns to happy after
+    700 ms, and a new tap replaces the previous meow.
+
+### 3.12 Time and bedtime details (2026-09-24)
+
+The design leaves these open for M6. Everything else follows the design and §3.8.
+
+- **Night** runs from bedtime to wake time, across midnight. If the two are equal there is no night.
+  The schedule is checked every second.
+- **Bedtime starts:** at the bedtime minute any open app closes, without the Home "mew", and the
+  bedtime lock shows. A power-on or restart inside the night plays the boot animation, then shows the
+  lock. Changing the sleep times in the parent area takes effect when the parent leaves the area.
+- **The lock's scene** is the design's Sleepy clock night scene: the moon, nine twinkling stars
+  (3 s each, staggered by the design's delays, 30 → 100 %), the sleeping cat (scale M) and five hour
+  stars along the bottom. The panel runs at 35 % brightness.
+- **Hour stars:** a lit star for each hour left until wake time, rounded up, at most five. All five
+  are lit while more than four hours are left, and the last one goes out at wake time.
+- **On the lock:**
+  - Home does nothing. PWR still turns the panel off and on.
+  - A touch whispers "Pssst… spavaj" at 30 % of the playing volume (a gain in the mixer, so the
+    parent's cap still applies), at most once every 5 s. With the whisper the cat shows its shh face
+    for 2.2 s, as in the design.
+  - On battery the panel turns off after 30 s, and a touch shows the scene again for 5 s. Deep
+    sleep arrives in M7; until then the device stays on through the night.
+  - On USB power the scene stays on all night, shifted ±4 px every 60 s.
+  - The parent two-finger hold works, with its progress ring around the sleeping cat's head.
+    Leaving the parent area returns to the lock while it is still night. If the parent moved the
+    times so that it is no longer night, leaving goes to the menu, without the sunrise.
+- **USB power** is the AXP2101's "VBUS good" status bit.
+- **Sunrise** plays at wake time if the lock is showing: the sun rises 110 px over 4 s while the
+  brightness goes from 10 to 100 %, then the rising four-note chime, a happy meow and "Dobro
+  jutro!". The menu follows 60 s later, on a tap once the sun is up, or at once on Home, without the
+  Home mew.
+- **The Sleepy clock app** shows the day scene: the sun with slowly turning rays, the hills and the
+  proud cat. A tap on the cat purrs, as in Pet the cat (purring face, the purr loop for 1.5 s). The
+  app is never open at night, because the lock closes it.
+- **The parent area in M6:**
+  - The home screen has two of the design's four tiles, Volume and Sleep. Apps, Cat and the
+    battery in the center arrive in M7. The text is still Montserrat.
+  - Sleep times has three rows: Bedtime and Wake up in 15-minute steps, and Now in 1-minute steps.
+    Holding ± repeats, and after 2 s the Now row steps by 10 minutes.
+  - Now shows "--:--" while the time is invalid, and its first press starts from 12:00.
+
 ## 4. Architecture
 
 ### 4.1 Toolchain and dependencies
@@ -231,7 +331,7 @@ The design leaves these open; they apply to Pet the cat (M4), and the tilt rules
 | Graphics | LVGL 9.4 |
 | IMU | `waveshare/qmi8658` |
 | Power | XPowersLib for the AXP2101, as in Waveshare example `01_AXP2101` |
-| RTC | A small local driver for the PCF85063 (read/write time only) |
+| Time | The ESP32-S3's own clock with SNTP (`esp_netif_sntp`); the 1.75C has no PCF85063 (§3.2) |
 | Filesystem | LittleFS (`joltwallet/littlefs`) on an internal flash partition holding every image and sound. The SD card is not used. |
 | Host tests | CMake plus Unity for pure-logic modules, run on the Mac |
 
@@ -258,8 +358,9 @@ cat-toy/
       touch_raw.c/.h      two-point reads for the parent gesture
       imu.c/.h            50 Hz sampling task -> shake and tilt events
       audio.c/.h          play clip, record clip, global volume cap
-      power.c/.h          battery %, charging state, deep sleep
-      clock.c/.h          RTC, NTP sync, time zone, validity
+      pmu.c/.h            AXP2101 register access, shared by buttons and power
+      power.c/.h          USB power (M6); battery %, charging state, deep sleep (M7)
+      clock.c/.h          system time, NTP sync, time zone, validity
       settings.c/.h       NVS-backed settings
     logic/                pure C, no ESP-IDF includes, host-tested
       gestures.c/.h       tap, swipe, rub, two-finger hold classification
@@ -277,7 +378,10 @@ cat-toy/
       tokens.h            design constants: colors, sizes, durations, thresholds
       launcher.c/.h       carousel, idle dim, parent gesture entry
       app_manager.c/.h    open, close, Home, event routing
-      overlays.c/.h       low battery, charging, bedtime lock, sunrise
+      bedtime.c/.h        bedtime lock and sunrise
+      scenes.c/.h         the Sleepy clock's night and day scenes
+      hold_ring.c/.h      the parent two-finger hold and its ring (menu and lock)
+      overlays.c/.h       low battery, charging
       parent.c/.h         parent area screens
       first_run.c/.h      cat picker
     apps/
@@ -313,7 +417,8 @@ typedef struct {
 
 Rules for apps:
 - **Owned resources:** an app owns only what it creates. `destroy` must leave no timers,
-  animations, audio or PSRAM behind; a leak test checks this (section 7).
+  animations, audio or PSRAM behind; a leak test checks this (section 7). The one exception is
+  Magic paws' drawing, which is kept on purpose (§3.11).
 - **No blocking:** apps never block the LVGL thread. Recording and effect processing run on the
   audio task, and results come back through `lv_async_call`.
 - **No global state:** apps do not touch buttons or settings directly. The app manager handles Home.
@@ -348,6 +453,7 @@ Rules for apps:
 | Chosen cat, all three scales (loaded at boot) | ~1.3 MB |
 | Menu icons, 6 × 240 px (loaded at boot) | ~1.0 MB |
 | Largest app's own assets (loaded on open, freed on close) | ≤ 1.5 MB |
+| Magic paws' picture (allocated on first open, kept until restart, §3.11) | 434 KB |
 | Audio: 5 s record buffer, effect output buffer, playback buffer | ~0.8 MB |
 | Headroom | ≥ 2 MB |
 
@@ -361,7 +467,7 @@ The rule: failures degrade play gracefully, and they never raise the volume or l
 | Missing sound | Log it and stay silent |
 | Audio codec init fails | Everything runs silently; Silly voices shows the cat with the mic disabled (grey) |
 | IMU init fails | Shake and tilt do nothing; the apps still work by touch |
-| RTC invalid and no NTP | Time features off (section 3.2) |
+| Time invalid (power lost, no NTP and no manual set) | Time features off (section 3.2) |
 | Battery gauge unavailable | Hide battery screens; never force low-battery mode |
 | NVS corrupt | Erase and use defaults, and run first-run again |
 
@@ -437,7 +543,8 @@ swish, rolling rumble loop, whoosh, squeak, roar, yawn, munching loop, snore.
   The board and its lithium battery are never handed over bare.
 - The volume cap defaults to 100 % (the codec's 0 dB; 60 % measured far too quiet on the device,
   2026-09-23), and the parent area can lower it. Check the real loudness at the kid test (M8).
-- No cloud, no accounts. The network is used only for NTP at boot, then Wi-Fi turns off.
+- No cloud, no accounts. The network is used only for NTP: at boot, once a day 10 minutes before
+  wake time, and every 5 minutes while the clock is not valid. Wi-Fi is off the rest of the time.
 - Recordings are held in RAM only and discarded when Silly voices closes or the device sleeps.
 - Wi-Fi credentials live in a gitignored `sdkconfig.secrets`, never in the repository. The generated
   `sdkconfig` is gitignored too, because it contains them after a build; the committed baseline is
@@ -455,7 +562,7 @@ Each milestone ends with a flashed, working device.
 | M3 | Silly voices | Record, the 4 effects, talking mouth, costume cycling. **First kid test.** |
 | M4 | Pet the cat | Tap, rub, shake, tilt, fish. |
 | M5 | Magic paws, Yarn roll, Meow piano | All three apps. |
-| M6 | Time and bedtime | NTP and RTC, Sleepy clock, bedtime lock, sunrise, night light. |
+| M6 | Time and bedtime | NTP and the manual clock, Sleepy clock, bedtime lock, sunrise, night light. |
 | M7 | System and parent | Cat picker, low battery, charging, parent area, deep sleep, burn-in shifts. |
 | M8 | Tuning | Kid-test fixes, volume and sensitivity tuning, battery life measurement. |
 

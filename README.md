@@ -25,6 +25,21 @@ one listener can hold the port: let a running one finish (or stop it) before fla
 | FPS overlay | same with `perf` |
 | Soak test | same with `soak` |
 
+## Wi-Fi for the clock (optional)
+
+The toy sets its clock over NTP at boot and 10 minutes before the wake-up minute when it knows a
+Wi-Fi network, and every 5 minutes while it has no valid time (spec §3.2). Without one, set the time
+in the parent area (Sleep → Now). Put the
+network in `sdkconfig.secrets` next to `sdkconfig.defaults`. The file is git-ignored; never commit it:
+
+    CONFIG_CAT_WIFI_SSID="network name"
+    CONFIG_CAT_WIFI_PASSWORD="password"
+
+A build directory reads it only when it creates its `sdkconfig`, so delete `sdkconfig` after creating or
+changing the file, then build. Developer builds that pass `SDKCONFIG_DEFAULTS` read it only if you add
+it to their list. Never run `idf.py save-defconfig` on a build with Wi-Fi configured: it writes
+`CONFIG_CAT_WIFI_PASSWORD` into the committed `sdkconfig.defaults`.
+
 ## Host tests
 
 `test/run.sh` (add `-R name` to run one test)
@@ -34,7 +49,6 @@ one listener can hold the port: let a running one finish (or stop it) before fla
 1. Create `components/ui/apps/<name>.c` that defines `const app_t app_<name>` (see `components/ui/include/app.h`
    and `apps/voices.c` for a full example).
 2. Add `X(app_<name>)` to `APP_LIST` in `components/ui/apps/registry.c`.
-3. If it replaces a placeholder, delete that line from `apps/placeholder.c`.
 
 ## Replacing placeholder sounds
 

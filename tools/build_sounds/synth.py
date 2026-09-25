@@ -81,6 +81,7 @@ def saw(f, dur, attack, release):
 
 
 C5, E5, G5, C6, E6, G6 = 523.25, 659.25, 783.99, 1046.5, 1318.5, 1568.0
+G4 = 392.0  # the design's wake chime starts on G4
 BELL = (1.0, 0.0, 0.3, 0.0, 0.15)
 PURR_AM = [0.6 + 0.4 * math.sin(2 * math.pi * 28 * i / RATE) for i in range(int(0.7 * RATE))]
 
@@ -90,9 +91,12 @@ RECIPES = {
     "pop": lambda: mix(sweep(420, 180, 0.08, release=0.9), noise(0.015, lp=0.9)),
     "click": lambda: noise(0.015, lp=0.9, attack=0.001, release=0.9),
     "chime_boot": lambda: notes([C6, E6, G6], 0.14, harmonics=BELL, release=0.8),
-    "chime_wake": lambda: notes([C5, E5, G5, C6], 0.18, harmonics=BELL, release=0.8),
+    "chime_wake": lambda: sum(
+        (sweep(f, f * 1.02, 0.2, harmonics=(1, 0, 0.11, 0, 0.04), release=0.6) for f in (G4, C5, E5, G5)), []
+    ),
     "sparkle": lambda: sweep(3000, 3400, 0.04, harmonics=BELL, release=0.9),
     "bell_tick": lambda: sweep(2000, 2000, 0.06, harmonics=BELL, release=0.9),
+    "pat": lambda: sweep(700, 500, 0.06, harmonics=(1, 0, 0.11, 0, 0.04), release=0.8),  # design: 700->500 Hz triangle
     "beep_boop": lambda: square(800, 0.12) + silence(0.04) + square(500, 0.14),
     "fanfare": lambda: notes([C5, E5, G5], 0.12, gap=0.02, harmonics=(1, 0.5, 0.25))
     + sweep(C6, C6, 0.5, harmonics=(1, 0.5, 0.25)),

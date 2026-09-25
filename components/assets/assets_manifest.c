@@ -25,6 +25,8 @@ const cat_part_pos_t CAT_PARTS[] = {
     {"eyes_spiral_f3", 0, {51, 79, 103}, {71, 110, 143}},
     {"pupil", 1, {54, 83, 108}, {75, 115, 149}},
     {"highlight", 1, {59, 92, 119}, {75, 115, 149}},
+    {"pupil_big", 1, {52, 80, 104}, {73, 112, 145}},
+    {"highlight_big", 1, {59, 91, 118}, {73, 113, 147}},
     {"mouth_w", 0, {66, 101, 132}, {94, 145, 189}},
     {"mouth_smallw", 0, {70, 107, 139}, {96, 147, 191}},
     {"mouth_small", 0, {71, 109, 142}, {97, 149, 194}},
@@ -60,7 +62,7 @@ const cat_part_pos_t CAT_PARTS[] = {
     {"prop_fish", 1, {51, 79, 103}, {109, 167, 217}},
     {"prop_broom", 1, {68, 105, 137}, {35, 53, 69}},
 };
-const size_t CAT_PARTS_COUNT = 53;
+const size_t CAT_PARTS_COUNT = 55;
 
 const ui_image_pos_t UI_IMAGE_POS[] = {
     {"ui/paw_hint", 0, 0},
@@ -69,5 +71,26 @@ const ui_image_pos_t UI_IMAGE_POS[] = {
     {"ui/fish", 27, 51},
     {"ui/ball", 0, 0},
     {"ui/heart", 0, 0},
+    {"ui/brush_rainbow", 0, 0},
+    {"ui/brush_paw", 0, 0},
+    {"ui/draw_hint", 0, 0},
+    {"ui/dust", 0, 0},
+    {"ui/yarn_f0", 0, 0},
+    {"ui/yarn_f1", 0, 0},
+    {"ui/yarn_f2", 0, 0},
+    {"ui/yarn_f3", 0, 0},
+    {"ui/yarn_basket", 0, 0},
+    {"ui/yarn_basket_full", 0, 0},
+    {"ui/tilt_hint", 0, 0},
+    {"ui/piano_note", 0, 0},
+    {"ui/star", 0, 0},
+    {"ui/hour_star_on", 0, 0},
+    {"ui/hour_star_off", 0, 0},
+    {"ui/hills", 0, 368},
+    {"ui/p_vol", 0, 0},
+    {"ui/p_moon", 0, 0},
+    {"ui/p_moon_row", 0, 0},
+    {"ui/p_sun_row", 0, 0},
+    {"ui/p_clock_row", 0, 0},
 };
-const size_t UI_IMAGE_POS_COUNT = 6;
+const size_t UI_IMAGE_POS_COUNT = 27;

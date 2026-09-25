@@ -2,6 +2,37 @@ const circ = (x, y, r) => `M${x - r} ${y} a${r} ${r} 0 1 0 ${2 * r} 0 a${r} ${r}
 const PAW = 'M6.5 16.5 Q6.5 11 12 11 Q17.5 11 17.5 16.5 Q17.5 20 12 20 Q6.5 20 6.5 16.5 Z ' +
   circ(5, 9.5, 2.4) + circ(9.3, 5.6, 2.4) + circ(14.7, 5.6, 2.4) + circ(19, 9.5, 2.4);
 const ARCH = 'M80 250 L80 160 Q80 36 233 36 Q386 36 386 160 L386 250';
+// Magic paws brush button: black disc with a white ring at 45 % (Screen.dc.html draw view).
+const BRUSH_DISC = '<circle cx="75" cy="75" r="70" fill="#000000" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="6"/>';
+// The yarn with its strands turned by `deg`: four frames make one full roll (Assets.dc.html yarn_ball_f0-f3).
+const yarn = (deg) =>
+  '<circle cx="32" cy="32" r="27" fill="#FF7FB0" stroke="#A8326A" stroke-width="5"/>' +
+  `<g transform="rotate(${deg} 32 32)"><path d="M10 26 Q32 16 54 30 M8 38 Q32 28 56 42 M22 9 Q42 30 34 58" fill="none" stroke="#B8356F" stroke-width="4" stroke-linecap="round"/></g>`;
+const BASKET_WEAVE = (y0) =>
+  `<path d="M36 ${y0 + 2} L42 ${y0 + 58} M60 ${y0 + 2} L60 ${y0 + 58} M84 ${y0 + 2} L78 ${y0 + 58} M14 ${y0 + 24} L106 ${y0 + 24} M18 ${y0 + 42} L102 ${y0 + 42}" fill="none" stroke="#6B3A0C" stroke-width="4"/>`;
+const basket = (y0) =>
+  `<path d="M8 ${y0} L112 ${y0} L98 ${y0 + 60} L22 ${y0 + 60} Z" fill="#C98B4A" stroke="#6B3A0C" stroke-width="6" stroke-linejoin="round"/>` +
+  BASKET_WEAVE(y0) +
+  `<path d="M6 ${y0} L114 ${y0}" fill="none" stroke="#E6A865" stroke-width="10" stroke-linecap="round"/>`;
+
+// Sleepy clock (Screen.dc.html clock view): the night sky's stars, the hour stars and the hills.
+const STAR4 = 'M10 0 Q10 10 20 10 Q10 10 10 20 Q10 10 0 10 Q10 10 10 0 Z';
+const HOUR_STAR = 'M10 1 Q10 10 19 10 Q10 10 10 19 Q10 10 1 10 Q10 10 10 1 Z';
+const HILLS = 'M0 404 Q116 346 233 396 Q350 346 466 404 L466 466 L0 466 Z';
+// Parent-area line icons (Screen.dc.html ICON); `clock` is new, for the Now row.
+const ICON = {
+  vol: 'M4 9 L8 9 L13 5 L13 19 L8 15 L4 15 Z M16.5 9 Q18.5 12 16.5 15 M19 6.5 Q22.5 12 19 17.5',
+  moon: 'M20 14.5 A8.5 8.5 0 1 1 9.5 4 A7 7 0 0 0 20 14.5 Z',
+  sun: 'M12 8 A4 4 0 1 1 11.99 8 Z M12 2 L12 4 M12 20 L12 22 M2 12 L4 12 M20 12 L22 12 M5 5 L6.5 6.5 M17.5 17.5 L19 19 M5 19 L6.5 17.5 M17.5 6.5 L19 5',
+  clock: 'M12 3 A9 9 0 1 1 11.99 3 Z M12 7 L12 12 L15.5 14',
+};
+const lineIcon = (name, d, size, color) => ({
+  name,
+  viewBox: [0, 0, 24, 24],
+  size,
+  crop: false,
+  svg: `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+});
 
 export const UI_IMAGES = [
   { name: 'ui/paw_hint', viewBox: [0, 0, 24, 24], crop: false, svg: `<path d="${PAW}" fill="#FFFFFF"/>` },
@@ -46,4 +77,93 @@ export const UI_IMAGES = [
     crop: false,
     svg: '<path d="M15 27 C4 19 1 12 4 7 C7 2 13 3 15 8 C17 3 23 2 26 7 C29 12 26 19 15 27 Z" fill="#FF7FB0"/>',
   },
+  {
+    name: 'ui/brush_rainbow',
+    viewBox: [0, 0, 150, 150],
+    crop: false,
+    svg:
+      BRUSH_DISC +
+      '<path d="M35 95 A40 40 0 0 1 115 95" fill="none" stroke="#FF5A5A" stroke-width="12" stroke-linecap="round"/>' +
+      '<path d="M53 95 A22 22 0 0 1 97 95" fill="none" stroke="#FFD84A" stroke-width="12" stroke-linecap="round"/>' +
+      '<circle cx="75" cy="95" r="6" fill="#5CE0FF"/>',
+  },
+  {
+    name: 'ui/brush_paw',
+    viewBox: [0, 0, 150, 150],
+    crop: false,
+    svg:
+      BRUSH_DISC +
+      '<ellipse cx="75" cy="88" rx="22" ry="18" fill="#FFB0C8"/>' +
+      '<circle cx="48" cy="62" r="9" fill="#FFB0C8"/><circle cx="65" cy="48" r="9" fill="#FFB0C8"/>' +
+      '<circle cx="85" cy="48" r="9" fill="#FFB0C8"/><circle cx="102" cy="62" r="9" fill="#FFB0C8"/>',
+  },
+  {
+    name: 'ui/draw_hint',
+    viewBox: [0, 0, 160, 120],
+    crop: false,
+    svg:
+      '<circle cx="20" cy="90" r="8" fill="#FF5A5A"/><circle cx="46" cy="66" r="8" fill="#FF9F3A"/>' +
+      '<circle cx="76" cy="54" r="8" fill="#FFD84A"/><circle cx="106" cy="60" r="8" fill="#5CD67A"/>' +
+      '<circle cx="132" cy="80" r="8" fill="#4FD8FF"/>',
+  },
+  {
+    name: 'ui/dust',
+    viewBox: [0, 0, 266, 60],
+    crop: false,
+    svg:
+      '<circle cx="20" cy="40" r="14" fill="#8A8AA0"/><circle cx="44" cy="28" r="10" fill="#8A8AA0"/>' +
+      '<circle cx="230" cy="36" r="14" fill="#8A8AA0"/><circle cx="250" cy="20" r="9" fill="#8A8AA0"/>',
+  },
+  ...[0, 90, 180, 270].map((deg, i) => ({ name: `ui/yarn_f${i}`, viewBox: [0, 0, 64, 64], crop: false, svg: yarn(deg) })),
+  { name: 'ui/yarn_basket', viewBox: [0, 0, 120, 96], crop: false, svg: basket(30) },
+  {
+    name: 'ui/yarn_basket_full',
+    viewBox: [0, 0, 120, 110],
+    crop: false,
+    svg: '<circle cx="60" cy="38" r="26" fill="#FF7FB0" stroke="#A8326A" stroke-width="5"/>' + basket(44),
+  },
+  {
+    name: 'ui/tilt_hint',
+    viewBox: [0, 0, 60, 44],
+    crop: false,
+    svg:
+      '<rect x="6" y="10" width="48" height="24" rx="12" fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="5"/>' +
+      '<circle cx="30" cy="22" r="5" fill="#FF7FB0"/>',
+  },
+  {
+    name: 'ui/piano_note',
+    viewBox: [0, 0, 100, 100],
+    crop: false,
+    svg:
+      '<circle cx="50" cy="50" r="44" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="6" stroke-dasharray="0.1 14" stroke-linecap="round"/>' +
+      '<path d="M58 26 L58 62" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>' +
+      '<ellipse cx="48" cy="64" rx="12" ry="9" fill="#FFFFFF"/>' +
+      '<path d="M58 26 Q74 30 76 46 Q68 38 58 38 Z" fill="#FFFFFF"/>',
+  },
+  { name: 'ui/star', viewBox: [0, 0, 20, 20], size: 22, crop: false, svg: `<path d="${STAR4}" fill="#FFE58A"/>` },
+  {
+    name: 'ui/hour_star_on',
+    viewBox: [0, 0, 20, 20],
+    size: 26,
+    crop: false,
+    svg: `<path d="${HOUR_STAR}" fill="#FFE58A" stroke="#FFE58A" stroke-width="2"/>`,
+  },
+  {
+    name: 'ui/hour_star_off',
+    viewBox: [0, 0, 20, 20],
+    size: 26,
+    crop: false,
+    svg: `<path d="${HOUR_STAR}" fill="none" stroke="#6B6B8A" stroke-width="2"/>`,
+  },
+  {
+    name: 'ui/hills',
+    viewBox: [0, 0, 466, 466],
+    crop: true,
+    svg: `<path d="${HILLS}" fill="#3FCB6A" stroke="#1D7A3A" stroke-width="6" stroke-linejoin="round"/>`,
+  },
+  lineIcon('ui/p_vol', ICON.vol, 36, '#F2EFFA'),
+  lineIcon('ui/p_moon', ICON.moon, 36, '#F2EFFA'),
+  lineIcon('ui/p_moon_row', ICON.moon, 24, '#FFC76B'),
+  lineIcon('ui/p_sun_row', ICON.sun, 24, '#FFC76B'),
+  lineIcon('ui/p_clock_row', ICON.clock, 24, '#FFC76B'),
 ];

@@ -29,3 +29,11 @@ CONFIG_LV_FONT_MONTSERRAT_16=y
 CONFIG_LV_FONT_MONTSERRAT_20=y
 CONFIG_LV_FONT_MONTSERRAT_40=y
 CONFIG_LV_FONT_MONTSERRAT_48=y
+# Wi-Fi for the clock's NTP sync (spec §3.2): Wi-Fi and lwIP buffers may use PSRAM
+CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+# ...but keep the Wi-Fi RX buffers at their non-PSRAM defaults: the option above raises both to 16, and the extra
+# internal DMA RAM starved the display's per-flush buffer during a sync (dropped frames on the device, M6)
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=10
+CONFIG_ESP_WIFI_RX_BA_WIN=6
+# NTP within the 10 s budget (spec §3.2): no random 0-5 s wait before each request; clock.c resends every 2 s
+# CONFIG_LWIP_SNTP_STARTUP_DELAY is not set
