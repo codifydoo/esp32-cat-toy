@@ -92,8 +92,11 @@ The 1.75C has no RTC chip (docs/device-checks.md), so the ESP32-S3 keeps the tim
 survives restarts and deep sleep, but not a power loss. Decided 2026-09-24:
 
 - **NTP:** if Wi-Fi credentials are configured, the device connects and syncs over NTP
-  (`pool.ntp.org`) at boot, and again once a day when the clock reaches the wake-up minute. Then it
-  turns Wi-Fi off and releases it. The timeout is 10 s, and a failure is silent.
+  (`pool.ntp.org`) at boot, and again once a day 10 minutes before the wake-up minute, so the
+  sunrise never shares the moment with Wi-Fi and runs on the corrected time. While the clock is not
+  valid, a failed sync is retried every 5 minutes; no sync starts while the parent area is open.
+  Within one attempt, a dropped connection is retried until the timeout. Then it turns Wi-Fi off
+  and releases it. The timeout is 10 s, and a failure is silent. (Amended 2026-09-25.)
 - **Manual:** the parent area's **Sleep times** screen gains a third row, **Now**, which sets the
   clock by hand (± buttons, press-and-hold to repeat). A manual set keeps today's date, or uses
   2 January 2026 when the clock has no date yet. Without NTP the date is then not the real one, so a
@@ -540,8 +543,8 @@ swish, rolling rumble loop, whoosh, squeak, roar, yawn, munching loop, snore.
   The board and its lithium battery are never handed over bare.
 - The volume cap defaults to 100 % (the codec's 0 dB; 60 % measured far too quiet on the device,
   2026-09-23), and the parent area can lower it. Check the real loudness at the kid test (M8).
-- No cloud, no accounts. The network is used only for NTP at boot and once a day at wake time.
-  Wi-Fi is off the rest of the time.
+- No cloud, no accounts. The network is used only for NTP: at boot, once a day 10 minutes before
+  wake time, and every 5 minutes while the clock is not valid. Wi-Fi is off the rest of the time.
 - Recordings are held in RAM only and discarded when Silly voices closes or the device sleeps.
 - Wi-Fi credentials live in a gitignored `sdkconfig.secrets`, never in the repository. The generated
   `sdkconfig` is gitignored too, because it contains them after a build; the committed baseline is
