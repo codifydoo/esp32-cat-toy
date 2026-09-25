@@ -28,8 +28,11 @@ void power_init(void)
     }
     uint8_t ctl = 0;
     if (pmu_read(PMU_REG_GAUGE_CTL, &ctl) == ESP_OK && !(ctl & PMU_GAUGE_ON)) {
-        pmu_write(PMU_REG_GAUGE_CTL, ctl | PMU_GAUGE_ON);
-        ESP_LOGI(TAG, "fuel gauge switched on");
+        if (pmu_write(PMU_REG_GAUGE_CTL, ctl | PMU_GAUGE_ON) == ESP_OK) {
+            ESP_LOGI(TAG, "fuel gauge switched on");
+        } else {
+            ESP_LOGW(TAG, "fuel gauge switch-on failed");
+        }
     }
     power_poll(true);
     const power_state_t s = power_state();
@@ -51,11 +54,19 @@ void power_poll(bool with_gauge)
 {
     uint8_t s1 = 0, s2 = 0, pct = 0xFF;
     const bool ok = pmu_read(PMU_REG_STATUS1, &s1) == ESP_OK && pmu_read(PMU_REG_STATUS2, &s2) == ESP_OK;
-    const bool battery = ok && (s1 & PMU_BATTERY_IN);
+    if (!ok) {
+        return; /* unknown, not "unplugged": keep the last known state, or the next good read fakes a USB edge */
+    }
+    const bool battery = (s1 & PMU_BATTERY_IN) != 0;
     const bool gauge_read = with_gauge && battery && pmu_read(PMU_REG_PERCENT, &pct) == ESP_OK;
+#if CONFIG_CAT_DEV_BATTERY_DRAIN
+    /* Still empty after a sleep for the battery, so the hungry-cat wake can be checked; a reset starts over. */
+    const int64_t steps = esp_timer_get_time() / 1000000 / DRAIN_STEP_S;
+    const bool for_battery = deepsleep_was_for_battery();
+#endif
     portENTER_CRITICAL(&s_lock);
-    s_state.usb = ok && (s1 & PMU_VBUS_GOOD);
-    s_state.charging = ok && ((s2 >> 5) & 3u) == PMU_DIR_CHARGING;
+    s_state.usb = (s1 & PMU_VBUS_GOOD) != 0;
+    s_state.charging = ((s2 >> 5) & 3u) == PMU_DIR_CHARGING;
     if (!battery) {
         s_state.pct = -1;
     } else if (gauge_read) {
@@ -63,12 +74,10 @@ void power_poll(bool with_gauge)
     }
 #if CONFIG_CAT_DEV_IGNORE_USB
     s_state.usb = false;
+    s_state.charging = false; /* USB counts as battery here: no charger either */
 #endif
 #if CONFIG_CAT_DEV_BATTERY_DRAIN
-    /* Still empty after a sleep for the battery, so the hungry-cat wake can be checked; a reset starts over. */
-    const int64_t steps = esp_timer_get_time() / 1000000 / DRAIN_STEP_S;
-    s_state.pct = deepsleep_was_for_battery() ? 1
-                  : (int8_t)(steps >= DRAIN_START_PCT ? 0 : DRAIN_START_PCT - steps);
+    s_state.pct = for_battery ? 1 : (int8_t)(steps >= DRAIN_START_PCT ? 0 : DRAIN_START_PCT - steps);
     s_state.charging = false;
 #endif
     portEXIT_CRITICAL(&s_lock);

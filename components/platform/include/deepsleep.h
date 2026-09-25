@@ -16,5 +16,6 @@ deepsleep_cause_t deepsleep_cause(void);
 bool deepsleep_was_for_battery(void);
 /* Stops all sound, puts the panel to sleep, holds the speaker amplifier off and deep-sleeps. Never returns:
  * the chip restarts on a touch, BOOT (PWR where wired), or after timer_s seconds when timer_s > 0. LVGL task,
- * with the LVGL lock held. */
+ * with the LVGL lock held, and its stack must be in internal RAM (esp_deep_sleep_start asserts it once a pad
+ * hold is enabled). */
 void deepsleep_start(uint32_t timer_s, bool for_battery);

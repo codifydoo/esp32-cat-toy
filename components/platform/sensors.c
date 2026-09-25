@@ -87,7 +87,10 @@ esp_err_t sensors_start(void)
     shake_reset(&s_shake);
     s_events = xQueueCreate(EVENT_QUEUE_LEN, sizeof(sensor_ev_t));
     ESP_RETURN_ON_FALSE(s_events, ESP_ERR_NO_MEM, TAG, "queue");
-    s_usb = power_state().usb; /* power_init() ran: USB at boot is no event */
+    /* A fresh reading: power_init() may not have run (the diag and gallery builds skip it), but
+     * buttons_init() above has already called pmu_init(). */
+    power_poll(false);
+    s_usb = power_state().usb; /* USB at boot is no event */
     BaseType_t ok = xTaskCreatePinnedToCore(sensors_task, "sensors", 8192, NULL, 4, NULL, 0);
     return ok == pdPASS ? ESP_OK : ESP_ERR_NO_MEM;
 }

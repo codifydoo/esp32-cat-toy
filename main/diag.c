@@ -80,6 +80,9 @@ static void on_event(sensor_ev_t ev) /* LVGL task (tick below), so no lock is ne
         audio_play(SND_BLIP_UP);
         return;
     }
+    if (ev == SENSOR_EV_USB_IN) {
+        return; /* nothing shows for it here */
+    }
     if (ev == SENSOR_EV_HOME) {
         s_home++;
     } else {
