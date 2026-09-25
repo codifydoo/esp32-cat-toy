@@ -19,7 +19,7 @@
 #define MAX_APPS   32
 #define DEG_TO_RAD (3.14159265f / 180.0f)
 
-static lv_obj_t *s_scr, *s_cat, *s_icon, *s_icon_next, *s_static;
+static lv_obj_t *s_scr, *s_cat, *s_icon, *s_icon_next, *s_static, *s_paw_a, *s_paw_b;
 static lv_obj_t *s_dots[CAROUSEL_MAX_DOTS];
 static const app_t *s_apps[MAX_APPS];
 static carousel_t s_car;
@@ -254,8 +254,8 @@ void launcher_create(void)
     char paw[48];
     cat_part_asset(paw, sizeof(paw), CAT_SCALE_M, "paw");
     const lv_image_dsc_t *pd = assets_image(paw);
-    ui_image(s_scr, paw, MENU_PAW_A_CX - pd->header.w / 2, MENU_PAW_CY - pd->header.h / 2);
-    ui_image(s_scr, paw, MENU_PAW_B_CX - pd->header.w / 2, MENU_PAW_CY - pd->header.h / 2);
+    s_paw_a = ui_image(s_scr, paw, MENU_PAW_A_CX - pd->header.w / 2, MENU_PAW_CY - pd->header.h / 2);
+    s_paw_b = ui_image(s_scr, paw, MENU_PAW_B_CX - pd->header.w / 2, MENU_PAW_CY - pd->header.h / 2);
 
     s_static = ui_plain(s_scr); /* chevrons, dots and hint shift together against burn-in */
     lv_obj_set_size(s_static, SCREEN_SIZE, SCREEN_SIZE);
@@ -311,3 +311,11 @@ void launcher_burn_in_shift(void)
 }
 
 lv_obj_t *launcher_screen(void) { return s_scr; }
+
+void launcher_cat_changed(void)
+{
+    char paw[48];
+    cat_part_asset(paw, sizeof(paw), CAT_SCALE_M, "paw");
+    lv_image_set_src(s_paw_a, assets_image(paw));
+    lv_image_set_src(s_paw_b, assets_image(paw));
+}

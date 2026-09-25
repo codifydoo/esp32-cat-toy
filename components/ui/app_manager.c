@@ -6,6 +6,7 @@
 #include "buttons.h"
 #include "esp_log.h"
 #include "sensors.h"
+#include "first_run.h"
 #include "idle.h"
 #include "launcher.h"
 #include "parent.h"
@@ -39,7 +40,9 @@ void app_manager_init(void)
 
 void app_manager_start(void)
 {
-    if (!bedtime_take_over()) { /* a start inside the night shows the lock after the boot animation */
+    if (first_run_due()) {
+        first_run_show(); /* the picker; its end shows the lock or the menu */
+    } else if (!bedtime_take_over()) { /* a start inside the night shows the lock after the boot animation */
         launcher_show();
     }
     s_started = true; /* buttons are ignored until this point -- see handle_button() */
@@ -179,6 +182,10 @@ static void do_home(void)
     }
     if (idle_wake_if_asleep()) {
         return; /* the press only wakes the screen */
+    }
+    if (first_run_showing()) {
+        first_run_skip(); /* Home works everywhere but on the lock (spec §3.6, §3.13) */
+        return;
     }
     if (s_current) {
         app_manager_home();

@@ -316,3 +316,17 @@
 #define BEDTIME_RING_CY        279
 #define SUNRISE_FROM_PCT       10
 #define SUNRISE_MENU_MS        60000
+
+/* Cat picker (Screen.dc.html pick view, PICK and V; spec §3.13) */
+#define PICK_PAD          156  /* the touch target */
+#define PICK_RING_R       72   /* the drawn circle, to the middle of its stroke */
+#define PICK_RING_THIN    5
+#define PICK_RING_THICK   10   /* the chosen cat */
+#define PICK_FILL_OPA     48   /* the chosen pad: its fur color at 0x30 */
+#define PICK_CAT_DX       13   /* scale S origin inside the pad */
+#define PICK_CAT_DY       8
+#define PICK_CELEBRATE_MS 1400
+#define PICK_CENTERS      {{233, 128}, {143, 300}, {323, 300}} /* orange, grey, tux */
+#define COLOR_FUR_ORANGE  0xFF9F43
+#define COLOR_FUR_GREY    0xA9B6C9
+#define COLOR_FUR_TUX     0x3B3B52
