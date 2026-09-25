@@ -10,6 +10,10 @@
 #define SCHEDULE_NOW_FAST_MS   2000 /* ± held this long: Now steps by 10 minutes */
 #define SCHEDULE_NOW_FAST_STEP 10
 
+#define SCHEDULE_SYNC_BEFORE_MIN 10   /* the daily NTP sync runs this long before wake-up, off the sunrise */
+#define SCHEDULE_SYNC_RETRY_S    300  /* while the clock is not valid, a sync is retried this often */
+#define SCHEDULE_SYNC_GAP_S      3600 /* the daily sync never follows another attempt closer than this */
+
 /* Night runs from bed to wake, across midnight when bed > wake; bed == wake means no night. */
 bool schedule_is_night(uint16_t now, uint16_t bed, uint16_t wake);
 /* Minutes from now forward to target, 0-1439 (0 when they are equal). */
@@ -22,3 +26,6 @@ uint16_t schedule_step(uint16_t min, int32_t delta);
 void schedule_format(uint16_t min, char out[6]);
 /* The Now row's step while ± has been held for held_ms: 1 minute, then 10 after 2 s. */
 uint16_t schedule_now_step(uint32_t held_ms);
+/* Whether to start an NTP sync now (spec §3.2). secs_since_attempt: since the last attempt started,
+ * UINT32_MAX before the first. */
+bool schedule_sync_due(bool valid, uint16_t now, uint16_t wake, uint32_t secs_since_attempt);

@@ -96,6 +96,38 @@ static void test_now_speeds_up_after_two_seconds(void)
     TEST_ASSERT_EQUAL_UINT16(10, schedule_now_step(60000));
 }
 
+/* While the clock is not valid, a sync retries every 5 minutes regardless of now or wake. */
+static void test_sync_due_retries_every_5_min_while_invalid(void)
+{
+    TEST_ASSERT_FALSE(schedule_sync_due(false, HM(3, 17), HM(7, 0), 299));
+    TEST_ASSERT_TRUE(schedule_sync_due(false, HM(3, 17), HM(7, 0), 300));
+    TEST_ASSERT_TRUE(schedule_sync_due(false, HM(3, 17), HM(7, 0), UINT32_MAX));
+}
+
+/* Once valid, the daily sync is due 10 minutes before wake, and only an hour after the last attempt. */
+static void test_sync_due_ten_minutes_before_wake(void)
+{
+    const uint16_t wake = HM(7, 0);
+    TEST_ASSERT_TRUE(schedule_sync_due(true, HM(6, 50), wake, 3600));
+    TEST_ASSERT_FALSE(schedule_sync_due(true, HM(6, 50), wake, 3599));
+    TEST_ASSERT_TRUE(schedule_sync_due(true, HM(6, 50), wake, UINT32_MAX));
+}
+
+static void test_sync_not_due_at_other_minutes(void)
+{
+    const uint16_t wake = HM(7, 0);
+    TEST_ASSERT_FALSE(schedule_sync_due(true, wake, wake, UINT32_MAX));       /* the wake minute itself */
+    TEST_ASSERT_FALSE(schedule_sync_due(true, HM(6, 51), wake, UINT32_MAX)); /* wake - 9 */
+    TEST_ASSERT_FALSE(schedule_sync_due(true, HM(6, 49), wake, UINT32_MAX)); /* wake - 11 */
+}
+
+static void test_sync_due_wraps_past_midnight(void)
+{
+    const uint16_t wake = HM(0, 5);
+    TEST_ASSERT_TRUE(schedule_sync_due(true, HM(23, 55), wake, UINT32_MAX));
+    TEST_ASSERT_FALSE(schedule_sync_due(true, wake, wake, UINT32_MAX));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -108,5 +140,9 @@ int main(void)
     RUN_TEST(test_steps_wrap_around_the_day);
     RUN_TEST(test_format_is_two_digit_hours_and_minutes);
     RUN_TEST(test_now_speeds_up_after_two_seconds);
+    RUN_TEST(test_sync_due_retries_every_5_min_while_invalid);
+    RUN_TEST(test_sync_due_ten_minutes_before_wake);
+    RUN_TEST(test_sync_not_due_at_other_minutes);
+    RUN_TEST(test_sync_due_wraps_past_midnight);
     return UNITY_END();
 }

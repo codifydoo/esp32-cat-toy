@@ -44,3 +44,11 @@ uint16_t schedule_now_step(uint32_t held_ms)
 {
     return held_ms >= SCHEDULE_NOW_FAST_MS ? SCHEDULE_NOW_FAST_STEP : 1;
 }
+
+bool schedule_sync_due(bool valid, uint16_t now, uint16_t wake, uint32_t secs_since_attempt)
+{
+    if (!valid) {
+        return secs_since_attempt >= SCHEDULE_SYNC_RETRY_S;
+    }
+    return now == schedule_step(wake, -SCHEDULE_SYNC_BEFORE_MIN) && secs_since_attempt >= SCHEDULE_SYNC_GAP_S;
+}
