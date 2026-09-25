@@ -25,6 +25,8 @@ const ICON = {
   moon: 'M20 14.5 A8.5 8.5 0 1 1 9.5 4 A7 7 0 0 0 20 14.5 Z',
   sun: 'M12 8 A4 4 0 1 1 11.99 8 Z M12 2 L12 4 M12 20 L12 22 M2 12 L4 12 M20 12 L22 12 M5 5 L6.5 6.5 M17.5 17.5 L19 19 M5 19 L6.5 17.5 M17.5 6.5 L19 5',
   clock: 'M12 3 A9 9 0 1 1 11.99 3 Z M12 7 L12 12 L15.5 14',
+  grid: 'M4 4 H10 V10 H4 Z M14 4 H20 V10 H14 Z M4 14 H10 V20 H4 Z M14 14 H20 V20 H14 Z',
+  cat: 'M5 20 L5 8.5 L7.5 3.5 L10.5 7 L13.5 7 L16.5 3.5 L19 8.5 L19 20 Z M9.5 12.5 L9.5 13.5 M14.5 12.5 L14.5 13.5',
 };
 const lineIcon = (name, d, size, color) => ({
   name,
@@ -33,6 +35,17 @@ const lineIcon = (name, d, size, color) => ({
   crop: false,
   svg: `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
 });
+// Battery glyphs (Screen.dc.html lowbatt and charging views), 72 x 38. The charging fill is an LVGL object
+// drawn between the frame and the bolt, so it can grow (the design's `charge` keyframes).
+const BATT_FRAME = (c) =>
+  `<rect x="4" y="4" width="56" height="30" rx="7" fill="none" stroke="${c}" stroke-width="5"/>` +
+  `<rect x="62" y="13" width="7" height="12" rx="2" fill="${c}"/>`;
+// The bowl's body, with its rim at y0 (empty: 30, full: 42).
+const BOWL = (y0) =>
+  `<path d="M8 ${y0} L152 ${y0} Q142 ${y0 + 54} 80 ${y0 + 54} Q18 ${y0 + 54} 8 ${y0} Z" fill="#5A6B8A" stroke="#25324A" stroke-width="6" stroke-linejoin="round"/>`;
+const KIBBLE = [[44, 36], [66, 28], [90, 28], [114, 36], [78, 18]]
+  .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="11" fill="#D98A4A" stroke="#7A3A10" stroke-width="4"/>`)
+  .join('');
 
 export const UI_IMAGES = [
   { name: 'ui/paw_hint', viewBox: [0, 0, 24, 24], crop: false, svg: `<path d="${PAW}" fill="#FFFFFF"/>` },
@@ -166,4 +179,33 @@ export const UI_IMAGES = [
   lineIcon('ui/p_moon_row', ICON.moon, 24, '#FFC76B'),
   lineIcon('ui/p_sun_row', ICON.sun, 24, '#FFC76B'),
   lineIcon('ui/p_clock_row', ICON.clock, 24, '#FFC76B'),
+  { name: 'ui/batt_low', viewBox: [0, 0, 72, 38], crop: false,
+    svg: BATT_FRAME('#FF4D4D') + '<rect x="11" y="11" width="10" height="16" rx="3" fill="#FF4D4D"/>' },
+  { name: 'ui/batt_charge', viewBox: [0, 0, 72, 38], crop: false, svg: BATT_FRAME('#5CD67A') },
+  {
+    name: 'ui/batt_bolt',
+    viewBox: [0, 0, 72, 38],
+    crop: false,
+    svg: '<path d="M36 6 L26 20 L34 20 L30 32 L42 16 L34 16 Z" fill="#FFF6E6" stroke="#1D5A2B" stroke-width="2" stroke-linejoin="round"/>',
+  },
+  {
+    name: 'ui/bowl_empty',
+    viewBox: [0, 0, 160, 88],
+    crop: false,
+    svg:
+      BOWL(30) +
+      '<ellipse cx="80" cy="30" rx="74" ry="12" fill="#7F8FB0" stroke="#25324A" stroke-width="5"/>' +
+      '<ellipse cx="80" cy="31" rx="58" ry="6" fill="#2A3346"/>',
+  },
+  { name: 'ui/bowl_full', viewBox: [0, 0, 160, 100], crop: false, svg: KIBBLE + BOWL(42) },
+  lineIcon('ui/p_grid', ICON.grid, 36, '#F2EFFA'),
+  lineIcon('ui/p_cat', ICON.cat, 36, '#F2EFFA'),
+  {
+    name: 'ui/p_eye_off',
+    viewBox: [0, 0, 34, 34],
+    crop: false,
+    svg:
+      '<circle cx="17" cy="17" r="15" fill="#1E1D2A" stroke="#FF6B6B" stroke-width="3"/>' +
+      '<path d="M9 17 Q17 9 25 17 Q17 25 9 17 Z M10 24 L24 10" fill="none" stroke="#FF6B6B" stroke-width="2.5" stroke-linecap="round"/>',
+  },
 ];

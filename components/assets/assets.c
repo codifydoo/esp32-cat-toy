@@ -5,6 +5,7 @@
 #include "esp_heap_caps.h"
 #include "esp_littlefs.h"
 #include "esp_log.h"
+#include "misc/cache/instance/lv_image_cache.h" /* lv_image_cache_drop(): not pulled in by lvgl.h */
 
 #define PLACEHOLDER_PX 32
 
@@ -122,5 +123,30 @@ void assets_ui_pos(const char *name, int16_t *x, int16_t *y)
             *y = UI_IMAGE_POS[i].y;
             return;
         }
+    }
+}
+
+void assets_release_prefix(const char *prefix)
+{
+    const size_t n = strlen(prefix);
+    size_t count = 0, bytes = 0;
+    entry_t **link = &s_cache;
+    while (*link) {
+        entry_t *e = *link;
+        if (strncmp(e->name, prefix, n) != 0) {
+            link = &e->next;
+            continue;
+        }
+        *link = e->next;
+        lv_image_cache_drop(&e->dsc); /* never NULL here: NULL would drop LVGL's whole cache */
+        if (e->buf) {
+            bytes += e->dsc.data_size;
+            heap_caps_free(e->buf);
+        }
+        heap_caps_free(e);
+        count++;
+    }
+    if (count) {
+        ESP_LOGI(TAG, "released %u images (%u KB) under %s", (unsigned)count, (unsigned)(bytes / 1024), prefix);
     }
 }
