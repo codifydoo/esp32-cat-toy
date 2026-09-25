@@ -401,3 +401,12 @@ ball appear at once, because flat became level at open (spec §3.10). Filed as i
 options, to decide after the kid test.
 
 The kid test (spec §7) is still open for M3 and M4.
+
+## Cat gallery variants and scales (Task 14) — 2026-09-24
+
+| Check | Result |
+| --- | --- |
+| PWR cycles the three cats (orange, grey, tuxedo) at M, L and S | PASS: all 9 look right, nothing clipped or missing (log shows every `scale=/variant=` combination) |
+| Costumes at L and S (BOOT) | PASS: they sit right |
+
+This closes the one M2 check that was blocked on PWR. M2 passes.
