@@ -23,3 +23,6 @@ uint16_t clock_now_min(void);
 void clock_set_now_min(uint16_t min);
 /* Starts one NTP sync in the background when Wi-Fi is configured and no sync is running. Any task. */
 void clock_sync_start(void);
+/* Seconds since the last sync attempt started (esp_timer_get_time(), unaffected by clock changes);
+ * UINT32_MAX before the first. LVGL task. */
+uint32_t clock_secs_since_attempt(void);

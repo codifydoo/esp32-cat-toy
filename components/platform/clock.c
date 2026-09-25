@@ -18,14 +18,15 @@
 
 #define SYNC_STACK   6144
 #define BIT_GOT_IP   BIT0
-#define BIT_NO_WIFI  BIT1
 
 static const char *TAG = "clock";
 static portMUX_TYPE s_mux = portMUX_INITIALIZER_UNLOCKED;
 static bool s_running;          /* a sync task exists; under s_mux */
+static bool s_wait_ip;          /* the attempt is between esp_wifi_start() and esp_wifi_stop(); under s_mux */
 static bool s_net_ready;        /* Wi-Fi is configured and the network stack is up */
 static EventGroupHandle_t s_events;
 static int64_t s_last_sync_us;  /* esp_timer time of the last successful sync, 0 before */
+static int64_t s_attempt_start_us = -1; /* esp_timer time the last attempt started; -1 before; under s_mux */
 
 static void log_time(const char *what)
 {
@@ -46,6 +47,7 @@ esp_err_t clock_init(void)
         ESP_LOGI(TAG, "no Wi-Fi configured: the parent sets the clock by hand");
         return ESP_OK;
     }
+    esp_log_level_set("wifi", ESP_LOG_WARN); /* the IDF Wi-Fi driver logs the SSID at INFO on connect */
     ESP_RETURN_ON_ERROR(esp_netif_init(), TAG, "netif");
     const esp_err_t err = esp_event_loop_create_default();
     ESP_RETURN_ON_FALSE(err == ESP_OK || err == ESP_ERR_INVALID_STATE, err, TAG, "event loop");
@@ -90,7 +92,12 @@ static void on_net_event(void *arg, esp_event_base_t base, int32_t id, void *dat
     if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) {
         esp_wifi_connect();
     } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
-        xEventGroupSetBits(s_events, BIT_NO_WIFI); /* no network or a wrong password: give up this time */
+        portENTER_CRITICAL(&s_mux);
+        const bool waiting = s_wait_ip;
+        portEXIT_CRITICAL(&s_mux);
+        if (waiting) {
+            esp_wifi_connect(); /* dropped mid-attempt: try again until the 10 s deadline */
+        }
     } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
         xEventGroupSetBits(s_events, BIT_GOT_IP);
     }
@@ -107,7 +114,7 @@ static TickType_t ticks_left(TickType_t deadline)
 static bool sync_once(int64_t *correction_us)
 {
     const TickType_t deadline = xTaskGetTickCount() + pdMS_TO_TICKS(CLOCK_SYNC_TIMEOUT_MS);
-    xEventGroupClearBits(s_events, BIT_GOT_IP | BIT_NO_WIFI);
+    xEventGroupClearBits(s_events, BIT_GOT_IP);
     esp_netif_t *netif = esp_netif_create_default_wifi_sta();
     const wifi_init_config_t init = WIFI_INIT_CONFIG_DEFAULT();
     if (!netif || esp_wifi_init(&init) != ESP_OK) {
@@ -125,8 +132,11 @@ static bool sync_once(int64_t *correction_us)
     bool ok = false;
     if (esp_wifi_set_storage(WIFI_STORAGE_RAM) == ESP_OK && esp_wifi_set_mode(WIFI_MODE_STA) == ESP_OK &&
         esp_wifi_set_config(WIFI_IF_STA, &cfg) == ESP_OK && esp_wifi_start() == ESP_OK) {
+        portENTER_CRITICAL(&s_mux);
+        s_wait_ip = true; /* a disconnect from here on reconnects instead of giving up */
+        portEXIT_CRITICAL(&s_mux);
         const EventBits_t bits =
-            xEventGroupWaitBits(s_events, BIT_GOT_IP | BIT_NO_WIFI, pdFALSE, pdFALSE, ticks_left(deadline));
+            xEventGroupWaitBits(s_events, BIT_GOT_IP, pdFALSE, pdFALSE, ticks_left(deadline));
         if (bits & BIT_GOT_IP) {
             esp_sntp_config_t sntp = ESP_NETIF_SNTP_DEFAULT_CONFIG(CLOCK_NTP_SERVER);
             if (esp_netif_sntp_init(&sntp) == ESP_OK) {
@@ -153,6 +163,9 @@ static bool sync_once(int64_t *correction_us)
                 esp_netif_sntp_deinit();
             }
         }
+        portENTER_CRITICAL(&s_mux);
+        s_wait_ip = false; /* a disconnect from esp_wifi_stop() itself must not reconnect */
+        portEXIT_CRITICAL(&s_mux);
         esp_wifi_stop();
     }
     esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, on_ip);
@@ -199,10 +212,26 @@ void clock_sync_start(void)
     if (!start) {
         return;
     }
-    if (xTaskCreatePinnedToCore(sync_task, "ntp", SYNC_STACK, NULL, 2, NULL, 0) != pdPASS) {
+    if (xTaskCreatePinnedToCore(sync_task, "ntp", SYNC_STACK, NULL, 2, NULL, 0) == pdPASS) {
+        portENTER_CRITICAL(&s_mux);
+        s_attempt_start_us = esp_timer_get_time();
+        portEXIT_CRITICAL(&s_mux);
+    } else {
         ESP_LOGE(TAG, "no memory for the NTP task");
         portENTER_CRITICAL(&s_mux);
         s_running = false;
         portEXIT_CRITICAL(&s_mux);
     }
+}
+
+uint32_t clock_secs_since_attempt(void)
+{
+    portENTER_CRITICAL(&s_mux);
+    const int64_t start = s_attempt_start_us;
+    portEXIT_CRITICAL(&s_mux);
+    if (start < 0) {
+        return UINT32_MAX;
+    }
+    const int64_t s = (esp_timer_get_time() - start) / 1000000;
+    return s > UINT32_MAX ? UINT32_MAX : (uint32_t)s;
 }
