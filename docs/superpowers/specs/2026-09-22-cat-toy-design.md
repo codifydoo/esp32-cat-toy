@@ -372,7 +372,9 @@ The design leaves these open for M7. Everything else follows the design, §3.7 a
     app is at 30 %, with a muted label and the crossed-eye badge. The last shown app cannot be
     hidden. Each change is saved at once, and the menu shows it when the parent leaves.
   - The text is Fredoka (SIL OFL) at the design's sizes (17, 20, 22, 46 and 54 px), converted with
-    `lv_font_conv` at 4 bpp, with ASCII, Č Ć Đ Š Ž č ć đ š ž and "‹".
+    `lv_font_conv` at 4 bpp, with ASCII, Š Ž š ž and "‹". Fredoka has no Č Ć Đ, and the parent area's
+    text is English, so none is needed. The repository gets Fredoka from Google Fonts as a variable font,
+    whose default instance is Regular: the design's 500 and 600 weights are not reproduced.
 - **Deep sleep** (§3.7):
   - It starts on battery 10 minutes after the panel went off, whether by the menu's idle off (120 s)
     or the bedtime lock's dark panel. It never starts on USB power, or in the last 15 minutes before
