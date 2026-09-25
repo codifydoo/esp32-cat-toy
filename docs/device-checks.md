@@ -439,6 +439,15 @@ backtraces, printed at each checkpoint. At the user's request the soak now runs 
 
 The kid test (spec §7) is still open for M3, M4 and M5.
 
+## Cat gallery variants and scales (Task 14) — 2026-09-24
+
+| Check | Result |
+| --- | --- |
+| PWR cycles the three cats (orange, grey, tuxedo) at M, L and S | PASS: all 9 look right, nothing clipped or missing (log shows every `scale=/variant=` combination) |
+| Costumes at L and S (BOOT) | PASS: they sit right |
+
+This closes the one M2 check that was blocked on PWR. M2 passes.
+
 ## Time and bedtime (M6) — 2026-09-24
 
 Builds of 2bbf0a1: without Wi-Fi (`build-m6`, `SDKCONFIG_DEFAULTS="sdkconfig.defaults"`, so NTP could not reset the hand-set clock), soak, and perf. Also the Wi-Fi build (from `sdkconfig.secrets`), two instrumented NTP builds (not committed), and the NTP fix and 68eaf5c.
