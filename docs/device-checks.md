@@ -486,3 +486,20 @@ A second fault showed only in builds whose config was generated fresh from `sdkc
 **Boot check after the fixes.** Not run: the board was not connected when the fixes landed (2026-09-25). The final firmware still has to be flashed; it then shows the boot sync and whether any `wifi:connected with` line is left in the log.
 
 The kid test (spec §7) is still open for M3, M4, M5 and M6.
+
+## Power diagnostics (M7) — 2026-09-25
+
+The `powerdiag` build (4cc63e5 with the fix 885852c), on USB with the battery connected, logged with `tools/serial_log.py -t` (host timestamps; the logger survives the port dropping in deep sleep). A second, uncommitted variant ran the touch wake alone twice (the second time holding the touch reset, GPIO2, high through the sleep).
+
+| Check | Result |
+| --- | --- |
+| Fuel gauge | Already on at start (`0x18` = `0x0a`, bit 3 set). 34 %, VBAT 3948 mV, VBUS good, battery present, charging (status 2 direction 1, charger state 2: constant current) |
+| Touch INT (GPIO11) awake | 269 edges during round 0's touches: the CST9217 pulses INT while touched, without the host reading it |
+| Touch wakes deep sleep | Yes: both touch tests woke by `ext1 pins 0x800` about a second after the screen went dark. Holding GPIO2 made no difference, so the plan needs no hold. The full diagnostic's round 2 woke only by its 5-minute fallback: the user was not sure they touched it. The same configuration there slept the full 300 s, so the chip does not wake by itself |
+| BOOT wakes deep sleep | Yes: `ext1 pins 0x1`, at once |
+| PWR on a free RTC pin | No: none of GPIO 3, 13, 17, 18, 21 followed 3 PWR presses. GPIO13 toggles on its own every 0.2-0.7 s (likely the panel's tearing-effect line). PWR cannot wake the chip; a long press still powers off |
+| Timer wake | Yes: round 1 (timer only, no pins) woke by the timer |
+| RTC drift in deep sleep | The 180 s timer took about 179.0 s of real time: the `sleeping` line at host 23:40:52.09 plus 0.1 s, the wake from the host time of the log lines minus their boot timestamps, 23:43:51.14. The RTC slow clock runs about **0.6 % fast, about 21 s per hour** (±0.1 s timing error, so ±0.06 %) |
+| Panel and speaker while asleep | Not reported (the user did not note them) |
+
+**What the drift means.** 21 s per hour is under the plan's 30 s/h limit: across an 11.5-hour night the timer fires about 4 minutes early, well inside the 10-minute lead, so the lead stays. The clock itself runs fast by the same amount while the chip sleeps. With Wi-Fi, the NTP sync at every deep-sleep wake (each wake is a boot) corrects it. Without Wi-Fi the clock gains about 4 minutes per night of deep sleep, so bedtime creeps earlier until the parent sets Now again. A steadier RTC source (the internal 8MD256 clock, at some cost in sleep current) is a candidate for M8's battery work.
