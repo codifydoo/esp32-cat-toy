@@ -105,9 +105,10 @@ survives restarts and deep sleep, but not a power loss. Decided 2026-09-24:
   since the last power-on can make true. If the time is invalid, the time-based features switch
   off rather than guess: no bedtime lock, and the Sleepy clock shows the day scene. Play is never
   blocked by a bad clock.
-- The internal oscillator drifts, and more so in deep sleep, which counts time on the RTC slow clock.
-  M7's device checks measure it (docs/device-checks.md), and the daily NTP sync bounds it when Wi-Fi
-  is available.
+- The internal oscillator drifts, and more so in deep sleep, which counts time on the RTC slow clock:
+  it ran about 0.6 % fast, about 21 s per hour (docs/device-checks.md, M7). The daily NTP sync, and
+  the sync at each wake from deep sleep, bound it when Wi-Fi is available. Without Wi-Fi the clock
+  gains about 4 minutes per night of deep sleep, until the parent sets Now again.
 
 ### 3.3 Silly voice effects
 
@@ -380,8 +381,9 @@ The design leaves these open for M7. Everything else follows the design, §3.7 a
     stays able to wake it. Everything in RAM is lost, as in a restart: Magic paws' kept drawing
     (§3.11) and a Silly voices recording (§8). The settings and the clock survive (§3.2).
   - **Wake sources:** a touch (GPIO11) or BOOT (GPIO0). While the clock is valid and there is a
-    night, a timer also wakes it 10 minutes before wake time. PWR wakes it only if M7's device check
-    finds the AXP2101's interrupt on a pin that can wake the ESP32-S3; a long press still powers off.
+    night, a timer also wakes it 10 minutes before wake time. PWR does not wake it: the AXP2101's
+    interrupt reaches no pin that can wake the ESP32-S3 (docs/device-checks.md, M7). A long press
+    still powers off.
   - **On waking** it checks the schedule first (§3.7):
     - After the timer: inside the night, the lock shows with its panel dark, the daily NTP sync runs
       (§3.2), and the sunrise plays at wake time. If wake time has already passed, the sunrise plays
