@@ -97,7 +97,7 @@ static void tile(int32_t x, const char *icon, const char *label, const char *val
     lv_obj_add_event_cb(b, go_page, LV_EVENT_CLICKED, (void *)(uintptr_t)page);
     lv_obj_set_flex_flow(b, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(b, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_pad_row(b, 2, 0);
+    lv_obj_set_style_pad_row(b, PARENT_TILE_PAD_ROW, 0);
     ui_image(b, icon, 0, 0); /* the flex layout places it */
     label_in(b, &lv_font_montserrat_20, COLOR_P_TEXT, label);
     label_in(b, &lv_font_montserrat_16, COLOR_P_VALUE, value);
@@ -105,13 +105,15 @@ static void tile(int32_t x, const char *icon, const char *label, const char *val
 
 static void build_home(void)
 {
-    text(s_scr, &lv_font_montserrat_20, COLOR_P_MUTED, 133, 46, 200, "Parents");
+    text(s_scr, &lv_font_montserrat_20, COLOR_P_MUTED, PARENT_TITLE_X, PARENT_HOME_TITLE_Y, PARENT_TITLE_W,
+         "Parents");
     char vol[8], bed[6];
     lv_snprintf(vol, sizeof(vol), "%u%%", (unsigned)settings_volume_cap());
     schedule_format(settings_bedtime(), bed);
     tile(PARENT_TILE_VOL_X, "ui/p_vol", "Volume", vol, PAGE_VOLUME);
     tile(PARENT_TILE_SLEEP_X, "ui/p_moon", "Sleep", bed, PAGE_TIMES);
-    text(s_scr, &lv_font_montserrat_16, COLOR_P_MUTED, 113, 398, 240, "Home button exits");
+    text(s_scr, &lv_font_montserrat_16, COLOR_P_MUTED, PARENT_HINT_X, PARENT_HINT_Y, PARENT_HINT_W,
+         "Home button exits");
 }
 
 /* ---- Max volume ---- */
@@ -141,13 +143,15 @@ static void on_plus(lv_event_t *e) { (void)e; step_volume(+1); }
 static void build_volume(void)
 {
     back_button();
-    text(s_scr, &lv_font_montserrat_20, COLOR_P_MUTED, 133, 98, 200, "Max volume");
+    text(s_scr, &lv_font_montserrat_20, COLOR_P_MUTED, PARENT_TITLE_X, PARENT_VOL_TITLE_Y, PARENT_TITLE_W,
+         "Max volume");
     s_arc = ui_arc(s_scr, PARENT_ARC_CX, PARENT_ARC_CY, PARENT_ARC_R, PARENT_ARC_W);
     lv_arc_set_bg_angles(s_arc, 135, 45); /* 270 degrees, gap at the bottom */
     lv_arc_set_range(s_arc, 0, VOLUME_MAX);
     lv_obj_set_style_arc_color(s_arc, lv_color_hex(COLOR_P_TRACK), LV_PART_MAIN);
     lv_obj_set_style_arc_color(s_arc, lv_color_hex(COLOR_P_ARC), LV_PART_INDICATOR);
-    s_value = text(s_scr, &lv_font_montserrat_48, COLOR_P_TEXT, 153, 226, 160, "");
+    s_value = text(s_scr, &lv_font_montserrat_48, COLOR_P_TEXT, PARENT_VALUE_X, PARENT_VOL_VALUE_Y, PARENT_VALUE_W,
+                   "");
     lv_obj_t *m = surface_button(PARENT_MINUS_X, PARENT_BTN_Y, PARENT_BTN_SIZE, PARENT_BTN_SIZE);
     lv_obj_center(label_in(m, &lv_font_montserrat_40, COLOR_P_TEXT, "-"));
     lv_obj_add_event_cb(m, on_minus, LV_EVENT_CLICKED, NULL);
@@ -236,14 +240,15 @@ static void build_times(void)
     for (int r = 0; r < ROW_COUNT; r++) {
         const int32_t y = PARENT_ROW_Y0 + r * PARENT_ROW_STEP;
         lv_obj_t *head = ui_plain(s_scr); /* icon and label, centered as a pair */
-        lv_obj_set_pos(head, 113, y);
-        lv_obj_set_size(head, 240, LV_SIZE_CONTENT);
+        lv_obj_set_pos(head, PARENT_ROW_HEAD_X, y);
+        lv_obj_set_size(head, PARENT_ROW_HEAD_W, LV_SIZE_CONTENT);
         lv_obj_set_flex_flow(head, LV_FLEX_FLOW_ROW);
         lv_obj_set_flex_align(head, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-        lv_obj_set_style_pad_column(head, 8, 0);
+        lv_obj_set_style_pad_column(head, PARENT_ROW_HEAD_PAD, 0);
         ui_image(head, ROWS[r].icon, 0, 0);
         label_in(head, &lv_font_montserrat_20, COLOR_P_MUTED, ROWS[r].label);
-        s_times[r] = text(s_scr, &lv_font_montserrat_48, COLOR_P_TEXT, 153, y + PARENT_ROW_VALUE_DY, 160, "");
+        s_times[r] = text(s_scr, &lv_font_montserrat_48, COLOR_P_TEXT, PARENT_VALUE_X, y + PARENT_ROW_VALUE_DY,
+                          PARENT_VALUE_W, "");
         for (int d = 0; d < 2; d++) {
             lv_obj_t *b = surface_button(d ? PARENT_ROW_PLUS_X : PARENT_ROW_MINUS_X, y + PARENT_ROW_BTN_DY,
                                          PARENT_ROW_BTN, PARENT_ROW_BTN);
@@ -251,7 +256,7 @@ static void build_times(void)
             lv_obj_add_event_cb(b, time_button, LV_EVENT_ALL, (void *)(uintptr_t)(r * 2 + d));
         }
     }
-    text(s_scr, &lv_font_montserrat_14, COLOR_P_MUTED, 118, PARENT_TIMES_NOTE_Y, 230,
+    text(s_scr, &lv_font_montserrat_14, COLOR_P_MUTED, PARENT_TIMES_NOTE_X, PARENT_TIMES_NOTE_Y, PARENT_TIMES_NOTE_W,
          "Outside these hours\nthe toy sleeps");
     s_now_timer = lv_timer_create(now_tick, 1000, NULL);
     show_times();

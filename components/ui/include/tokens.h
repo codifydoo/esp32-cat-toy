@@ -275,18 +275,34 @@
 #define PARENT_TILE_Y        88
 #define PARENT_TILE_VOL_X    88
 #define PARENT_TILE_SLEEP_X  238
+#define PARENT_TILE_PAD_ROW  2        /* gap between a tile's icon, label and value */
 #define PARENT_BACK_X        158      /* "< Parents" */
 #define PARENT_BACK_Y        34
 #define PARENT_BACK_W        150
 #define PARENT_BACK_H        52
+#define PARENT_TITLE_X       133      /* "Parents" and "Max volume" */
+#define PARENT_TITLE_W       200
+#define PARENT_HOME_TITLE_Y  46
+#define PARENT_VOL_TITLE_Y   98
+#define PARENT_VALUE_X       153      /* Max volume's %, and each Sleep times row's HH:MM */
+#define PARENT_VALUE_W       160
+#define PARENT_VOL_VALUE_Y   226
+#define PARENT_HINT_X        113      /* "Home button exits" */
+#define PARENT_HINT_Y        398
+#define PARENT_HINT_W        240
 #define PARENT_ROW_Y0        96       /* Sleep times: the first row's label; three rows 100 px apart */
 #define PARENT_ROW_STEP      100
+#define PARENT_ROW_HEAD_X    113      /* icon + label pair above each row's value */
+#define PARENT_ROW_HEAD_W    240
+#define PARENT_ROW_HEAD_PAD  8        /* gap between the row's icon and label */
 #define PARENT_ROW_VALUE_DY  28
 #define PARENT_ROW_BTN_DY    12
 #define PARENT_ROW_BTN       76
 #define PARENT_ROW_MINUS_X   70
 #define PARENT_ROW_PLUS_X    320
+#define PARENT_TIMES_NOTE_X  118
 #define PARENT_TIMES_NOTE_Y  394
+#define PARENT_TIMES_NOTE_W  230
 
 /* Bedtime lock and sunrise (spec §3.12) */
 #define BEDTIME_TICK_MS        1000
