@@ -68,7 +68,17 @@ static woke_t woke(void)
     }
 }
 
-static void sleep_again(void) { deepsleep_start(0, true); }
+/* The hungry cat of a WAKE_HUNGRY start has ended. With USB power plugged in meanwhile, the start goes on as a
+ * cold one does; no NTP here: the daily sync and the invalid-clock retry cover it. */
+static void sleep_again(void)
+{
+    if (power_on_usb()) {
+        ESP_LOGI(TAG, "USB power: starting instead of sleeping");
+        boot_run(app_manager_start);
+        return;
+    }
+    deepsleep_start(0, true);
+}
 
 bool app_manager_boot(void)
 {
@@ -93,10 +103,11 @@ bool app_manager_boot(void)
         break;
     case WAKE_HUNGRY:
         overlay_show(OVERLAY_HUNGRY, sleep_again); /* the buttons stay ignored: s_started is false */
-        return false;                              /* the toy is about to deep-sleep again: no NTP at 2 % */
+        break;
     default: boot_run(app_manager_start); break;
     }
-    return true;
+    /* The hungry cat sleeps again, and any other start at 2 % soon sleeps for the battery (power_watch): no NTP. */
+    return plan != WAKE_HUNGRY && !battery_critical(ps.pct, ps.usb);
 }
 
 #if CONFIG_CAT_HOME_ON_POWER

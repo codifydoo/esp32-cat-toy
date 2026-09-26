@@ -43,11 +43,18 @@ static bool can_show(void)
 /* The panel is off: the menu's idle off or PWR, or the lock's dark panel. */
 static bool panel_dark(void) { return bedtime_showing() ? !bedtime_panel_lit() : idle_level() == 3; }
 
-static void sleep_for_battery(void) { deepsleep_start(0, true); }
+static void sleep_for_battery(void)
+{
+    if (power_on_usb()) {
+        ESP_LOGI(TAG, "USB power: no battery sleep"); /* plugged in during the hungry cat: the next tick re-arms */
+        return;
+    }
+    deepsleep_start(0, true);
+}
 
 /* Deep sleep on battery, SLEEP_AFTER_DARK_MS after the panel went off (spec §3.13): never on USB power, during a
  * battery screen or an NTP sync, or in the last quarter hour before wake time. The timer wakes the toy before
- * wake time while the clock is valid and there is a night. */
+ * wake time while the clock is valid, there is a night and the first run is done. */
 static void sleep_check(bool usb)
 {
     if (!panel_dark()) {
@@ -70,7 +77,8 @@ static void sleep_check(bool usb)
     if (!schedule_sleep_allowed(valid, now, bed, wake)) {
         return;
     }
-    const int32_t at = schedule_wake_timer_min(valid, bed, wake);
+    /* A toy asleep on the cat picker wakes only by a touch, into the picker: no morning timer. */
+    const int32_t at = first_run_due() ? -1 : schedule_wake_timer_min(valid, bed, wake);
     deepsleep_start(at < 0 ? 0 : clock_secs_until((uint16_t)at), false);
 }
 
@@ -90,6 +98,9 @@ static void tick(lv_timer_t *t)
             sleep_for_battery();
         } else {
             idle_wake_if_asleep(); /* a dim menu lights up: she sees the hungry cat before the toy sleeps */
+            if (bedtime_showing()) {
+                bedtime_keep_lit(OVERLAY_MS); /* the lock's panel timeout must not blank the screen */
+            }
             overlay_show(OVERLAY_HUNGRY, sleep_for_battery); /* from anywhere: the clock must survive */
         }
         return;

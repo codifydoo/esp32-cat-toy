@@ -68,7 +68,8 @@ void deepsleep_start(uint32_t timer_s, bool for_battery)
     wake_pin(WAKE_TOUCH_GPIO, &mask);
     wake_pin(WAKE_PWR_GPIO, &mask);
     log_if_failed(esp_sleep_enable_ext1_wakeup_io(mask, ESP_EXT1_WAKEUP_ANY_LOW), "ext1 wakeup");
-    esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON); /* keeps the pull-ups on in sleep */
+    /* the RTC peripherals stay powered: they keep the pull-ups on in sleep */
+    log_if_failed(esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_ON), "rtc periph power");
     for (int pin = 0; pin < GPIO_NUM_MAX; pin++) {
         if (mask & BIT64(pin)) {
             log_if_failed(rtc_gpio_pullup_en((gpio_num_t)pin), "rtc pullup");

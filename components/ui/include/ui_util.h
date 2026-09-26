@@ -11,6 +11,9 @@ void ui_set_hidden(lv_obj_t *obj, bool hidden);
 /* A non-clickable arc without a knob, centered on (cx, cy) with the given radius to the middle of
  * the stroke; main (track) and indicator both get `width` and round caps. */
 lv_obj_t *ui_arc(lv_obj_t *parent, int32_t cx, int32_t cy, int32_t r, int32_t width);
+/* Every pointer input that is pressed now ignores the rest of its touch: no more PRESSING, and at the release the
+ * object it pressed gets LV_EVENT_PRESS_LOST instead of RELEASED and CLICKED. */
+void ui_wait_release(void);
 /* Cuts a touch already in flight on screen: call before deleting or replacing a screen that may own
  * a pressed pointer indev, so the rest of that touch cannot still reach it. */
 void ui_cut_touch(lv_obj_t *screen);

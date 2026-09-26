@@ -23,6 +23,15 @@ static power_state_t s_state = {.pct = -1}; /* under s_lock */
 
 void power_init(void)
 {
+#if CONFIG_CAT_DEV_IGNORE_USB
+    ESP_LOGW(TAG, "dev build: USB power counts as battery");
+#endif
+#if CONFIG_CAT_DEV_BATTERY_DRAIN
+    ESP_LOGW(TAG, "dev build: the battery is faked, draining from %d %%", DRAIN_START_PCT);
+#endif
+#if CONFIG_CAT_DEV_FAST_SLEEP
+    ESP_LOGW(TAG, "dev build: deep sleep 20 s after the panel goes off");
+#endif
     if (!pmu_init()) {
         return;
     }

@@ -11,6 +11,7 @@
 #include "hold_ring.h"
 #include "idle.h"
 #include "launcher.h"
+#include "overlays.h"
 #include "parent.h"
 #include "power.h"
 #include "scenes.h"
@@ -309,6 +310,9 @@ static void start_sunrise(void)
 
 static void start_night(void)
 {
+    if (overlay_showing()) {
+        return; /* a battery screen ends first; the next tick locks */
+    }
     if (app_manager_current()) {
         app_manager_home(); /* its close lands on the lock through bedtime_take_over(), without the mew */
         return;
@@ -367,6 +371,15 @@ bool bedtime_take_over(void)
 bool bedtime_showing(void) { return s_state != BT_DAY && !app_manager_current(); }
 
 bool bedtime_panel_lit(void) { return s_state == BT_SUNRISE || s_lit; }
+
+void bedtime_keep_lit(uint32_t ms)
+{
+    if (s_state != BT_LOCK) {
+        return;
+    }
+    keep_lit(ms);
+    update_panel();
+}
 
 void bedtime_power(void)
 {

@@ -326,14 +326,15 @@ The design leaves these open for M6. Everything else follows the design and §3.
 The design leaves these open for M7. Everything else follows the design, §3.7 and §3.8.
 
 - **Battery gauge:** the AXP2101's fuel gauge gives the battery percentage, and its charger status
-  says whether the battery is charging. Both are read every 5 s (§4.5). The gauge counts as
-  unavailable when the AXP2101 reports no battery or its gauge gives no reading. Then no battery
-  screen ever shows, and the parent home hides the percentage (§4.7). USB power stays the "VBUS
-  good" bit (§3.12).
+  says whether the battery is charging. The charger status is read every 0.5 s, with USB power, and
+  the percentage every 5 s (§4.5). The gauge counts as unavailable when the AXP2101 reports no
+  battery or its gauge gives no reading. Then no battery screen ever shows, and the parent home
+  hides the percentage (§4.7). USB power stays the "VBUS good" bit (§3.12).
 - **Low battery** (the design's hungry cat: sleepy face, empty bowl, blinking red battery and
   "Gladna sam…"):
   - It shows for 4 s once when the battery falls to 10 %, and once more at 5 %. Connecting USB
-    power arms both levels again.
+    power arms both levels again. On battery, a reading of 15 % or more arms them again too: the
+    toy was charged while it slept, and USB power does not wake it.
   - It shows over the menu or an open app, and then play resumes where it was. The app keeps its
     state; while the screen shows, touches, tilt and shake do not reach the app. Home works as
     always: it ends the screen, closes the app and shows the menu.

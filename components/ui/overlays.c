@@ -70,6 +70,7 @@ void overlay_show(overlay_kind_t kind, void (*done)(void))
     lv_obj_set_style_bg_color(s_root, lv_color_black(), 0);
     lv_obj_set_style_bg_opa(s_root, LV_OPA_COVER, 0);
     lv_obj_add_flag(s_root, LV_OBJ_FLAG_CLICKABLE); /* takes every touch: nothing reaches the app underneath */
+    ui_wait_release(); /* nor does a touch already down: what it pressed gets PRESS_LOST when it lifts */
     lv_obj_t *cat = cat_create(s_root, CAT_SCALE_M);
     cat_set_origin(cat, OVERLAY_CAT_X, OVERLAY_CAT_Y);
     cat_set_state(cat, hungry ? CAT_SLEEPY : CAT_EATING);

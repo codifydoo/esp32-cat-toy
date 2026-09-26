@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <stdint.h>
 
 /* The bedtime lock and the sunrise (spec §3.8, §3.12). LVGL task only. */
 void bedtime_init(void); /* starts the 1 s schedule check; app_manager_init() calls it */
@@ -11,6 +12,9 @@ bool bedtime_take_over(void);
 bool bedtime_showing(void);
 /* The lock's panel is lit (the sunrise always is). Meaningful while bedtime_showing(). */
 bool bedtime_panel_lit(void);
+/* Lights the lock's panel for at least ms from now (a battery screen over it must not go dark); nothing unless
+ * the lock shows. */
+void bedtime_keep_lit(uint32_t ms);
 /* PWR while bedtime_showing(): the lock's panel off or back on. During the sunrise: the menu, dark (with
  * CONFIG_CAT_HOME_ON_POWER, PWR is Home: the menu, lit). */
 void bedtime_power(void);

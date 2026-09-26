@@ -13,17 +13,6 @@ typedef struct {
     hold_ring_cb_t cb;
 } hold_ring_t;
 
-/* The hold owns this touch (the ring is showing): make LVGL ignore the rest of it, so letting go is not
- * also a tap on whatever is under the fingers (the same call the app manager uses before closing an app). */
-static void swallow_touch(void)
-{
-    for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
-        if (lv_indev_get_type(i) == LV_INDEV_TYPE_POINTER && lv_indev_get_state(i) == LV_INDEV_STATE_PRESSED) {
-            lv_indev_wait_release(i);
-        }
-    }
-}
-
 static void poll(lv_timer_t *t)
 {
     hold_ring_t *h = lv_timer_get_user_data(t);
@@ -36,7 +25,9 @@ static void poll(lv_timer_t *t)
     uint16_t progress = 0;
     const hold_state_t st = hold_update(&h->track, raw.count, raw.x, raw.y, lv_tick_get(), &progress);
     if (hold_owns_touch(st)) {
-        swallow_touch();
+        /* The hold owns this touch (the ring is showing): LVGL ignores the rest of it, so letting go is not also a
+         * tap on whatever is under the fingers. */
+        ui_wait_release();
         h->cb.holding();
     }
     ui_set_hidden(h->ring, st != HOLD_PROGRESS);

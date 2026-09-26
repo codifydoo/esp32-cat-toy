@@ -66,6 +66,15 @@ lv_obj_t *ui_arc(lv_obj_t *parent, int32_t cx, int32_t cy, int32_t r, int32_t wi
     return a;
 }
 
+void ui_wait_release(void)
+{
+    for (lv_indev_t *i = lv_indev_get_next(NULL); i; i = lv_indev_get_next(i)) {
+        if (lv_indev_get_type(i) == LV_INDEV_TYPE_POINTER && lv_indev_get_state(i) == LV_INDEV_STATE_PRESSED) {
+            lv_indev_wait_release(i);
+        }
+    }
+}
+
 /* A press already in flight on screen can otherwise still reach its event callbacks (e.g. a tap
  * handler) after the screen is replaced or destroyed. This is the same wait_release + reset pair
  * LVGL itself runs on every pointer indev before deleting an object it is currently pressing -- see
