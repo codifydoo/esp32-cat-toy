@@ -407,6 +407,63 @@ The design leaves these open for M7. Everything else follows the design, §3.7 a
   - The low battery and charging screens last 4 s, and the parent area and the apps close after 60 s
     without a touch, so they get no shift. Apps are not shifted while she plays.
 
+### 3.14 Tuning, part a: battery measurement and M7 follow-ups (2026-09-26)
+
+M8 (§9) splits in two:
+- **M8a** needs no kid test. It covers the battery-life measurement, two small fixes, and the M7
+  paths not yet checked on the board.
+- **M8b** covers the kid-test fixes and the volume and sensitivity tuning. It is designed after the
+  kid test (§7), from what she does.
+
+- **Battery log (dev build only).** `CONFIG_CAT_DEV_BATTERY_LOG`, in the overlay `sdkconfig.batlog`,
+  is built with `sdkconfig.defaults;sdkconfig.secrets;sdkconfig.batlog`. The toy otherwise runs
+  exactly as the normal build: real battery, real USB, sleep 10 minutes after the panel goes off,
+  Wi-Fi.
+  - **Records:** the clock time (Unix seconds, as the toy knows it), the gauge percentage (or "no
+    reading"), the battery voltage in mV (the AXP2101's VBAT) and the event.
+  - **Events:**
+    - a sample every 10 minutes while awake;
+    - one just before each deep sleep;
+    - one at each start, with its cause: a cold start, a pin, the timer, or a reset after a crash,
+      a watchdog or a brownout;
+    - the panel going dark and lighting again while awake, which separates play from the dark
+      minutes before a sleep;
+    - USB connected, and USB removed.
+  - **Storage:** the last 256 records, a ring in NVS. The log survives deep sleep, resets and
+    power-off. It is never cleared: a run is read from the USB removal that starts it.
+  - **Dump:** while USB is connected, the whole log prints to the serial console every 30 s as
+    `BATLOG,<unix>,<pct>,<mV>,<event>`, oldest first, so a logger started at any time catches it.
+  - The normal build has none of this.
+- **The measurement.**
+  1. Charge to 100 %, then unplug.
+  2. A normal day of play and idle.
+  3. A night of deep sleep.
+  4. Plug in the next morning while the log is read.
+  The run gives % per hour awake and % per night asleep, and from them the hours of play per charge
+  and the standby days. They are recorded in `docs/device-checks.md` and the README (with currents
+  if the battery's capacity is known). M8 changes no power settings. Which levers to pull against
+  the sleep drain is decided later, from these numbers (issue #10).
+- **No NTP sync at 2 %.** Besides the boot sync (§3.13), the daily sync and the invalid-clock retry
+  also skip while the battery is critical (at 2 % or less on battery, with a gauge reading).
+- **USB during a night-time 2 % wake.** When USB power interrupts the hungry cat of a wake that
+  slept for the battery, the toy starts normally. Inside the night it shows the lock at once, lit as
+  after a touch, with no boot animation. By day, or on a first run, the boot animation plays as on a
+  cold start.
+- **The breathing icon stays as it is.** With the draw buffers in internal RAM (after M7), the
+  breathing menu measures 27.8 FPS mean at 37 % CPU. A few single samples fall to 20-23 on the
+  frames that redraw the scaled icon. It only runs until the menu dims, at 20 s.
+- **Board checks for the M7 paths not yet run:**
+  1. The touch-lit wake at night.
+  2. The 5 % screen over an app, with the app kept busy so the panel stays fully on.
+  3. USB connected during the 2 % screen. This uses the drain build with real USB: the overlay
+     `sdkconfig.drainusb` clears `CONFIG_CAT_DEV_IGNORE_USB`, and the board runs unplugged until
+     the screen shows.
+  4. The quiet hungry cat at night.
+  5. No sunrise after the clock is corrected back before bedtime. Now is set a few minutes ahead,
+     with a bedtime in between, and the board is touch-woken.
+
+  Home on the first-run picker stays unchecked: it needs the settings erased.
+
 ## 4. Architecture
 
 ### 4.1 Toolchain and dependencies

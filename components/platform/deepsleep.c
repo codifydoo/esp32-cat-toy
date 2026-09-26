@@ -1,5 +1,6 @@
 #include "deepsleep.h"
 #include "audio.h"
+#include "battery_log.h"
 #include "bsp/esp-bsp.h"
 #include "display.h"
 #include "driver/gpio.h"
@@ -87,6 +88,7 @@ void deepsleep_start(uint32_t timer_s, bool for_battery)
     if (timer_s > 0) {
         log_if_failed(esp_sleep_enable_timer_wakeup((uint64_t)timer_s * 1000000), "timer wakeup");
     }
+    battery_log_sleep(); /* the batlog dev build: the last record before the sleep (spec §3.14) */
     vTaskDelay(pdMS_TO_TICKS(100)); /* the log line and the panel's sleep command drain */
     esp_deep_sleep_start();
 }

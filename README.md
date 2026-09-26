@@ -27,6 +27,28 @@ one listener can hold the port: let a running one finish (or stop it) before fla
 | Deep sleep on the USB cable (USB counts as battery; sleep 20 s after the panel goes off) | same with `power` |
 | Battery screens (as `power`, plus a fake battery: 12 % at boot, one point less every 10 s, 1 % after a battery sleep; a reset starts over) | same with `drain` |
 | Wake cycles without hands (as `power`, plus: the panel goes off 15 s after start, and each deep sleep ends by itself after 10 s as a touch would, with the boot animation and the boot NTP sync); log them with `tools/serial_log.py <port> 600 -t` | `tools/flash_and_log.sh 30 -B build-autowake -D SDKCONFIG=build-autowake/sdkconfig -D SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.secrets;sdkconfig.power;sdkconfig.autowake"` (without `sdkconfig.secrets`: no Wi-Fi) |
+| Battery screens on real USB (as `drain`, but USB is USB: run it unplugged, plug in during a hungry cat) | `tools/flash_and_log.sh 30 -B build-drainusb -D SDKCONFIG=build-drainusb/sdkconfig -D SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.drainusb"` |
+| Battery log (the normal toy, plus a log of the battery in flash; see below) | `tools/flash_and_log.sh 30 -B build-batlog -D SDKCONFIG=build-batlog/sdkconfig -D SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.secrets;sdkconfig.batlog"` |
+
+**Measuring battery life** (spec §3.14), with the battery log build:
+1. Charge it to 100 % and unplug it.
+2. Use it normally for a day, and let it sleep through the night.
+3. The next morning, wake it with a touch, plug it in, and run
+   `python tools/serial_log.py <port> 90 > build-logs/m8-battery.log`.
+
+While on USB, the toy prints its log every 30 s: `BATLOG,begin,<n>`, one line per reading (time, %, battery mV,
+event), then `BATLOG,end`. It records:
+- a reading every 10 minutes awake;
+- each start (cold, pin, timer, or `reset` after a crash or brownout) and each sleep;
+- the panel going dark and lit again;
+- USB in and out.
+
+It keeps the last 256 readings across resets and power-off, so check that the run's `usb_out` is still in
+the dump.
+
+The times come from the toy's clock. A `wake_*` record still has the clock from before the boot NTP sync,
+and the RTC runs about 1 % fast in deep sleep. The first `awake` after a wake comes exactly 600 s of
+uptime after it, so that gap minus 600 s is the correction to apply to the wake's time.
 
 ## Wi-Fi for the clock (optional)
 

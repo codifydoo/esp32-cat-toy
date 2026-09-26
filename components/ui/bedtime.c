@@ -14,6 +14,7 @@
 #include "overlays.h"
 #include "parent.h"
 #include "power.h"
+#include "power_rules.h"
 #include "scenes.h"
 #include "schedule.h"
 #include "sdkconfig.h"
@@ -331,8 +332,12 @@ static void tick(lv_timer_t *t)
     if (!app_manager_started() || app_manager_current() == &PARENT_APP) {
         return; /* the boot animation; parent changes take effect when the parent leaves (spec §3.12) */
     }
-    if (schedule_sync_due(clock_valid(), now, settings_wake(), clock_secs_since_attempt())) {
-        clock_sync_start(); /* the due sync: boot, daily before wake, or a retry while invalid (spec §3.2) */
+    const power_state_t ps = power_state();
+    if (schedule_sync_due(clock_valid(), now, settings_wake(), clock_secs_since_attempt()) &&
+        !battery_critical(ps.pct, ps.usb)) {
+        /* the due sync: boot, daily before wake, or a retry while invalid (spec §3.2); never at 2 %, where the
+         * toy is about to sleep for the battery (spec §3.14) */
+        clock_sync_start();
     }
     const bool night = night_now();
     if (s_state == BT_DAY && night) {

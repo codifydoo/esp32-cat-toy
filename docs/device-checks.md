@@ -525,7 +525,7 @@ Logs are in `build-logs/m7-*.log`, host-timestamped with `tools/serial_log.py -t
 | D. Low battery (drain) | 10 % at 21.5 s: the hungry cat (log + user). **5 %: not shown**. The log has no screen at ~70 s, and the pending screen waits for a fully lit panel (`idle_level() == 0`), so the app had most likely dimmed. The spec now says "dimmed or off". 2 % at 100.9 s: `battery 2 %: sleeping until it is charged`, the hungry cat, `deep sleep: timer 0 s, for the battery`. A touch: `woke by a pin (slept for the battery)` → `start: hungry cat` → sleep again (log + user). The user: "everything is fine" |
 | E. Deep sleep by day | PASS (log + user): every touch, BOOT and PWR-off wake logs `woke by a pin` → `start: boot animation`; `deep sleep: timer …` 20 s after the panel goes off; fully dark and silent while asleep; Magic paws' drawing is gone after a sleep; BOOT and touch work normally after a wake |
 | E. The night | PASS (log): the lock at 09:08:21, dark, then `deep sleep: timer 647 s` (wake 09:30 − 10 min). At 09:19:54 `woke by the timer` → `start: lock, dark` (no boot animation) → NTP; the sunrise at 09:30:00, over at 09:31:04. **The touch-lit wake at night (`start: lock, lit`) was not run** |
-| E. Draw failures at a wake | **1 of 3 day wakes** logged 28 `Draw bitmap failed: ESP_ERR_NO_MEM` (`Failed to allocate priv TX buffer`) 3.0-4.4 s after boot. Wi-Fi starts while the boot animation flushes full frames, and each flush needs a ~25 KB (up to 46 KB) internal DMA copy of the PSRAM draw buffer. This is the M6 contention (the RX buffers are pinned, and `rx ba win: 6` is in effect), now hit at every deep-sleep wake. It is visible as a skipped boot-animation frame; the user noticed nothing. A separate follow-up is on `davor/boot-wifi-flush` (the SPI panel IO without `psram_dma_direct`) |
+| E. Draw failures at a wake | **1 of 3 day wakes** logged 28 `Draw bitmap failed: ESP_ERR_NO_MEM` (`Failed to allocate priv TX buffer`) 3.0-4.4 s after boot. Wi-Fi starts while the boot animation flushes full frames, and each flush needs a ~25 KB (up to 46 KB) internal DMA copy of the PSRAM draw buffer. This is the M6 contention (the RX buffers are pinned, and `rx ba win: 6` is in effect), now hit at every deep-sleep wake. It is visible as a skipped boot-animation frame; the user noticed nothing. Fixed after M7 (#9): the draw buffers moved to internal RAM (2 x 24 rows), which removes the per-flush copy; 0 drops in 13 wakes. `psram_dma_direct` was tried first and rejected (DMA underflow). See "Frame drops at the boot sync (after M7)" |
 | Drift (NTP) | **1.04 % fast, ~37 s per hour**: 647 s by the RTC took ~640.4 s (`NTP: corrected by -6640 ms` after the timer wake). Task 1 measured 0.6 % over 180 s. Short day sleeps (~2 min) corrected by −42 to −131 ms |
 | F. The icon breathes | PASS (user, group A): it swells and shrinks slightly on the awake menu |
 | FPS (perf) | The breathing menu: 27.7 FPS mean (20-30), 12 of 94 samples below 24 (the frames that redraw the scaled icon), CPU mean 40 % (21 % for the still menu in M5). It stops once the menu dims (20 s). The boot animation: 10-15 FPS, as before |
@@ -589,3 +589,24 @@ Wi-Fi's allocations split the last block larger than 32 KB. The RAM is there but
 | Log | No Guru Meditation, abort, assert or unexpected reset in any run |
 
 **Not measured:** a sync during play (the daily sync, or the 5-minute retry while the clock is not valid). No flush allocates any more, so a sync can no longer take a flush's memory.
+
+## Battery log and M7 follow-ups (M8a) — 2026-09-26
+
+The firmware is `davor/m8-tuning` at 6254bac. The builds are `build-batlog` (the normal toy plus the battery log, with Wi-Fi), `build-power`, `build-drain`, `build-drainusb` and `build-soak`. Logs are `build-logs/m8-*.log`, git-ignored.
+
+| Check | Result |
+| --- | --- |
+| Battery log, smoke test | PASS (log): the cold start at 91 % / 4199 mV, then `usb_in`; unplugged, `usb_out` at 4100 mV; replugged, `usb_in`; `dark` exactly 121 s later (the idle off at 2 minutes); `lit` at a touch. The dump arrived every 30 s between `BATLOG,begin`/`BATLOG,end`. The logging task had 2128 of its 4096 bytes of stack never used. No crash |
+| 1. A touch at night (power) | PASS (user): the lock lit at once, with no boot animation. **Not in the log:** the Mac did not see the board's USB during this check, until a replug |
+| 2. The 5 % screen over an app kept busy (drain) | PASS (log + user): 10 % over the menu at 20.6 s; 5 % over Magic paws at 70.7 s, with the drawing intact afterwards; 2 % at 100.7 s, then `deep sleep: timer 0 s, for the battery` |
+| 3. USB during the 2 % screen, by day (drainusb) | PASS (user). 3a: plugging in during the screen means no sleep, and the menu stays. 3b: after a battery sleep, a touch and USB led to the boot animation, then the menu. The log shows 3b's wake with USB already on (`woke by a pin (slept for the battery)`, `USB power: yes`, `start: boot animation`): that is the wake plan's path, and the result looks the same |
+| 3. USB during the 2 % screen, at night (drainusb) | PASS (user): plugging in during the night-time hungry cat gave the lock at once, with no boot animation or jingle, and the night light stayed on. **Not in the log:** the logger stalled after 20:18:01 (`serial_log.py` sometimes hangs after the port comes back) |
+| 4. The hungry cat at night (drainusb) | PASS (user): quiet over the lock; quiet and dim on a wake that slept for the battery. **Not in the log** (the same stall) |
+| Soak | PASS: internal −8 B, PSRAM 0 over 50 rounds (`m8-soak.log`; every round reads internal 194595, PSRAM 4803036); no crash, no draw failure |
+
+**Not tested on the device:**
+- Check 5: no sunrise after a clock correction (optional, not run).
+- Home on the first-run picker (it needs NVS erased).
+- The battery run itself, which is pending (below).
+
+**Tool note.** `tools/serial_log.py` can hang after the port comes back from an unplug or a reset: the reads return nothing, and neither "port gone" nor "port back" is logged. Restarting it recovers. It happened twice in M7 and once here.
