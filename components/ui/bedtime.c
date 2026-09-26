@@ -182,8 +182,8 @@ static void show_lock(bool delete_previous)
     log_heap("lock shown");
 }
 
-/* The night is over without a sunrise (the parent moved the times). The caller shows the menu, and that
- * load deletes the screen that is active then. */
+/* The night is over without a sunrise (the parent moved the times, or the clock moved back before bedtime). The
+ * caller shows the menu, and that load deletes the screen that is active then. */
 static void drop_lock(void)
 {
     delete_timer(&s_shh_timer);
@@ -194,6 +194,25 @@ static void drop_lock(void)
     s_night = (night_scene_t){0}; /* its objects are gone with the screen: don't keep pointers to them */
     s_state = BT_DAY;
     log_heap("lock dropped");
+}
+
+/* The night ended outside the sunrise window: the lock woke a few minutes early (the RTC runs fast in deep sleep)
+ * and the NTP sync set the clock back to before bedtime. The menu, with no chime or meow, lit only if the lock was;
+ * the next nightfall shows the lock again. */
+static void leave_lock_quietly(void)
+{
+    const bool lit = s_lit;
+    drop_lock();
+    if (lit) {
+        display_set_brightness(BRIGHTNESS_FULL);
+        lv_display_trigger_activity(NULL); /* the quiet night must not dim the menu at once */
+        launcher_show();
+    } else {
+        lv_display_trigger_activity(NULL);
+        launcher_show();
+        idle_power_toggle(); /* from level 0 the panel stays off, as after PWR: a touch lights the menu */
+    }
+    ESP_LOGI(TAG, "lock left: the clock moved back before bedtime");
 }
 
 static void lock_tick(uint16_t now)
@@ -315,7 +334,11 @@ static void tick(lv_timer_t *t)
     if (s_state == BT_DAY && night) {
         start_night();
     } else if (s_state == BT_LOCK && !night) {
-        start_sunrise();
+        if (schedule_sunrise_due(now, settings_wake())) {
+            start_sunrise();
+        } else {
+            leave_lock_quietly(); /* no "Dobro jutro!" at bedtime */
+        }
     } else if (s_state == BT_LOCK) {
         lock_tick(now);
     }

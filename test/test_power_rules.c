@@ -75,6 +75,37 @@ static void test_usb_power_arms_both_levels_again_and_drops_a_pending_screen(voi
     TEST_ASSERT_TRUE(battery_rules_take_pending(&r));
 }
 
+/* USB power does not wake the chip, so a charge the toy slept through never reached the rules: a reading of
+ * POWER_REARM_PCT or more on battery arms both levels again. */
+static void test_a_charge_slept_through_arms_both_levels_again(void)
+{
+    battery_rules_t r = fresh();
+    battery_rules_update(&r, 10, false);
+    TEST_ASSERT_TRUE(battery_rules_take_pending(&r));
+    battery_rules_update(&r, 40, false); /* charged while asleep, unplugged before the next wake */
+    battery_rules_update(&r, 10, false);
+    TEST_ASSERT_TRUE(battery_rules_take_pending(&r));
+}
+
+static void test_a_charge_slept_through_drops_a_pending_screen(void)
+{
+    battery_rules_t r = fresh();
+    battery_rules_update(&r, 10, false); /* pending, but the panel was off: not taken */
+    battery_rules_update(&r, 40, false);
+    TEST_ASSERT_FALSE(battery_rules_take_pending(&r)); /* no hungry cat on a full battery */
+}
+
+static void test_gauge_jitter_around_ten_percent_does_not_arm_it_again(void)
+{
+    battery_rules_t r = fresh();
+    battery_rules_update(&r, 10, false);
+    TEST_ASSERT_TRUE(battery_rules_take_pending(&r));
+    battery_rules_update(&r, 11, false);
+    battery_rules_update(&r, 14, false); /* just under POWER_REARM_PCT */
+    battery_rules_update(&r, 10, false);
+    TEST_ASSERT_FALSE(battery_rules_take_pending(&r));
+}
+
 static void test_critical_only_on_battery_at_two_percent_or_less(void)
 {
     battery_rules_t r = fresh();
@@ -127,6 +158,19 @@ static void test_wake_plan_while_the_battery_is_still_empty(void)
     TEST_ASSERT_EQUAL(WAKE_BOOT, power_wake_plan(WOKE_TOUCH, false, false, true)); /* not a battery sleep */
 }
 
+/* The battery-sleep override applies to a deep-sleep wake: the timer's as well as a touch's (a battery sleep arms
+ * no timer, so the device never sees the timer case). A restart is always the boot animation. */
+static void test_wake_plan_after_a_battery_sleep_by_the_timer_or_a_restart(void)
+{
+    TEST_ASSERT_EQUAL(WAKE_HUNGRY, power_wake_plan(WOKE_TIMER, false, true, true));
+    TEST_ASSERT_EQUAL(WAKE_HUNGRY, power_wake_plan(WOKE_TIMER, true, true, true));
+    TEST_ASSERT_EQUAL(WAKE_LOCK_DARK, power_wake_plan(WOKE_TIMER, true, true, false)); /* charged */
+    TEST_ASSERT_EQUAL(WAKE_SUNRISE, power_wake_plan(WOKE_TIMER, false, true, false));
+    TEST_ASSERT_EQUAL(WAKE_BOOT, power_wake_plan(WOKE_COLD, false, true, true));
+    TEST_ASSERT_EQUAL(WAKE_BOOT, power_wake_plan(WOKE_COLD, true, true, true));
+    TEST_ASSERT_EQUAL(WAKE_BOOT, power_wake_plan(WOKE_COLD, true, true, false));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -136,11 +180,15 @@ int main(void)
     RUN_TEST(test_a_jump_past_both_levels_shows_one_screen);
     RUN_TEST(test_a_pending_screen_waits_until_taken);
     RUN_TEST(test_usb_power_arms_both_levels_again_and_drops_a_pending_screen);
+    RUN_TEST(test_a_charge_slept_through_arms_both_levels_again);
+    RUN_TEST(test_a_charge_slept_through_drops_a_pending_screen);
+    RUN_TEST(test_gauge_jitter_around_ten_percent_does_not_arm_it_again);
     RUN_TEST(test_critical_only_on_battery_at_two_percent_or_less);
     RUN_TEST(test_an_unavailable_or_wild_gauge_never_shows_or_sleeps);
     RUN_TEST(test_wake_plan_after_a_cold_start_is_the_boot_animation);
     RUN_TEST(test_wake_plan_after_a_touch);
     RUN_TEST(test_wake_plan_after_the_timer);
     RUN_TEST(test_wake_plan_while_the_battery_is_still_empty);
+    RUN_TEST(test_wake_plan_after_a_battery_sleep_by_the_timer_or_a_restart);
     return UNITY_END();
 }

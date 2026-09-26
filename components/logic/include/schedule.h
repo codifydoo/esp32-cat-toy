@@ -18,10 +18,16 @@
                                                            * wake time, the minute the daily sync is due */
 #define SCHEDULE_SLEEP_GUARD_MIN 15 /* no deep sleep in this many minutes before wake time (spec §3.13) */
 
+#define SCHEDULE_SUNRISE_WINDOW_MIN 60 /* the lock's night ends in the sunrise only this long after wake time;
+                                        * anywhere else, the clock was set back to before bedtime */
+
 /* Night runs from bed to wake, across midnight when bed > wake; bed == wake means no night. */
 bool schedule_is_night(uint16_t now, uint16_t bed, uint16_t wake);
 /* Minutes from now forward to target, 0-1439 (0 when they are equal). */
 uint16_t schedule_minutes_until(uint16_t now, uint16_t target);
+/* now is 0 to SCHEDULE_SUNRISE_WINDOW_MIN - 1 minutes after wake time, across midnight: a lock whose night
+ * ends then shows the sunrise. */
+bool schedule_sunrise_due(uint16_t now, uint16_t wake);
 /* Lit hour stars: the hours left until wake, rounded up, at most SCHEDULE_STARS. */
 uint8_t schedule_stars_left(uint16_t now, uint16_t wake);
 /* min + delta minutes, wrapped into 0-1439. */

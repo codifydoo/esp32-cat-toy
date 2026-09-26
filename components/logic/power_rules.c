@@ -20,6 +20,9 @@ battery_verdict_t battery_rules_update(battery_rules_t *r, int pct, bool usb)
         r->pending = false;
         return BATTERY_OK;
     }
+    if (pct >= POWER_REARM_PCT) {
+        battery_rules_init(r); /* charged while asleep: USB power could not wake the chip to say so */
+    }
     if (pct <= POWER_LOWER_PCT && r->armed_lower) {
         r->armed_lower = false;
         r->armed_low = false; /* a jump past both levels shows one screen */

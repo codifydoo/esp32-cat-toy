@@ -165,6 +165,26 @@ static void test_no_wake_timer_without_a_night_or_a_valid_clock(void)
     TEST_ASSERT_EQUAL_INT32(-1, schedule_wake_timer_min(true, HM(7, 0), HM(7, 0)));
 }
 
+/* The lock's night ends in the sunrise only in the hour after wake time. Anywhere else the clock moved back
+ * before bedtime (an NTP correction after a deep-sleep wake), and "Dobro jutro!" must not play. */
+static void test_sunrise_due_in_the_hour_after_wake(void)
+{
+    const uint16_t wake = HM(7, 0);
+    TEST_ASSERT_TRUE(schedule_sunrise_due(HM(7, 0), wake));
+    TEST_ASSERT_TRUE(schedule_sunrise_due(HM(7, 30), wake));
+    TEST_ASSERT_TRUE(schedule_sunrise_due(HM(7, 59), wake));
+    TEST_ASSERT_FALSE(schedule_sunrise_due(HM(8, 0), wake));
+    TEST_ASSERT_FALSE(schedule_sunrise_due(HM(19, 28), wake)); /* corrected back to just before bedtime */
+    TEST_ASSERT_FALSE(schedule_sunrise_due(HM(6, 59), wake));
+}
+
+static void test_sunrise_window_wraps_past_midnight(void)
+{
+    const uint16_t wake = HM(0, 10);
+    TEST_ASSERT_TRUE(schedule_sunrise_due(HM(0, 10), wake));
+    TEST_ASSERT_FALSE(schedule_sunrise_due(HM(23, 59), wake));
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -186,5 +206,7 @@ int main(void)
     RUN_TEST(test_sleep_guard_wraps_past_midnight);
     RUN_TEST(test_wake_timer_minute_is_ten_minutes_before_wake);
     RUN_TEST(test_no_wake_timer_without_a_night_or_a_valid_clock);
+    RUN_TEST(test_sunrise_due_in_the_hour_after_wake);
+    RUN_TEST(test_sunrise_window_wraps_past_midnight);
     return UNITY_END();
 }

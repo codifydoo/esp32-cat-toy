@@ -16,6 +16,11 @@ uint16_t schedule_minutes_until(uint16_t now, uint16_t target)
     return (uint16_t)(((uint32_t)target + SCHEDULE_DAY_MIN - now) % SCHEDULE_DAY_MIN);
 }
 
+bool schedule_sunrise_due(uint16_t now, uint16_t wake)
+{
+    return schedule_minutes_until(wake, now) < SCHEDULE_SUNRISE_WINDOW_MIN;
+}
+
 uint8_t schedule_stars_left(uint16_t now, uint16_t wake)
 {
     const uint32_t hours = ((uint32_t)schedule_minutes_until(now, wake) + 59) / 60;
