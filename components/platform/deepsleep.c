@@ -8,6 +8,7 @@
 #include "esp_sleep.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "sdkconfig.h"
 
 #define WAKE_BOOT_GPIO  GPIO_NUM_0
 #define WAKE_TOUCH_GPIO BSP_LCD_TOUCH_INT /* GPIO11: low while the CST9217 reports a touch */
@@ -23,7 +24,11 @@ void deepsleep_init(void)
 {
     switch (esp_sleep_get_wakeup_cause()) {
     case ESP_SLEEP_WAKEUP_EXT1: s_cause = DEEPSLEEP_BY_PIN; break;
+#if CONFIG_CAT_DEV_AUTO_WAKE
+    case ESP_SLEEP_WAKEUP_TIMER: s_cause = DEEPSLEEP_BY_PIN; break; /* the auto-wake dev build: a stand-in touch */
+#else
     case ESP_SLEEP_WAKEUP_TIMER: s_cause = DEEPSLEEP_BY_TIMER; break;
+#endif
     default: s_cause = DEEPSLEEP_COLD; break;
     }
     if (s_cause == DEEPSLEEP_COLD) {
@@ -56,6 +61,9 @@ static void log_if_failed(esp_err_t err, const char *what)
 
 void deepsleep_start(uint32_t timer_s, bool for_battery)
 {
+#if CONFIG_CAT_DEV_AUTO_WAKE
+    timer_s = 10; /* the auto-wake dev build: the next wake comes by itself, and deepsleep_init() calls it a touch */
+#endif
     ESP_LOGI(TAG, "deep sleep: timer %lu s%s", (unsigned long)timer_s, for_battery ? ", for the battery" : "");
     s_for_battery = for_battery;
     audio_stop_all();

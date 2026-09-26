@@ -55,12 +55,13 @@ static void insertion_sort(size_t *a, int n)
     }
 }
 
-/* Free heap as the median of 10 readings 50 ms apart. Single readings swing both ways: a display
- * flush briefly holds ~25 KB of internal RAM, and a rare state frees ~22.5 KB; the median ignores
- * both, and a real leak still moves it. The menu icon's breathing pauses meanwhile: it redraws the
- * idle menu about a third of the time, and a scaled icon holds ~18.5 KB on top of the flush, so a
- * dip of about a second can outlast the 0.5 s of readings and set the median (a soak failed on its
- * last reading that way, every round flat). It is not a leak: the free heap always came back. */
+/* Free heap as the median of 10 readings 50 ms apart. Single readings can swing both ways: a rare
+ * state frees ~22.5 KB (and a display flush held a ~25 KB internal copy until the draw buffers moved
+ * to internal RAM); the median ignores such swings, and a real leak still moves it. The menu icon's
+ * breathing pauses meanwhile: it redraws the idle menu about a third of the time, and a scaled icon
+ * holds ~18.5 KB, so a dip of about a second can outlast the 0.5 s of readings and set the median (a
+ * soak failed on its last reading that way, every round flat). It is not a leak: the free heap
+ * always came back. */
 static void free_heap(size_t *internal, size_t *psram)
 {
     display_lock(-1);

@@ -549,3 +549,43 @@ Logs are in `build-logs/m7-*.log`, host-timestamped with `tools/serial_log.py -t
 - The quiet hungry cat at night.
 
 The kid test (spec §7) is still open for M3-M7.
+
+## Frame drops at the boot sync (after M7) — 2026-09-26
+
+Branch `davor/boot-wifi-flush` from bf704a0. The fix is 738eb6c, and 4eb464f adds an auto-wake dev build. Logs are in `build-logs/` of that worktree (`dmadiag-base`, `fixdiag`, `fixdiag2-boot`, `autowake-base`, `autowake-fix`, `ntppower-fix2`, `soak-fix`, `perf-fix`). They are Wi-Fi logs: grep them only with `connected with|ssid|bssid` excluded.
+
+**Cause.** With the LVGL draw buffers in PSRAM, `spi_master` copies each SPI transaction of a flush into a new internal DMA buffer (`setup_dma_priv_buffer`). It holds that buffer until the next flush.
+- A transaction is at most 32 KB (`SPI_LL_DMA_MAX_BIT_LEN`), so a full 466 × 50 band needs 32,768 + 13,832 bytes. Earlier notes (M6, M7) give the copy as one 46.6 KB buffer.
+- The boot rings flush full bands from 2.4 s to about 4.5 s, and Wi-Fi starts at about 2.6 s.
+
+An instrumented build (not committed) added a failed-allocation hook and a 50 ms sampler of `heap_caps_get_largest_free_block(MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL)`. It gave these numbers on a touch wake of the Wi-Fi power build:
+
+| Moment (ms since boot) | Largest internal DMA block (B) | Free internal (B) |
+| --- | --- | --- |
+| Start | 180,224 | 245,915 |
+| Before `esp_wifi_init` (1966) | 73,728 | 118,439 |
+| After `esp_wifi_init` (1973) | **31,744** | 69,235 |
+| At each failed 32,768 B copy (2581-3238) | 31,744 | 111,675-114,455 |
+| After Wi-Fi is released (3624) | 43,008, later 77,824 | 145,711 |
+
+Wi-Fi's allocations split the last block larger than 32 KB. The RAM is there but fragmented, and the block is 1 KB short, so small layout changes decide each wake: 1 of 3 wakes in M7, all 4 boots of the instrumented build, and 6 of 11 wakes on the auto-wake build below.
+
+**First fix, rejected: direct PSRAM DMA.** `psram_dma_direct` on the panel IO lets the SPI DMA read PSRAM with no copy.
+- The first flush logged `spi_master: DMA TX underflow detected`, then `recycle spi transactions failed`, and the display hung. esp_lcd's error path leaves its in-flight count wrong, so the next command waits forever.
+- IDF's own test runs PSRAM DMA at `SPIRAM_SPEED / 4` on one line; the panel needs 40 MHz × 4 lines. Not committed.
+
+**Fix (738eb6c).** The draw buffers are in internal RAM: two 24-row buffers (44,736 B), allocated at boot before Wi-Fi. The SPI DMA reads them in place, so no flush allocates anything.
+
+**Auto-wake build (4eb464f).** A timer wake by day shows the sunrise, not the boot animation, so only a touch reproduced the drops. `sdkconfig.autowake` (with `power`) makes every deep sleep last 10 s and counts its timer wake as a touch. Each wake plays the boot animation and runs the boot NTP sync, and the menu's panel goes off 15 s after start. One cycle is about 48 s, with no hands.
+
+| Check | Result |
+| --- | --- |
+| Wake check, old display code (bf704a0's `display.c`), Wi-Fi power build + `autowake` | 11 wakes: 6 dropped frames, 115 `Draw bitmap failed` in all (15-28 per wake), 0 underflows, NTP 11 of 11 (`autowake-base.log`). The check catches the fault |
+| Wake check, fix (4eb464f), same build | **PASS: 13 deep-sleep wakes plus the cold boot, 0 `Draw bitmap failed`, 0 `Failed to allocate priv TX buffer`, 0 underflows, no error lines, NTP 14 of 14** (`autowake-fix.log`; every boot's ELF SHA256 starts `9caff86f4`, as the build's) |
+| Touch wake, plain Wi-Fi power build (738eb6c) | 1 logged touch wake: 0 failures, NTP synced (`ntppower-fix2.log`). The user's 10 touch wakes before it were not logged: the logger had stopped. The user saw nothing wrong on screen |
+| Internal RAM, fix against the old code (auto-wake builds) | Free internal after the sync: median 133,111 B (old 131,255). Lowest while Wi-Fi was up: 65,879 B (instrumented boot, marks and 50 ms samples). Free PSRAM at boot: 93,056 B more |
+| Soak (`build-soak`, 4eb464f) | PASS: internal −8 B, PSRAM 0 over 50 rounds; every round reads internal 194,887, PSRAM 4,803,036. M7 (`m7-soak2.log`): −8, 0; 216,083 and 4,709,828. The draw buffers moved 44.7 KB from PSRAM to internal RAM. The other 23.5 KB of the difference fits a flush copy still held when M7 took its readings |
+| FPS (`build-perf`, 4eb464f, `tools/flash_and_log.sh 30` as in M7) | The breathing menu: 27.8 FPS mean (17-30, 12 of 94 below 24), CPU 37 %, flush 1.7 ms. M7: 27.7 (20-30, 12 below 24), CPU 40 %, flush 2.5 ms. The 17 is the first sample after the boot animation (86 % CPU); M7's first menu sample was similar (22 FPS at 92 %). The boot animation: 16/12/10/9 FPS (M7 15/12/10/10) |
+| Log | No Guru Meditation, abort, assert or unexpected reset in any run |
+
+**Not measured:** a sync during play (the daily sync, or the 5-minute retry while the clock is not valid). No flush allocates any more, so a sync can no longer take a flush's memory.

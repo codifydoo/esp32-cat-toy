@@ -26,6 +26,7 @@ one listener can hold the port: let a running one finish (or stop it) before fla
 | Soak test | same with `soak` |
 | Deep sleep on the USB cable (USB counts as battery; sleep 20 s after the panel goes off) | same with `power` |
 | Battery screens (as `power`, plus a fake battery: 12 % at boot, one point less every 10 s, 1 % after a battery sleep; a reset starts over) | same with `drain` |
+| Wake cycles without hands (as `power`, plus: the panel goes off 15 s after start, and each deep sleep ends by itself after 10 s as a touch would, with the boot animation and the boot NTP sync); log them with `tools/serial_log.py <port> 600 -t` | `tools/flash_and_log.sh 30 -B build-autowake -D SDKCONFIG=build-autowake/sdkconfig -D SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.secrets;sdkconfig.power;sdkconfig.autowake"` (without `sdkconfig.secrets`: no Wi-Fi) |
 
 ## Wi-Fi for the clock (optional)
 
