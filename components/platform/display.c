@@ -22,8 +22,8 @@ static void rounder_cb(lv_event_t *e)
     a->y2 = ((a->y2 >> 1) << 1) + 1;
 }
 
-/* bsp_display_start_with_config() with one change: touch goes through touch_raw_read() so the
- * parent gesture can see two fingers. */
+/* bsp_display_start_with_config() with two changes: the draw buffers are in internal RAM (see below), and
+ * touch goes through touch_raw_read() so the parent gesture can see two fingers. */
 esp_err_t display_init(void)
 {
     esp_lv_adapter_config_t adapter = ESP_LV_ADAPTER_DEFAULT_CONFIG();
@@ -42,8 +42,13 @@ esp_err_t display_init(void)
             .rotation = ESP_LV_ADAPTER_ROTATE_0,
             .hor_res = BSP_LCD_H_RES,
             .ver_res = BSP_LCD_V_RES,
-            .buffer_height = 50,
-            .use_psram = true,
+            /* Internal RAM, which the SPI DMA reads as it is. From PSRAM the SPI driver copies every flush into
+             * new internal DMA buffers (32 KB + 13.5 KB for a 466 x 50 band), and while Wi-Fi starts no free
+             * block is 32 KB: frames dropped at boot. Reading PSRAM directly (psram_dma_direct) underruns at
+             * this bus speed, 40 MHz x 4 lines. Two 24-row buffers are 44.7 KB, taken once at boot; every
+             * internal heap region big enough for one is DMA-capable. */
+            .buffer_height = 24,
+            .use_psram = false,
             .enable_ppa_accel = false,
             .require_double_buffer = true,
         },
