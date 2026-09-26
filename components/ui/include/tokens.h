@@ -63,6 +63,8 @@
 #define BURN_SHIFT_MS    60000
 #define BURN_SHIFT_PX    4
 #define DEEP_SLEEP_AFTER_DARK_MS 600000 /* on battery, 10 minutes after the panel went off (spec §3.13) */
+#define ICON_BREATHE_SCALE 262  /* 1.025 x 256: the menu icon breathes by 2.5 % (Spec: Burn-in) */
+#define ICON_BREATHE_MS    1500 /* up, then as long back down: the design's 3 s `breathe` */
 
 /* Boot (Screens: Boot / wake) */
 #define BOOT_MS         2600

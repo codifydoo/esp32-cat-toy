@@ -115,11 +115,38 @@ static void run_anim(void *var, lv_anim_exec_xcb_t exec, int32_t from, int32_t t
     lv_anim_start(&a);
 }
 
+/* The menu icon breathes while the menu is awake and no swipe or open is running (spec §3.13, burn-in). */
+static void breathe(bool on)
+{
+    lv_anim_delete(s_icon, set_scale);
+    lv_anim_delete(s_icon_next, set_scale);
+    lv_image_set_scale(s_icon, LV_SCALE_NONE);
+    if (!on) {
+        return;
+    }
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, s_icon);
+    lv_anim_set_exec_cb(&a, set_scale);
+    lv_anim_set_values(&a, LV_SCALE_NONE, ICON_BREATHE_SCALE);
+    lv_anim_set_duration(&a, ICON_BREATHE_MS);
+    lv_anim_set_reverse_duration(&a, ICON_BREATHE_MS);
+    lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+    lv_anim_start(&a);
+}
+
+static void settle_done(lv_anim_t *a)
+{
+    (void)a;
+    breathe(s_idle_level == 0 && !s_busy);
+}
+
 static void slide_done(lv_anim_t *a)
 {
     (void)a;
     ui_set_hidden(s_icon_next, true);
-    run_anim(s_icon, set_scale, ICON_SCALE_SETTLE_FROM, LV_SCALE_NONE, ANIM_SETTLE_MS, lv_anim_path_overshoot, NULL);
+    run_anim(s_icon, set_scale, ICON_SCALE_SETTLE_FROM, LV_SCALE_NONE, ANIM_SETTLE_MS, lv_anim_path_overshoot, settle_done);
     s_busy = false;
 }
 
@@ -129,6 +156,7 @@ static void go(int8_t dir)
         say_name(false);
         return;
     }
+    breathe(false);
     s_busy = true;
     carousel_step(&s_car, dir);
     lv_obj_t *out = s_icon, *in = s_icon_next;
@@ -155,6 +183,7 @@ static void open_done(lv_anim_t *a)
 
 static void open_current(void)
 {
+    breathe(false);
     s_busy = true;
     audio_play(SND_OPEN);
     run_anim(s_icon, set_scale, LV_SCALE_NONE, ICON_SCALE_OPEN, ANIM_OPEN_ZOOM_MS, lv_anim_path_ease_in, open_done);
@@ -288,6 +317,7 @@ void launcher_show(void)
     layout_dots();
     cat_set_state(s_cat, resting_state());
     s_busy = false;
+    breathe(s_idle_level == 0);
     if (lv_screen_active() != s_scr) {
         lv_screen_load_anim(s_scr, LV_SCR_LOAD_ANIM_FADE_IN, ANIM_HOME_MS, 0, true);
     }
@@ -301,6 +331,7 @@ void launcher_set_idle_level(uint8_t level)
     if (!s_react_timer) {
         cat_set_state(s_cat, resting_state());
     }
+    breathe(level == 0 && !s_busy);
 }
 
 void launcher_burn_in_shift(void)
