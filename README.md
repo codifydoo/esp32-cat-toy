@@ -42,6 +42,19 @@ changing the file, then build. Developer builds that pass `SDKCONFIG_DEFAULTS` r
 it to their list. Never run `idf.py save-defconfig` on a build with Wi-Fi configured: it writes
 `CONFIG_CAT_WIFI_PASSWORD` into the committed `sdkconfig.defaults`.
 
+## First run, battery and deep sleep
+
+- **First run.** The first power-on plays the boot animation, then shows the cat picker. A tap chooses the cat
+  and saves it; the parent area's Cat tile changes it later. Erasing the settings (the `nvs` partition in
+  `partitions.csv`) brings the picker back, and also resets the volume, the sleep times and the hidden apps.
+- **Battery screens.** The hungry cat shows once at 10 % and once at 5 %; plugging in USB shows the eating cat.
+  Neither shows over the boot animation, the cat picker, the parent area, the lock or the sunrise.
+- **Deep sleep.** On battery the toy deep-sleeps 10 minutes after the panel goes off (never on USB power), with
+  a timer 10 minutes before wake time when the clock is valid. A touch or BOOT wakes it (PWR cannot). Every wake
+  is a restart: by day the boot animation plays, at night the lock shows at once, and Magic paws' drawing is
+  gone. At 2 % it sleeps until it is charged. The serial port disappears while it sleeps, so log it with
+  `python tools/serial_log.py <port> <seconds> -t`, which waits for the port to come back.
+
 ## Host tests
 
 `test/run.sh` (add `-R name` to run one test)

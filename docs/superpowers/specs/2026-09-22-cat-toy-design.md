@@ -106,9 +106,11 @@ survives restarts and deep sleep, but not a power loss. Decided 2026-09-24:
   off rather than guess: no bedtime lock, and the Sleepy clock shows the day scene. Play is never
   blocked by a bad clock.
 - The internal oscillator drifts, and more so in deep sleep, which counts time on the RTC slow clock:
-  it ran about 0.6 % fast, about 21 s per hour (docs/device-checks.md, M7). The daily NTP sync, and
-  the sync at each wake from deep sleep, bound it when Wi-Fi is available. Without Wi-Fi the clock
-  gains about 4 minutes per night of deep sleep, until the parent sets Now again.
+  it ran 0.6-1.0 % fast, about 21-37 s per hour (docs/device-checks.md, M7). The chip cools while it
+  sleeps, so the deep-sleep timer fires early, never late, and the 10-minute lead before wake time
+  holds. The daily NTP sync, and the sync at each wake from deep sleep, bound the drift when Wi-Fi is
+  available. Without Wi-Fi the clock gains about 4-7 minutes per night of deep sleep, until the
+  parent sets Now again.
 
 ### 3.3 Silly voice effects
 
@@ -339,14 +341,15 @@ The design leaves these open for M7. Everything else follows the design, §3.7 a
     state; while the screen shows, touches, tilt and shake do not reach the app. Home works as
     always: it ends the screen, closes the app and shows the menu.
   - It never shows over the boot animation, the cat picker, the parent area, the bedtime lock or the
-    sunrise. If a level is reached there, or while the panel is off, it shows the next time she is
-    on the menu or in an app with the panel on (after a night, on the menu after the sunrise).
+    sunrise. If a level is reached there, or while the panel is dimmed or off, it shows the next
+    time she is on the menu or in an app with the panel fully on, usually at her next touch (after a
+    night, on the menu after the sunrise).
   - **At 2 %** on battery the toy deep-sleeps until it is charged. If the panel is on, the hungry
     cat shows for 4 s first, from anywhere. While it sleeps for the battery, a touch or BOOT shows the
     hungry cat for 4 s and it sleeps again, and no timer wakes it. With USB power connected, the next
     touch wakes it normally. This keeps the clock (§3.2), which the AXP2101's own cut-off at empty
-    would lose. At night (between bedtime and wake time) the hungry cat plays at the whisper's 30 %
-    and the panel stays at 35 %.
+    would lose. At night (between bedtime and wake time) the hungry cat plays at the whisper's 30 %,
+    and a wake while it sleeps for the battery lights the panel at the lock's 35 %.
 - **Charging** (the design's eating cat: full bowl, filling green battery, "Njam njam!" and 2 s of
   munching): when USB power is connected and the gauge is available, it shows for 4 s over the menu
   or an open app, and then play resumes, as for low battery. Connecting USB counts as a touch, so a
