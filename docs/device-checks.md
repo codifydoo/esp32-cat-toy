@@ -589,3 +589,24 @@ Wi-Fi's allocations split the last block larger than 32 KB. The RAM is there but
 | Log | No Guru Meditation, abort, assert or unexpected reset in any run |
 
 **Not measured:** a sync during play (the daily sync, or the 5-minute retry while the clock is not valid). No flush allocates any more, so a sync can no longer take a flush's memory.
+
+## Battery log and M7 follow-ups (M8a) — 2026-09-26
+
+The firmware is `davor/m8-tuning` at 6254bac. The builds are `build-batlog` (the normal toy plus the battery log, with Wi-Fi), `build-power`, `build-drain`, `build-drainusb` and `build-soak`. Logs are `build-logs/m8-*.log`, git-ignored.
+
+| Check | Result |
+| --- | --- |
+| Battery log, smoke test | PASS (log): the cold start at 91 % / 4199 mV, then `usb_in`; unplugged, `usb_out` at 4100 mV; replugged, `usb_in`; `dark` exactly 121 s later (the idle off at 2 minutes); `lit` at a touch. The dump arrived every 30 s between `BATLOG,begin`/`BATLOG,end`. The logging task had 2128 of its 4096 bytes of stack never used. No crash |
+| 1. A touch at night (power) | PASS (user): the lock lit at once, with no boot animation. **Not in the log:** the Mac did not see the board's USB during this check, until a replug |
+| 2. The 5 % screen over an app kept busy (drain) | PASS (log + user): 10 % over the menu at 20.6 s; 5 % over Magic paws at 70.7 s, with the drawing intact afterwards; 2 % at 100.7 s, then `deep sleep: timer 0 s, for the battery` |
+| 3. USB during the 2 % screen, by day (drainusb) | PASS (user). 3a: plugging in during the screen means no sleep, and the menu stays. 3b: after a battery sleep, a touch and USB led to the boot animation, then the menu. The log shows 3b's wake with USB already on (`woke by a pin (slept for the battery)`, `USB power: yes`, `start: boot animation`): that is the wake plan's path, and the result looks the same |
+| 3. USB during the 2 % screen, at night (drainusb) | PASS (user): plugging in during the night-time hungry cat gave the lock at once, with no boot animation or jingle, and the night light stayed on. **Not in the log:** the logger stalled after 20:18:01 (`serial_log.py` sometimes hangs after the port comes back) |
+| 4. The hungry cat at night (drainusb) | PASS (user): quiet over the lock; quiet and dim on a wake that slept for the battery. **Not in the log** (the same stall) |
+| Soak | PASS: internal −8 B, PSRAM 0 over 50 rounds (`m8-soak.log`; every round reads internal 194595, PSRAM 4803036); no crash, no draw failure |
+
+**Not tested on the device:**
+- Check 5: no sunrise after a clock correction (optional, not run).
+- Home on the first-run picker (it needs NVS erased).
+- The battery run itself, which is pending (below).
+
+**Tool note.** `tools/serial_log.py` can hang after the port comes back from an unplug or a reset: the reads return nothing, and neither "port gone" nor "port back" is logged. Restarting it recovers. It happened twice in M7 and once here.
