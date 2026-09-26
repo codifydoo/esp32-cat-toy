@@ -20,6 +20,10 @@ menu "Cat toy"
     config CAT_DEV_FAST_SLEEP
         bool "Deep-sleep 20 s after the panel goes off instead of 10 minutes"
         default n
+    config CAT_DEV_AUTO_WAKE
+        bool "Wake 10 s into every deep sleep as a touch would, the panel off 15 s after start (wake cycles without hands)"
+        depends on CAT_DEV_FAST_SLEEP
+        default n
     config CAT_HOME_ON_POWER
         bool "Use PWR as Home (only if BOOT cannot be pressed through the case)"
         default n

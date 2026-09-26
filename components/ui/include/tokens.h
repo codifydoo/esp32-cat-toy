@@ -1,4 +1,5 @@
 #pragma once
+#include "sdkconfig.h"
 /* Design constants from design/claude-design (Spec.dc.html, Screen.dc.html). One place to tune. */
 
 #define SCREEN_SIZE   466
@@ -54,9 +55,15 @@
 #define TALK_AFTER_NAME_MS     1200
 
 /* Idle and burn-in (Spec: Burn-in) */
+#if CONFIG_CAT_DEV_AUTO_WAKE /* the auto-wake dev build: the panel goes off 15 s after start, then deep sleep */
+#define IDLE_DIM_MS      5000
+#define IDLE_SLEEP_MS    10000
+#define IDLE_OFF_MS      15000
+#else
 #define IDLE_DIM_MS      20000
 #define IDLE_SLEEP_MS    60000
 #define IDLE_OFF_MS      120000
+#endif
 #define IDLE_APP_HOME_MS 60000
 #define IDLE_DIM_PCT     35
 #define BRIGHTNESS_FULL  100
