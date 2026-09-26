@@ -5,6 +5,7 @@
 #include "bedtime.h"
 #include "boot.h"
 #include "buttons.h"
+#include "clock.h"
 #include "deepsleep.h"
 #include "display.h"
 #include "esp_heap_caps.h"
@@ -69,14 +70,22 @@ static woke_t woke(void)
     }
 }
 
-/* The hungry cat of a WAKE_HUNGRY start has ended. With USB power plugged in meanwhile, the start goes on as a
- * cold one does; no NTP here: the daily sync and the invalid-clock retry cover it. */
+/* The hungry cat of a WAKE_HUNGRY start has ended. With USB power plugged in meanwhile, the toy starts normally
+ * (spec §3.14): inside the night the lock at once, as any wake there; otherwise the boot animation, as a cold
+ * start. Either way the boot sync this start skipped runs now. */
 static void sleep_again(void)
 {
     if (power_on_usb()) {
         ESP_LOGI(TAG, "USB power: starting instead of sleeping");
-        display_set_brightness(BRIGHTNESS_FULL); /* as a cold start: the night's 35 % would stay on the menu */
-        boot_run(app_manager_start);
+        power_poll(false); /* USB now, or the next power_watch tick still sees 2 % on battery: a second hungry cat */
+        if (bedtime_is_night() && !first_run_due()) {
+            bedtime_wake(false); /* the lock, lit as after a touch; USB keeps it as the night light */
+            s_started = true;
+        } else {
+            display_set_brightness(BRIGHTNESS_FULL); /* as a cold start: the night's 35 % would stay on the menu */
+            boot_run(app_manager_start);
+        }
+        clock_sync_start();
         return;
     }
     deepsleep_start(0, true);
