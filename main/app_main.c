@@ -1,6 +1,7 @@
 #include "app_manager.h"
 #include "assets.h"
 #include "audio.h"
+#include "battery_log.h"
 #include "cat.h"
 #include "clock.h"
 #include "deepsleep.h"
@@ -62,6 +63,7 @@ void app_main(void)
     power_diag_start();
 #else
     power_init();
+    battery_log_init(); /* the batlog dev build only (spec §3.14) */
     cat_set_variant((cat_variant_t)settings_cat_variant());
     display_lock(-1);
     app_manager_init();

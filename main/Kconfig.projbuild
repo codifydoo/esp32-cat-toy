@@ -24,6 +24,12 @@ menu "Cat toy"
         bool "Wake 10 s into every deep sleep as a touch would, the panel off 15 s after start (wake cycles without hands)"
         depends on CAT_DEV_FAST_SLEEP
         default n
+    config CAT_DEV_BATTERY_LOG
+        bool "Log the battery to flash (every 10 min awake, each start and sleep, USB in/out); print it on USB"
+        depends on !CAT_DEV_IGNORE_USB && !CAT_DEV_BATTERY_DRAIN
+        default n
+        help
+            Spec 3.14: the battery-life measurement. The toy otherwise runs as the normal build.
     config CAT_HOME_ON_POWER
         bool "Use PWR as Home (only if BOOT cannot be pressed through the case)"
         default n
