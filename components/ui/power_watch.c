@@ -3,6 +3,7 @@
 #include "bedtime.h"
 #include "clock.h"
 #include "deepsleep.h"
+#include "esp_attr.h"
 #include "esp_log.h"
 #include "first_run.h"
 #include "idle.h"
@@ -24,7 +25,10 @@
 #endif
 
 static const char *TAG = "power_watch";
-static battery_rules_t s_rules;
+/* Survives a deep sleep in RTC memory: the 10 % and 5 % screens already shown, and a pending one, must not
+ * reappear on every wake between them and empty (spec §3.13). power_watch_init() only resets it on a genuine
+ * restart. */
+static RTC_DATA_ATTR battery_rules_t s_rules;
 static bool s_dark;
 static uint32_t s_dark_since;
 
@@ -57,6 +61,9 @@ static void sleep_check(bool usb)
     }
     if (lv_tick_elaps(s_dark_since) < SLEEP_AFTER_DARK_MS || usb || overlay_showing() || clock_sync_running()) {
         return;
+    }
+    if (power_on_usb()) {
+        return; /* the cached ps.usb can be a poll period stale: read the PMU directly now the countdown is over */
     }
     const bool valid = clock_valid();
     const uint16_t now = clock_now_min(), bed = settings_bedtime(), wake = settings_wake();
@@ -95,7 +102,9 @@ static void tick(lv_timer_t *t)
 
 void power_watch_init(void)
 {
-    battery_rules_init(&s_rules);
+    if (deepsleep_cause() == DEEPSLEEP_COLD) {
+        battery_rules_init(&s_rules); /* a genuine restart, not a deep-sleep wake: forget what already showed */
+    }
     lv_timer_create(tick, POWER_WATCH_MS, NULL);
 }
 

@@ -1,7 +1,6 @@
 #include "app_manager.h"
 #include "assets.h"
 #include "audio.h"
-#include "boot.h"
 #include "cat.h"
 #include "clock.h"
 #include "deepsleep.h"
@@ -66,7 +65,7 @@ void app_main(void)
     cat_set_variant((cat_variant_t)settings_cat_variant());
     display_lock(-1);
     app_manager_init();
-    app_manager_boot();
+    const bool started = app_manager_boot();
     display_unlock();
     if (imu_init() != ESP_OK) {
         ESP_LOGE(TAG, "IMU unavailable: shake and tilt do nothing");
@@ -74,7 +73,9 @@ void app_main(void)
     if (sensors_start() != ESP_OK) {
         ESP_LOGE(TAG, "sensors unavailable: no buttons, shake or tilt");
     }
-    clock_sync_start(); /* NTP at boot, in the background (spec §3.2) */
+    if (started) {
+        clock_sync_start(); /* NTP at boot, in the background (spec §3.2); not at 2 %: the toy sleeps again at once */
+    }
 #if CONFIG_CAT_DEV_SOAK
     soak_start();
 #endif

@@ -30,7 +30,8 @@ static void poll_sensors(lv_timer_t *t);
 static const app_t *s_current;
 static lv_obj_t *s_screen;  /* the current app's screen; NULL when none is open */
 static bool s_pending_home; /* Home arrived before the open fade made s_screen the active screen */
-static bool s_started;      /* true once app_manager_start() has run; gates buttons during boot */
+static bool s_started;      /* true once the start's first screen shows (app_manager_start(), or a deep-sleep
+                              * wake's lock/sunrise in app_manager_boot()); gates buttons during boot */
 
 #if CONFIG_CAT_HOME_ON_POWER
 static lv_timer_t *s_home_timer;    /* pending "act as Home" one-shot, NULL when none is queued */
@@ -69,11 +70,15 @@ static woke_t woke(void)
 
 static void sleep_again(void) { deepsleep_start(0, true); }
 
-void app_manager_boot(void)
+bool app_manager_boot(void)
 {
     const power_state_t ps = power_state(); /* power_init() took a first reading */
-    const wake_plan_t plan = power_wake_plan(woke(), bedtime_is_night(), deepsleep_was_for_battery(),
-                                             battery_critical(ps.pct, ps.usb));
+    wake_plan_t plan = power_wake_plan(woke(), bedtime_is_night(), deepsleep_was_for_battery(),
+                                        battery_critical(ps.pct, ps.usb));
+    if (first_run_due() && plan != WAKE_HUNGRY) {
+        /* The picker isn't done: a toy that slept on it shows it again, as a cold start at night does. */
+        plan = WAKE_BOOT;
+    }
     static const char *const NAMES[] = {"boot animation", "lock, lit", "lock, dark", "sunrise", "hungry cat"};
     ESP_LOGI(TAG, "start: %s (free psram %u)", NAMES[plan], (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
     switch (plan) {
@@ -88,9 +93,10 @@ void app_manager_boot(void)
         break;
     case WAKE_HUNGRY:
         overlay_show(OVERLAY_HUNGRY, sleep_again); /* the buttons stay ignored: s_started is false */
-        break;
+        return false;                              /* the toy is about to deep-sleep again: no NTP at 2 % */
     default: boot_run(app_manager_start); break;
     }
+    return true;
 }
 
 #if CONFIG_CAT_HOME_ON_POWER
@@ -250,7 +256,8 @@ static void pending_home_cb(lv_timer_t *t)
 static void handle_button(button_id_t id)
 {
     if (!s_started) {
-        return; /* ignore presses until app_manager_start() has shown the menu (boot animation) */
+        return; /* ignore presses until the start's first screen has shown (the boot animation, or a deep-sleep
+                 * wake's lock or sunrise) */
     }
     lv_display_trigger_activity(NULL); /* a button press counts as activity */
     if (overlay_showing()) {
