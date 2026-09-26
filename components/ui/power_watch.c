@@ -1,5 +1,6 @@
 #include "power_watch.h"
 #include "app_manager.h"
+#include "battery_log.h"
 #include "bedtime.h"
 #include "clock.h"
 #include "deepsleep.h"
@@ -58,10 +59,14 @@ static void sleep_for_battery(void)
 static void sleep_check(bool usb)
 {
     if (!panel_dark()) {
+        if (s_dark) {
+            battery_log_panel(false); /* the batlog dev build (spec §3.14) */
+        }
         s_dark = false;
         return;
     }
     if (!s_dark) {
+        battery_log_panel(true);
         s_dark = true;
         s_dark_since = lv_tick_get();
         return;

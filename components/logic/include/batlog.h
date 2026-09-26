@@ -18,6 +18,9 @@ typedef enum {
     BATLOG_SLEEP,      /* just before a deep sleep */
     BATLOG_USB_IN,
     BATLOG_USB_OUT,
+    BATLOG_DARK,  /* the panel went off, awake: the idle off, PWR, or the lock's dark panel */
+    BATLOG_LIT,   /* the panel lit again, awake */
+    BATLOG_RESET, /* a start after a crash, a watchdog or a brownout (a cold start otherwise) */
     BATLOG_EVENT_COUNT,
 } batlog_event_t;
 

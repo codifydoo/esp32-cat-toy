@@ -112,6 +112,9 @@ static void test_every_event_has_a_name(void)
     }
     TEST_ASSERT_EQUAL_STRING("?", batlog_event_name(BATLOG_EVENT_COUNT));
     TEST_ASSERT_EQUAL_STRING("usb_out", batlog_event_name(BATLOG_USB_OUT));
+    TEST_ASSERT_EQUAL_STRING("dark", batlog_event_name(BATLOG_DARK));
+    TEST_ASSERT_EQUAL_STRING("lit", batlog_event_name(BATLOG_LIT));
+    TEST_ASSERT_EQUAL_STRING("reset", batlog_event_name(BATLOG_RESET));
 }
 
 int main(void)

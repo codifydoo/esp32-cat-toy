@@ -421,8 +421,14 @@ M8 (§9) splits in two:
   Wi-Fi.
   - **Records:** the clock time (Unix seconds, as the toy knows it), the gauge percentage (or "no
     reading"), the battery voltage in mV (the AXP2101's VBAT) and the event.
-  - **Events:** a sample every 10 minutes while awake; one just before each deep sleep; one at each
-    start, with its cause (a cold start, a pin or the timer); USB connected; USB removed.
+  - **Events:**
+    - a sample every 10 minutes while awake;
+    - one just before each deep sleep;
+    - one at each start, with its cause: a cold start, a pin, the timer, or a reset after a crash,
+      a watchdog or a brownout;
+    - the panel going dark and lighting again while awake, which separates play from the dark
+      minutes before a sleep;
+    - USB connected, and USB removed.
   - **Storage:** the last 256 records, a ring in NVS. The log survives deep sleep, resets and
     power-off. It is never cleared: a run is read from the USB removal that starts it.
   - **Dump:** while USB is connected, the whole log prints to the serial console every 30 s as

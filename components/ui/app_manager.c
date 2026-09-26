@@ -32,8 +32,9 @@ static void poll_sensors(lv_timer_t *t);
 static const app_t *s_current;
 static lv_obj_t *s_screen;  /* the current app's screen; NULL when none is open */
 static bool s_pending_home; /* Home arrived before the open fade made s_screen the active screen */
-static bool s_started;      /* true once the start's first screen shows (app_manager_start(), or a deep-sleep
-                              * wake's lock/sunrise in app_manager_boot()); gates buttons during boot */
+static bool s_started;      /* true once the start's first screen shows (app_manager_start(), a deep-sleep wake's
+                              * lock/sunrise in app_manager_boot(), or sleep_again()'s lock when USB interrupts a
+                              * night-time 2 % wake); gates buttons during boot */
 
 #if CONFIG_CAT_HOME_ON_POWER
 static lv_timer_t *s_home_timer;    /* pending "act as Home" one-shot, NULL when none is queued */

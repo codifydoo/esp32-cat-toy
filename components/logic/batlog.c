@@ -4,7 +4,8 @@
 static const char *const NAMES[BATLOG_EVENT_COUNT] = {
     [BATLOG_COLD] = "cold",     [BATLOG_WAKE_PIN] = "wake_pin", [BATLOG_WAKE_TIMER] = "wake_timer",
     [BATLOG_AWAKE] = "awake",   [BATLOG_SLEEP] = "sleep",       [BATLOG_USB_IN] = "usb_in",
-    [BATLOG_USB_OUT] = "usb_out",
+    [BATLOG_USB_OUT] = "usb_out", [BATLOG_DARK] = "dark",       [BATLOG_LIT] = "lit",
+    [BATLOG_RESET] = "reset",
 };
 
 void batlog_clear(batlog_t *l)
