@@ -26,3 +26,8 @@ void clock_sync_start(void);
 /* Seconds since the last sync attempt started (esp_timer_get_time(), unaffected by clock changes);
  * UINT32_MAX before the first. LVGL task. */
 uint32_t clock_secs_since_attempt(void);
+/* Seconds from now until the next local min:00 (DST-aware), 1 to 86400 plus an hour on a DST day. Only
+ * meaningful while clock_valid(). */
+uint32_t clock_secs_until(uint16_t min);
+/* A background NTP sync is running (spec §3.13: no deep sleep during one). Any task. */
+bool clock_sync_running(void);

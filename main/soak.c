@@ -11,6 +11,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "launcher.h"
 
 #define SOAK_ROUNDS        50
 #define SOAK_STEP_MS       500
@@ -56,15 +57,25 @@ static void insertion_sort(size_t *a, int n)
 
 /* Free heap as the median of 10 readings 50 ms apart. Single readings swing both ways: a display
  * flush briefly holds ~25 KB of internal RAM, and a rare state frees ~22.5 KB; the median ignores
- * both, and a real leak still moves it. */
+ * both, and a real leak still moves it. The menu icon's breathing pauses meanwhile: it redraws the
+ * idle menu about a third of the time, and a scaled icon holds ~18.5 KB on top of the flush, so a
+ * dip of about a second can outlast the 0.5 s of readings and set the median (a soak failed on its
+ * last reading that way, every round flat). It is not a leak: the free heap always came back. */
 static void free_heap(size_t *internal, size_t *psram)
 {
+    display_lock(-1);
+    launcher_set_idle_level(1); /* the breathing off, the icon at 100 % (and the menu's cat sleepy) */
+    display_unlock();
+    vTaskDelay(pdMS_TO_TICKS(500)); /* the last breathing frame flushes */
     size_t in[10], ps[10];
     for (int i = 0; i < 10; i++) {
         in[i] = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
         ps[i] = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
         vTaskDelay(pdMS_TO_TICKS(50));
     }
+    display_lock(-1);
+    launcher_set_idle_level(0); /* breathing again, as in every round */
+    display_unlock();
     insertion_sort(in, 10);
     insertion_sort(ps, 10);
     *internal = in[5];

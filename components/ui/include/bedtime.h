@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <stdint.h>
 
 /* The bedtime lock and the sunrise (spec §3.8, §3.12). LVGL task only. */
 void bedtime_init(void); /* starts the 1 s schedule check; app_manager_init() calls it */
@@ -9,9 +10,21 @@ void bedtime_init(void); /* starts the 1 s schedule check; app_manager_init() ca
 bool bedtime_take_over(void);
 /* True while the lock or the sunrise is on screen (not while the parent area is open over it). */
 bool bedtime_showing(void);
+/* The lock's panel is lit (the sunrise always is). Meaningful while bedtime_showing(). */
+bool bedtime_panel_lit(void);
+/* Lights the lock's panel for at least ms from now (a battery screen over it must not go dark); nothing unless
+ * the lock shows. */
+void bedtime_keep_lit(uint32_t ms);
 /* PWR while bedtime_showing(): the lock's panel off or back on. During the sunrise: the menu, dark (with
  * CONFIG_CAT_HOME_ON_POWER, PWR is Home: the menu, lit). */
 void bedtime_power(void);
 /* Home while bedtime_showing(): nothing on the lock (spec §3.12); the sunrise goes straight to the menu,
  * without the mew (spec §1: only the lock ignores Home). */
 void bedtime_home(void);
+/* The schedule's night now (a valid clock, between bedtime and wake time). */
+bool bedtime_is_night(void);
+/* A deep-sleep wake inside the night (spec §3.13): the lock at once, without the boot animation. It is lit for
+ * BEDTIME_TOUCH_ON_MS, as after a touch, or dark (the timer before wake time) unless USB keeps the night light. */
+void bedtime_wake(bool dark);
+/* The deep-sleep timer woke the toy after wake time: the sunrise at once. */
+void bedtime_sunrise_now(void);

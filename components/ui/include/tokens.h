@@ -62,6 +62,9 @@
 #define BRIGHTNESS_FULL  100
 #define BURN_SHIFT_MS    60000
 #define BURN_SHIFT_PX    4
+#define DEEP_SLEEP_AFTER_DARK_MS 600000 /* on battery, 10 minutes after the panel went off (spec §3.13) */
+#define ICON_BREATHE_SCALE 262  /* 1.025 x 256: the menu icon breathes by 2.5 % (Spec: Burn-in) */
+#define ICON_BREATHE_MS    1500 /* up, then as long back down: the design's 3 s `breathe` */
 
 /* Boot (Screens: Boot / wake) */
 #define BOOT_MS         2600
@@ -272,11 +275,12 @@
 /* Parent home and Sleep times (design "Parent · home", "Parent · sleep times"; spec §3.12) */
 #define COLOR_P_VALUE        0xFFC76B /* tile values and the row icons */
 #define PARENT_TILE_SIZE     140
-#define PARENT_TILE_Y        88
-#define PARENT_TILE_VOL_X    88
-#define PARENT_TILE_SLEEP_X  238
+#define PARENT_TILE_X1       88       /* the home's 2 x 2 tiles: Volume, Sleep / Apps, Cat */
+#define PARENT_TILE_X2       238
+#define PARENT_TILE_Y1       88
+#define PARENT_TILE_Y2       238
 #define PARENT_TILE_PAD_ROW  2        /* gap between a tile's icon, label and value */
-#define PARENT_BACK_X        158      /* "< Parents" */
+#define PARENT_BACK_X        158      /* "‹ Parents" */
 #define PARENT_BACK_Y        34
 #define PARENT_BACK_W        150
 #define PARENT_BACK_H        52
@@ -304,6 +308,29 @@
 #define PARENT_TIMES_NOTE_Y  394
 #define PARENT_TIMES_NOTE_W  230
 
+/* Parent home battery and Show apps (design "Parent · home", "Parent · show apps"; spec §3.13) */
+#define COLOR_CHARGE        0x5CD67A /* the battery ring, the charging glyph */
+#define COLOR_BATT_LOW      0xFF4D4D /* the low-battery glyph; the home's battery at 10 % or less */
+#define COLOR_P_BATT_TEXT   0xBDF5C9
+#define COLOR_P_OFF         0x77738C /* a hidden app's label */
+#define PARENT_BATT_X       197      /* the 72 px battery circle in the middle of the tiles */
+#define PARENT_BATT_Y       197
+#define PARENT_BATT_D       72
+#define PARENT_BATT_BORDER  3
+#define PARENT_APPS_TITLE_Y 96
+#define PARENT_APPS_MAX     6        /* the 3 x 2 grid */
+#define PARENT_APP_X0       83
+#define PARENT_APP_Y0       128
+#define PARENT_APP_DX       100
+#define PARENT_APP_DY       124
+#define PARENT_APP_W        100
+#define PARENT_APP_H        126
+#define PARENT_APP_ICON     96
+#define PARENT_APP_LABEL_Y  100
+#define PARENT_APP_OFF_OPA  77       /* a hidden app's icon at 30 % */
+#define PARENT_EYE_X        66       /* the crossed-eye badge, from the app's top-left */
+#define PARENT_EYE_Y        (-2)
+
 /* Bedtime lock and sunrise (spec §3.12) */
 #define BEDTIME_TICK_MS        1000
 #define BEDTIME_BRIGHTNESS     35
@@ -316,3 +343,36 @@
 #define BEDTIME_RING_CY        279
 #define SUNRISE_FROM_PCT       10
 #define SUNRISE_MENU_MS        60000
+
+/* Cat picker (Screen.dc.html pick view, PICK and V; spec §3.13) */
+#define PICK_PAD          156  /* the touch target */
+#define PICK_RING_R       72   /* the drawn circle, to the middle of its stroke */
+#define PICK_RING_THIN    5
+#define PICK_RING_THICK   10   /* the chosen cat */
+#define PICK_FILL_OPA     48   /* the chosen pad: its fur color at 0x30 */
+#define PICK_CAT_DX       13   /* scale S origin inside the pad */
+#define PICK_CAT_DY       8
+#define PICK_CELEBRATE_MS 1400
+#define PICK_CENTERS      {{233, 128}, {143, 300}, {323, 300}} /* orange, grey, tux */
+#define COLOR_FUR_ORANGE  0xFF9F43
+#define COLOR_FUR_GREY    0xA9B6C9
+#define COLOR_FUR_TUX     0x3B3B52
+
+/* Low battery and charging screens (Screen.dc.html lowbatt and charging views; spec §3.13) */
+#define OVERLAY_MS            4000
+#define OVERLAY_BATT_X        197  /* the 72 x 38 battery glyph */
+#define OVERLAY_BATT_Y        26
+#define OVERLAY_CAT_X         133  /* scale M origin: the design's 220 px cat, centered */
+#define OVERLAY_CAT_Y         86
+#define OVERLAY_BOWL_X        153
+#define OVERLAY_BOWL_EMPTY_Y  316
+#define OVERLAY_BOWL_FULL_Y   304
+#define OVERLAY_BLINK_MS      1600 /* the red battery: 30 % -> 100 % -> 30 % (.blink-slow) */
+#define OVERLAY_BLINK_LOW_OPA 77
+#define CHARGE_FILL_X         11   /* the growing fill, inside the glyph */
+#define CHARGE_FILL_Y         11
+#define CHARGE_FILL_W         42
+#define CHARGE_FILL_MIN_W     6    /* the design's scaleX(0.15) */
+#define CHARGE_FILL_H         16
+#define CHARGE_FILL_R         3
+#define CHARGE_FILL_MS        2000

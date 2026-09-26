@@ -486,3 +486,66 @@ A second fault showed only in builds whose config was generated fresh from `sdkc
 **Boot check after the fixes.** Not run: the board was not connected when the fixes landed (2026-09-25). The final firmware still has to be flashed; it then shows the boot sync and whether any `wifi:connected with` line is left in the log.
 
 The kid test (spec §7) is still open for M3, M4, M5 and M6.
+
+## Power diagnostics (M7) — 2026-09-25
+
+The `powerdiag` build (4cc63e5 with the fix 885852c), on USB with the battery connected, logged with `tools/serial_log.py -t` (host timestamps; the logger survives the port dropping in deep sleep). A second, uncommitted variant ran the touch wake alone twice (the second time holding the touch reset, GPIO2, high through the sleep).
+
+| Check | Result |
+| --- | --- |
+| Fuel gauge | Already on at start (`0x18` = `0x0a`, bit 3 set). 34 %, VBAT 3948 mV, VBUS good, battery present, charging (status 2 direction 1, charger state 2: constant current) |
+| Touch INT (GPIO11) awake | 269 edges during round 0's touches: the CST9217 pulses INT while touched, without the host reading it |
+| Touch wakes deep sleep | Yes: both touch tests woke by `ext1 pins 0x800` about a second after the screen went dark. Holding GPIO2 made no difference, so the plan needs no hold. The full diagnostic's round 2 woke only by its 5-minute fallback: the user was not sure they touched it. The same configuration there slept the full 300 s, so the chip does not wake by itself |
+| BOOT wakes deep sleep | Yes: `ext1 pins 0x1`, at once |
+| PWR on a free RTC pin | No: none of GPIO 3, 13, 17, 18, 21 followed 3 PWR presses. GPIO13 toggles on its own every 0.2-0.7 s (likely the panel's tearing-effect line). PWR cannot wake the chip; a long press still powers off |
+| Timer wake | Yes: round 1 (timer only, no pins) woke by the timer |
+| RTC drift in deep sleep | The 180 s timer took about 179.0 s of real time: the `sleeping` line at host 23:40:52.09 plus 0.1 s, the wake from the host time of the log lines minus their boot timestamps, 23:43:51.14. The RTC slow clock runs about **0.6 % fast, about 21 s per hour** (±0.1 s timing error, so ±0.06 %) |
+| Panel and speaker while asleep | Not reported (the user did not note them) |
+
+**What the drift means.** 21 s per hour is under the plan's 30 s/h limit: across an 11.5-hour night the timer fires about 4 minutes early, well inside the 10-minute lead, so the lead stays. The clock itself runs fast by the same amount while the chip sleeps. With Wi-Fi, the NTP sync at every deep-sleep wake (each wake is a boot) corrects it. Without Wi-Fi the clock gains about 4 minutes per night of deep sleep, so bedtime creeps earlier until the parent sets Now again. A steadier RTC source (the internal 8MD256 clock, at some cost in sleep current) is a candidate for M8's battery work.
+
+## System and parent (M7) — 2026-09-26
+
+Firmware 8231f53 (after the final review's fixes). Builds:
+- `build-m7`: the normal build, no Wi-Fi;
+- `build-drain`: USB counts as battery, plus a fake battery;
+- `build-ntppower`: the `power` build plus the Wi-Fi secrets, used for group E and the drift;
+- `build-perf`;
+- `build-soak`.
+
+Logs are in `build-logs/m7-*.log`, host-timestamped with `tools/serial_log.py -t`. They survive the port dropping in deep sleep and when USB is unplugged.
+
+| Check | Result |
+| --- | --- |
+| A. First run | PASS (user): the picker after the boot animation with Orange's thick ring and tint; Grey chosen (proud face, meow), then the menu with the grey cat and grey paws; the icon breathes. The log of this step was lost (the first logger did not start). The flag survives a restart: the next flash's boot logs `settings: ... cat 1 ... first run done` and shows no picker. Home on the picker: not run (the user kept their settings, so NVS was not erased) |
+| B. The parent area | PASS (user): the four tiles (Volume, Sleep, Apps "6 of 6", Cat "Grey"), the battery circle, "Home button exits", the Fredoka text. Show apps: a hidden app fades with a grey label and the crossed eye, the last app cannot be hidden, "1 of 6", and the menu shows only that app. The Cat page switches; the lock at night; a cat switch over the lock shows the new cat on the lock; Max volume and Sleep times work |
+| B. Memory across cat choices | PASS (log): `free psram after the cat choice` 4895040 → 4905556 → 4895028 (the third is within 12 B of the first); each choice releases the other two variants (`released 35/9, 25/9, 9/25 images`) |
+| C. Charging | PASS (user): no eating cat on the lock (the night light comes on) or in the parent area; on the menu the eating cat for 4 s; over Yarn roll the yarn stops and play goes on afterwards; a dim menu lights first; a finger rubbing Pet at the plug-in stops the purr, and it does not restart. The screens' own log lines fall inside the ~7 s the USB port needs to come back after a plug-in, so they are not in the log |
+| C. Leaving the night by moving the times | PASS (user): setting Bedtime 19:30 / Wake 07:00 from the parent area over the lock lands on the menu, with no sunrise |
+| D. Low battery (drain) | 10 % at 21.5 s: the hungry cat (log + user). **5 %: not shown**. The log has no screen at ~70 s, and the pending screen waits for a fully lit panel (`idle_level() == 0`), so the app had most likely dimmed. The spec now says "dimmed or off". 2 % at 100.9 s: `battery 2 %: sleeping until it is charged`, the hungry cat, `deep sleep: timer 0 s, for the battery`. A touch: `woke by a pin (slept for the battery)` → `start: hungry cat` → sleep again (log + user). The user: "everything is fine" |
+| E. Deep sleep by day | PASS (log + user): every touch, BOOT and PWR-off wake logs `woke by a pin` → `start: boot animation`; `deep sleep: timer …` 20 s after the panel goes off; fully dark and silent while asleep; Magic paws' drawing is gone after a sleep; BOOT and touch work normally after a wake |
+| E. The night | PASS (log): the lock at 09:08:21, dark, then `deep sleep: timer 647 s` (wake 09:30 − 10 min). At 09:19:54 `woke by the timer` → `start: lock, dark` (no boot animation) → NTP; the sunrise at 09:30:00, over at 09:31:04. **The touch-lit wake at night (`start: lock, lit`) was not run** |
+| E. Draw failures at a wake | **1 of 3 day wakes** logged 28 `Draw bitmap failed: ESP_ERR_NO_MEM` (`Failed to allocate priv TX buffer`) 3.0-4.4 s after boot. Wi-Fi starts while the boot animation flushes full frames, and each flush needs a ~25 KB (up to 46 KB) internal DMA copy of the PSRAM draw buffer. This is the M6 contention (the RX buffers are pinned, and `rx ba win: 6` is in effect), now hit at every deep-sleep wake. It is visible as a skipped boot-animation frame; the user noticed nothing. A separate follow-up is on `davor/boot-wifi-flush` (the SPI panel IO without `psram_dma_direct`) |
+| Drift (NTP) | **1.04 % fast, ~37 s per hour**: 647 s by the RTC took ~640.4 s (`NTP: corrected by -6640 ms` after the timer wake). Task 1 measured 0.6 % over 180 s. Short day sleeps (~2 min) corrected by −42 to −131 ms |
+| F. The icon breathes | PASS (user, group A): it swells and shrinks slightly on the awake menu |
+| FPS (perf) | The breathing menu: 27.7 FPS mean (20-30), 12 of 94 samples below 24 (the frames that redraw the scaled icon), CPU mean 40 % (21 % for the still menu in M5). It stops once the menu dims (20 s). The boot animation: 10-15 FPS, as before |
+| Soak | PASS: internal −8 B, PSRAM 0 over 50 rounds (`m7-soak2.log`; every round reads internal 216083, PSRAM 4709828) |
+| Dev flags | The normal build's binary holds none of the `dev build:` warnings (`grep -c` = 0); the drain and power builds hold 3 and 2 |
+| Log | No Guru Meditation, abort, assert or unexpected reset |
+
+**What the drift means.** 37 s per hour is over the plan's 30 s/h trigger for a longer lead. The trigger guards against a late timer, and both measurements run fast: the chip cools in deep sleep, so the timer fires early. Across an 11.5-hour night that is ~7 minutes early. With Wi-Fi, the sync at that wake corrects the clock, and the sunrise came on the minute. The lead stays at 10 minutes and the guard at 15. Without Wi-Fi the clock gains ~4-7 minutes per night; spec §3.2 says so.
+
+**Soak, first run.** The first soak on 6e8feee failed on its last reading only (internal −20352; rounds 10-50 flat at 213111). Two traced runs (`m7-soak-trace1/2.log`) showed free internal RAM cycling between ~235.6, ~217 and ~190 KB on the idle menu and always returning. The breathing icon redraws about a third of the time, each flush holds ~25 KB, and the scaled icon holds ~18.5 KB. Under the display lock the dips vanish. It is not a leak. The soak now pauses the breathing while it measures (10ff444).
+
+**Port handling.** Opening the port right after an esptool RTS reset left the Mac without the port until the user replugged USB. `esptool chip_id` did not reset the chip either (its uptime went on). `tools/flash_and_log.sh`'s 3 s wait avoids both. A board asleep for the battery was reflashed by catching it awake after a touch; the first attempt lost the port mid-connect and only reset it.
+
+**Not tested on the device:**
+- Home on the first-run picker, which needs NVS erased (the user declined).
+- The touch-lit wake at night.
+- The 5 % screen over an app (see D).
+- USB plugged in during the 2 % screen. In the drain build USB counts as battery, so it cannot be tried there.
+- The no-sunrise-after-a-correction fix at bedtime, which needs the clock ahead at a touch wake just before bedtime.
+- The deep-sleep current, with the GPIO46 hold (which holds every digital pad; for M8).
+- The quiet hungry cat at night.
+
+The kid test (spec §7) is still open for M3-M7.

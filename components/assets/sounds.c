@@ -43,6 +43,8 @@ static const char *const FILES[SND_COUNT] = {
     [SND_PIANO_A5] = "piano_a5",
     [SND_WHISPER] = "pssst_spavaj",
     [SND_WAKE] = "wake",
+    [SND_HUNGRY] = "gladna_sam",
+    [SND_CHARGING] = "charging",
 };
 
 bool sounds_path(sound_id_t id, char *out, size_t n)

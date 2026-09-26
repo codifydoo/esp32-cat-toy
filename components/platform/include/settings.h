@@ -1,4 +1,5 @@
 #pragma once
+#include <stdbool.h>
 #include <stdint.h>
 #include "esp_err.h"
 
@@ -18,3 +19,5 @@ uint16_t settings_bedtime(void); /* minute of the day, 0-1439 */
 void settings_set_bedtime(uint16_t min);
 uint16_t settings_wake(void);
 void settings_set_wake(uint16_t min);
+bool settings_first_run_done(void); /* the cat picker ran once (spec §3.13); false while the key is missing */
+void settings_set_first_run_done(void);

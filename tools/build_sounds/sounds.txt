@@ -69,3 +69,4 @@ swipe_clock   concat  whoosh+name_clock
 swipe_piano   concat  whoosh+name_piano
 yarn_win      concat  fanfare+bravo
 wake          concat  chime_wake+meow_2+dobro_jutro
+charging      concat  munch+njam_njam

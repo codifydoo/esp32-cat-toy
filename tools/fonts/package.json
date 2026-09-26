@@ -1,0 +1,8 @@
+{
+  "name": "cat-toy-fonts",
+  "private": true,
+  "description": "Converts Fredoka (assets-src/fonts, SIL OFL) into LVGL C fonts: build_fonts.sh",
+  "devDependencies": {
+    "lv_font_conv": "^1.5.3"
+  }
+}

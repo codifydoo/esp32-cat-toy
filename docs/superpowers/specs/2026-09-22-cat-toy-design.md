@@ -81,10 +81,9 @@ the point count directly from the touch driver (`esp_lcd_touch`). The Waveshare 
 stops at one point, so the count and the second point come from the controller's own report
 (`touch_report.c`), read alongside the driver.
 
-Since M6 (2026-09-24) the parent area opens on a home screen with two of the design's four tiles,
-Volume and Sleep; Max volume has its "‹ Parents" button back, and Sleep times sets Bedtime, Wake up
-and Now (§3.12). It still uses LVGL's built-in Montserrat until M7 brings Fredoka and the other two
-tiles.
+The parent area opens on the design's home screen: Volume, Sleep, Apps and Cat, with the battery in
+the center (§3.13). Max volume has its "‹ Parents" button, and Sleep times sets Bedtime, Wake up and
+Now (§3.12). The text is Fredoka (§3.13).
 
 ### 3.2 Time source
 
@@ -106,8 +105,12 @@ survives restarts and deep sleep, but not a power loss. Decided 2026-09-24:
   since the last power-on can make true. If the time is invalid, the time-based features switch
   off rather than guess: no bedtime lock, and the Sleepy clock shows the day scene. Play is never
   blocked by a bad clock.
-- The internal oscillator drifts. Measuring how much is open for M7 (docs/device-checks.md), and the
-  daily NTP sync bounds it when Wi-Fi is available.
+- The internal oscillator drifts, and more so in deep sleep, which counts time on the RTC slow clock:
+  it ran 0.6-1.0 % fast, about 21-37 s per hour (docs/device-checks.md, M7). The chip cools while it
+  sleeps, so the deep-sleep timer fires early, never late, and the 10-minute lead before wake time
+  holds. The daily NTP sync, and the sync at each wake from deep sleep, bound the drift when Wi-Fi is
+  available. Without Wi-Fi the clock gains about 4-7 minutes per night of deep sleep, until the
+  parent sets Now again.
 
 ### 3.3 Silly voice effects
 
@@ -236,7 +239,8 @@ The design leaves these open for M5. Everything else follows the design.
 
 - **Magic paws: her drawing is kept.**
   - The drawing stays in memory when the app closes, by Home or by the 60 s idle timeout. It is back
-    when she reopens the app, until she shakes it clean or the toy restarts.
+    when she reopens the app, until she shakes it clean or the toy restarts. A deep sleep on battery
+    is a restart (§3.13).
   - It is one 466 × 466 RGB565 picture (434 KB of PSRAM), allocated on the first open and never
     freed. This is the one exception to "`destroy` leaves no PSRAM behind" (§4.4).
 - **Magic paws: how strokes are painted.**
@@ -299,8 +303,8 @@ The design leaves these open for M6. Everything else follows the design and §3.
   - A touch whispers "Pssst… spavaj" at 30 % of the playing volume (a gain in the mixer, so the
     parent's cap still applies), at most once every 5 s. With the whisper the cat shows its shh face
     for 2.2 s, as in the design.
-  - On battery the panel turns off after 30 s, and a touch shows the scene again for 5 s. Deep
-    sleep arrives in M7; until then the device stays on through the night.
+  - On battery the panel turns off after 30 s, and a touch shows the scene again for 5 s. Ten
+    minutes later the device deep-sleeps (§3.13).
   - On USB power the scene stays on all night, shifted ±4 px every 60 s.
   - The parent two-finger hold works, with its progress ring around the sleeping cat's head.
     Leaving the parent area returns to the lock while it is still night. If the parent moved the
@@ -314,11 +318,94 @@ The design leaves these open for M6. Everything else follows the design and §3.
   proud cat. A tap on the cat purrs, as in Pet the cat (purring face, the purr loop for 1.5 s). The
   app is never open at night, because the lock closes it.
 - **The parent area in M6:**
-  - The home screen has two of the design's four tiles, Volume and Sleep. Apps, Cat and the
-    battery in the center arrive in M7. The text is still Montserrat.
+  - The home screen had two of the design's four tiles, Volume and Sleep; M7 adds the rest (§3.13).
   - Sleep times has three rows: Bedtime and Wake up in 15-minute steps, and Now in 1-minute steps.
     Holding ± repeats, and after 2 s the Now row steps by 10 minutes.
   - Now shows "--:--" while the time is invalid, and its first press starts from 12:00.
+
+### 3.13 System and parent details (2026-09-25)
+
+The design leaves these open for M7. Everything else follows the design, §3.7 and §3.8.
+
+- **Battery gauge:** the AXP2101's fuel gauge gives the battery percentage, and its charger status
+  says whether the battery is charging. The charger status is read every 0.5 s, with USB power, and
+  the percentage every 5 s (§4.5). The gauge counts as unavailable when the AXP2101 reports no
+  battery or its gauge gives no reading. Then no battery screen ever shows, and the parent home
+  hides the percentage (§4.7). USB power stays the "VBUS good" bit (§3.12).
+- **Low battery** (the design's hungry cat: sleepy face, empty bowl, blinking red battery and
+  "Gladna sam…"):
+  - It shows for 4 s once when the battery falls to 10 %, and once more at 5 %. Connecting USB
+    power arms both levels again. On battery, a reading of 15 % or more arms them again too: the
+    toy was charged while it slept, and USB power does not wake it.
+  - It shows over the menu or an open app, and then play resumes where it was. The app keeps its
+    state; while the screen shows, touches, tilt and shake do not reach the app. Home works as
+    always: it ends the screen, closes the app and shows the menu.
+  - It never shows over the boot animation, the cat picker, the parent area, the bedtime lock or the
+    sunrise. If a level is reached there, or while the panel is dimmed or off, it shows the next
+    time she is on the menu or in an app with the panel fully on, usually at her next touch (after a
+    night, on the menu after the sunrise).
+  - **At 2 %** on battery the toy deep-sleeps until it is charged. If the panel is on, the hungry
+    cat shows for 4 s first, from anywhere. While it sleeps for the battery, a touch or BOOT shows the
+    hungry cat for 4 s and it sleeps again, and no timer wakes it. With USB power connected, the next
+    touch wakes it normally. This keeps the clock (§3.2), which the AXP2101's own cut-off at empty
+    would lose. At night (between bedtime and wake time) the hungry cat plays at the whisper's 30 %,
+    and a wake while it sleeps for the battery lights the panel at the lock's 35 %.
+- **Charging** (the design's eating cat: full bowl, filling green battery, "Njam njam!" and 2 s of
+  munching): when USB power is connected and the gauge is available, it shows for 4 s over the menu
+  or an open app, and then play resumes, as for low battery. Connecting USB counts as a touch, so a
+  dimmed or dark menu lights up first. It never shows over the boot animation, the cat picker, the
+  parent area, the bedtime lock (which becomes the night light, §3.12) or the sunrise, and it is not
+  shown later.
+- **The cat picker** (the design's three 156 px pads with the cats at scale S; the current cat's pad
+  has the thick ring and the tinted fill):
+  - **First run** is when the "first run done" setting is missing: the first power-on, or after NVS
+    was erased (§4.7). The boot animation plays with the default orange cat, then the picker shows.
+  - A tap on a pad chooses that cat at once. Its pad gets the thick ring, the cat shows its proud
+    face with a meow, and after 1.4 s the menu follows with the new cat. The choice and "first run
+    done" are saved on that tap.
+  - Home on the first-run picker goes to the menu with the orange cat and saves nothing, so the
+    picker comes again at the next boot. If it is night when the first run ends, the lock follows
+    instead of the menu.
+  - The parent area's Cat tile opens the same picker, and after the 1.4 s it returns to the parent
+    home.
+  - Only the chosen cat's images stay in memory. After a choice, the other cats' images are released
+    (§4.6).
+- **The parent area:**
+  - The home screen has the design's four tiles: Volume, Sleep, Apps ("5 of 6") and Cat (Orange,
+    Grey or Tuxedo). The battery percentage sits in the center.
+  - **Show apps** is the design's grid of the six 96 px icons. A tap hides or shows an app: a hidden
+    app is at 30 %, with a muted label and the crossed-eye badge. The last shown app cannot be
+    hidden. Each change is saved at once, and the menu shows it when the parent leaves.
+  - The text is Fredoka (SIL OFL) at the design's sizes (17, 20, 22, 46 and 54 px), converted with
+    `lv_font_conv` at 4 bpp, with ASCII, Š Ž š ž and "‹". Fredoka has no Č Ć Đ, and the parent area's
+    text is English, so none is needed. The repository gets Fredoka from Google Fonts as a variable font,
+    whose default instance is Regular: the design's 500 and 600 weights are not reproduced.
+- **Deep sleep** (§3.7):
+  - It starts on battery 10 minutes after the panel went off, whether by the menu's idle off (120 s)
+    or the bedtime lock's dark panel. It never starts on USB power, or in the last 15 minutes before
+    wake time.
+  - Before sleeping, the toy stops all sound and puts the panel to sleep, and the touch controller
+    stays able to wake it. Everything in RAM is lost, as in a restart: Magic paws' kept drawing
+    (§3.11) and a Silly voices recording (§8). The settings and the clock survive (§3.2).
+  - **Wake sources:** a touch (GPIO11) or BOOT (GPIO0). While the clock is valid and there is a
+    night, a timer also wakes it 10 minutes before wake time. PWR does not wake it: the AXP2101's
+    interrupt reaches no pin that can wake the ESP32-S3 (docs/device-checks.md, M7). A long press
+    still powers off.
+  - **On waking** it checks the schedule first (§3.7):
+    - After the timer: inside the night, the lock shows with its panel dark, the daily NTP sync runs
+      (§3.2), and the sunrise plays at wake time. If wake time has already passed, the sunrise plays
+      at once.
+    - After a touch or BOOT inside the night: the lock shows, lit as after a touch, without the boot
+      animation.
+    - Otherwise the boot animation plays, then the menu (or the cat picker on a first run).
+  - The 10-minute lead absorbs the RTC slow clock's drift in deep sleep; M7's device checks measure
+    that drift.
+- **Burn-in:**
+  - The menu icon breathes by 2.5 % (scale 100 → 102.5 %, 3 s, the design's `icon-breathe`), except
+    while the menu is dimmed.
+  - The menu and the lock already shift their static layers ±4 px every 60 s.
+  - The low battery and charging screens last 4 s, and the parent area and the apps close after 60 s
+    without a touch, so they get no shift. Apps are not shifted while she plays.
 
 ## 4. Architecture
 
@@ -430,7 +517,7 @@ Rules for apps:
 | --- | --- | --- |
 | LVGL | 1 | Owned by the board support package's LVGL port. All UI runs here. |
 | Audio | 0 | Mixes two channels: `fx` (one-shot; a new sound replaces the playing one) and `loop` (at most one looping sound, such as purr, rumble or munching, started and stopped by the app). Also records up to 5 s and runs `voice_fx`. |
-| Sensors | 0 | IMU at 50 Hz, buttons, battery every 5 s. Queues button and shake events and keeps the latest tilt; a 20 ms LVGL timer in `app_manager` drains them and routes them to the launcher or the current app (§3.10). |
+| Sensors | 0 | IMU at 50 Hz, buttons, USB power and the charger every 0.5 s, the battery percentage every 5 s. Queues button and shake events and keeps the latest tilt; a 20 ms LVGL timer in `app_manager` drains them and routes them to the launcher or the current app (§3.10). |
 
 - **Settings:** loaded once at boot. The parent area writes through `settings_set_*`, which
   persists to NVS immediately.

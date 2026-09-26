@@ -3,12 +3,21 @@
 #include <stdint.h>
 #include "audio.h"
 #include "bedtime.h"
+#include "boot.h"
 #include "buttons.h"
+#include "deepsleep.h"
+#include "display.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "sensors.h"
+#include "first_run.h"
 #include "idle.h"
 #include "launcher.h"
+#include "overlays.h"
 #include "parent.h"
+#include "power.h"
+#include "power_rules.h"
+#include "power_watch.h"
 #include "sdkconfig.h"
 #include "tokens.h"
 #include "ui_util.h"
@@ -22,7 +31,8 @@ static void poll_sensors(lv_timer_t *t);
 static const app_t *s_current;
 static lv_obj_t *s_screen;  /* the current app's screen; NULL when none is open */
 static bool s_pending_home; /* Home arrived before the open fade made s_screen the active screen */
-static bool s_started;      /* true once app_manager_start() has run; gates buttons during boot */
+static bool s_started;      /* true once the start's first screen shows (app_manager_start(), or a deep-sleep
+                              * wake's lock/sunrise in app_manager_boot()); gates buttons during boot */
 
 #if CONFIG_CAT_HOME_ON_POWER
 static lv_timer_t *s_home_timer;    /* pending "act as Home" one-shot, NULL when none is queued */
@@ -34,18 +44,76 @@ void app_manager_init(void)
     launcher_create();
     idle_init();
     bedtime_init();
+    power_watch_init();
     lv_timer_create(poll_sensors, SENSOR_POLL_MS, NULL);
 }
 
 void app_manager_start(void)
 {
-    if (!bedtime_take_over()) { /* a start inside the night shows the lock after the boot animation */
+    if (first_run_due()) {
+        first_run_show(); /* the picker; its end shows the lock or the menu */
+    } else if (!bedtime_take_over()) { /* a start inside the night shows the lock after the boot animation */
         launcher_show();
     }
     s_started = true; /* buttons are ignored until this point -- see handle_button() */
 }
 
 bool app_manager_started(void) { return s_started; }
+
+static woke_t woke(void)
+{
+    switch (deepsleep_cause()) {
+    case DEEPSLEEP_BY_PIN: return WOKE_TOUCH;
+    case DEEPSLEEP_BY_TIMER: return WOKE_TIMER;
+    default: return WOKE_COLD;
+    }
+}
+
+/* The hungry cat of a WAKE_HUNGRY start has ended. With USB power plugged in meanwhile, the start goes on as a
+ * cold one does; no NTP here: the daily sync and the invalid-clock retry cover it. */
+static void sleep_again(void)
+{
+    if (power_on_usb()) {
+        ESP_LOGI(TAG, "USB power: starting instead of sleeping");
+        display_set_brightness(BRIGHTNESS_FULL); /* as a cold start: the night's 35 % would stay on the menu */
+        boot_run(app_manager_start);
+        return;
+    }
+    deepsleep_start(0, true);
+}
+
+bool app_manager_boot(void)
+{
+    const power_state_t ps = power_state(); /* power_init() took a first reading */
+    wake_plan_t plan = power_wake_plan(woke(), bedtime_is_night(), deepsleep_was_for_battery(),
+                                        battery_critical(ps.pct, ps.usb));
+    if (first_run_due() && plan != WAKE_HUNGRY) {
+        /* The picker isn't done: a toy that slept on it shows it again, as a cold start at night does. */
+        plan = WAKE_BOOT;
+    }
+    static const char *const NAMES[] = {"boot animation", "lock, lit", "lock, dark", "sunrise", "hungry cat"};
+    ESP_LOGI(TAG, "start: %s (free psram %u)", NAMES[plan], (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+    switch (plan) {
+    case WAKE_LOCK_LIT:
+    case WAKE_LOCK_DARK:
+        bedtime_wake(plan == WAKE_LOCK_DARK);
+        s_started = true;
+        break;
+    case WAKE_SUNRISE:
+        bedtime_sunrise_now();
+        s_started = true;
+        break;
+    case WAKE_HUNGRY:
+        if (bedtime_is_night()) {
+            display_set_brightness(BEDTIME_BRIGHTNESS); /* at night, as bright as the lock */
+        }
+        overlay_show(OVERLAY_HUNGRY, sleep_again); /* the buttons stay ignored: s_started is false */
+        break;
+    default: boot_run(app_manager_start); break;
+    }
+    /* The hungry cat sleeps again, and any other start at 2 % soon sleeps for the battery (power_watch): no NTP. */
+    return plan != WAKE_HUNGRY && !battery_critical(ps.pct, ps.usb);
+}
 
 #if CONFIG_CAT_HOME_ON_POWER
 static void cancel_pending_home(void)
@@ -180,6 +248,10 @@ static void do_home(void)
     if (idle_wake_if_asleep()) {
         return; /* the press only wakes the screen */
     }
+    if (first_run_showing()) {
+        first_run_skip(); /* Home works everywhere but on the lock (spec §3.6, §3.13) */
+        return;
+    }
     if (s_current) {
         app_manager_home();
     } else {
@@ -200,9 +272,13 @@ static void pending_home_cb(lv_timer_t *t)
 static void handle_button(button_id_t id)
 {
     if (!s_started) {
-        return; /* ignore presses until app_manager_start() has shown the menu (boot animation) */
+        return; /* ignore presses until the start's first screen has shown (the boot animation, or a deep-sleep
+                 * wake's lock or sunrise) */
     }
     lv_display_trigger_activity(NULL); /* a button press counts as activity */
+    if (overlay_showing()) {
+        overlay_close(); /* Home and PWR work as always; the battery screen ends first (spec §3.13) */
+    }
     if (bedtime_showing()) {
         if (id == BUTTON_POWER) {
             bedtime_power(); /* PWR still turns the lock's panel off and on */
@@ -247,10 +323,14 @@ static void poll_sensors(lv_timer_t *t)
     sensor_ev_t ev;
     while (sensors_next(&ev)) {
         if (ev == SENSOR_EV_SHAKE) {
-            if (s_current && s_current->on_shake && idle_level() == 0) {
+            if (s_current && s_current->on_shake && idle_level() == 0 && !overlay_showing()) {
                 lv_display_trigger_activity(NULL); /* a shake is play (spec §3.10) */
                 s_current->on_shake();
             }
+            continue;
+        }
+        if (ev == SENSOR_EV_USB_IN) {
+            power_watch_usb_in();
             continue;
         }
         const button_id_t id = ev == SENSOR_EV_HOME ? BUTTON_HOME : BUTTON_POWER;
@@ -258,7 +338,7 @@ static void poll_sensors(lv_timer_t *t)
         handle_button(id);
     }
     float x, y;
-    if (s_current && s_current->on_tilt && idle_level() == 0 && sensors_tilt(&x, &y)) {
+    if (s_current && s_current->on_tilt && idle_level() == 0 && !overlay_showing() && sensors_tilt(&x, &y)) {
         s_current->on_tilt(x, y);
     }
 }

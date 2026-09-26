@@ -7,9 +7,12 @@
 #include "freertos/task.h"
 #include "imu.h"
 #include "motion.h"
+#include "power.h"
 
 #define SENSORS_PERIOD_MS 20 /* 50 Hz: button debounce, shake and tilt */
 #define EVENT_QUEUE_LEN   8
+#define POWER_EVERY 25  /* loops: 500 ms, USB and the charger */
+#define GAUGE_EVERY 250 /* loops: 5 s, the fuel gauge (spec §4.5) */
 
 /* The QMI8658's axes in screen terms, measured on the device (docs/device-checks.md, "Serial
  * listener and accelerometer axes (M4)"), confirmed by the Pet the cat walkthrough (the ball must
@@ -23,6 +26,7 @@ static QueueHandle_t s_events;
 static portMUX_TYPE s_tilt_lock = portMUX_INITIALIZER_UNLOCKED;
 static tilt_t s_tilt;   /* shared with sensors_tilt*(): only under s_tilt_lock */
 static shake_t s_shake; /* sensors task only */
+static bool s_usb; /* sensors task only: USB at the last poll */
 
 static void post(sensor_ev_t ev)
 {
@@ -49,6 +53,7 @@ static void sample_imu(void)
 static void sensors_task(void *arg)
 {
     (void)arg;
+    uint32_t loops = 0;
     for (;;) {
         /* Re-based every loop: a slow I2C read (a PMU timeout is 50 ms) can overrun the period,
          * so vTaskDelayUntil returns immediately; either way, polls start at least 20 ms apart,
@@ -62,6 +67,15 @@ static void sensors_task(void *arg)
             post(SENSOR_EV_POWER);
         }
         sample_imu();
+        if (loops % POWER_EVERY == 0) {
+            power_poll(loops % GAUGE_EVERY == 0);
+            const bool usb = power_state().usb;
+            if (usb && !s_usb) {
+                post(SENSOR_EV_USB_IN);
+            }
+            s_usb = usb;
+        }
+        loops++;
         vTaskDelayUntil(&last, pdMS_TO_TICKS(SENSORS_PERIOD_MS));
     }
 }
@@ -73,6 +87,10 @@ esp_err_t sensors_start(void)
     shake_reset(&s_shake);
     s_events = xQueueCreate(EVENT_QUEUE_LEN, sizeof(sensor_ev_t));
     ESP_RETURN_ON_FALSE(s_events, ESP_ERR_NO_MEM, TAG, "queue");
+    /* A fresh reading: power_init() may not have run (the diag and gallery builds skip it), but
+     * buttons_init() above has already called pmu_init(). */
+    power_poll(false);
+    s_usb = power_state().usb; /* USB at boot is no event */
     BaseType_t ok = xTaskCreatePinnedToCore(sensors_task, "sensors", 8192, NULL, 4, NULL, 0);
     return ok == pdPASS ? ESP_OK : ESP_ERR_NO_MEM;
 }

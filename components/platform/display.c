@@ -4,10 +4,12 @@
 #include "bsp/touch.h"
 #include "esp_check.h"
 #include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_ops.h"
 #include "touch_raw.h"
 
 static const char *TAG = "display";
 static esp_lcd_panel_io_handle_t s_io;
+static esp_lcd_panel_handle_t s_panel;
 static uint8_t s_brightness = 100;
 
 /* The CO5300 needs even start and odd end coordinates (same rounding as the BSP). */
@@ -31,10 +33,9 @@ esp_err_t display_init(void)
     const bsp_display_config_t panel_cfg = {
         .max_transfer_sz = BSP_LCD_H_RES * BSP_LCD_V_RES * BSP_LCD_BITS_PER_PIXEL / 8,
     };
-    esp_lcd_panel_handle_t panel = NULL;
-    ESP_RETURN_ON_ERROR(bsp_display_new(&panel_cfg, &panel, &s_io), TAG, "panel");
+    ESP_RETURN_ON_ERROR(bsp_display_new(&panel_cfg, &s_panel, &s_io), TAG, "panel");
     const esp_lv_adapter_display_config_t disp_cfg = {
-        .panel = panel,
+        .panel = s_panel,
         .panel_io = s_io,
         .profile = {
             .interface = ESP_LV_ADAPTER_PANEL_IF_OTHER,
@@ -81,3 +82,12 @@ void display_set_brightness(uint8_t pct)
 uint8_t display_brightness(void) { return s_brightness; }
 bool display_lock(int32_t timeout_ms) { return esp_lv_adapter_lock(timeout_ms) == ESP_OK; }
 void display_unlock(void) { esp_lv_adapter_unlock(); }
+
+void display_sleep(void)
+{
+    display_set_brightness(0);
+    if (s_panel) {
+        esp_lcd_panel_disp_on_off(s_panel, false);
+        esp_lcd_panel_disp_sleep(s_panel, true); /* CO5300 sleep-in; the restart after deep sleep wakes it */
+    }
+}

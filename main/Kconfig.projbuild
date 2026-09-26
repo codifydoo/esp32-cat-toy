@@ -8,6 +8,18 @@ menu "Cat toy"
     config CAT_DEV_SOAK
         bool "Run the app open/close soak test after boot"
         default n
+    config CAT_DEV_POWER_DIAG
+        bool "Boot into the power diagnostics (gauge, touch INT, PWR pin, deep-sleep wakes)"
+        default n
+    config CAT_DEV_IGNORE_USB
+        bool "Treat USB power as battery (deep sleep and the battery screens on the Mac's cable)"
+        default n
+    config CAT_DEV_BATTERY_DRAIN
+        bool "Fake a draining battery: 12 % at boot, one point less every 10 s; 1 % after a battery sleep"
+        default n
+    config CAT_DEV_FAST_SLEEP
+        bool "Deep-sleep 20 s after the panel goes off instead of 10 minutes"
+        default n
     config CAT_HOME_ON_POWER
         bool "Use PWR as Home (only if BOOT cannot be pressed through the case)"
         default n

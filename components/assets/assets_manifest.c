@@ -92,5 +92,13 @@ const ui_image_pos_t UI_IMAGE_POS[] = {
     {"ui/p_moon_row", 0, 0},
     {"ui/p_sun_row", 0, 0},
     {"ui/p_clock_row", 0, 0},
+    {"ui/batt_low", 0, 0},
+    {"ui/batt_charge", 0, 0},
+    {"ui/batt_bolt", 0, 0},
+    {"ui/bowl_empty", 0, 0},
+    {"ui/bowl_full", 0, 0},
+    {"ui/p_grid", 0, 0},
+    {"ui/p_cat", 0, 0},
+    {"ui/p_eye_off", 0, 0},
 };
-const size_t UI_IMAGE_POS_COUNT = 27;
+const size_t UI_IMAGE_POS_COUNT = 35;

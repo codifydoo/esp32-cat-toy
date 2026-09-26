@@ -79,7 +79,8 @@ typedef enum {
     L_HL_L, L_HL_R, L_MOUTH, L_PROP, L_PAW_A, L_PAW_B, L_HELMET, L_FX, L_COUNT
 } layer_t;
 
-typedef struct {
+typedef struct cat_s {
+    struct cat_s *next; /* every live cat: cat_set_variant() reloads them */
     lv_obj_t *root, *rig;
     lv_obj_t *img[L_COUNT];
     const char *shown[L_COUNT];
@@ -97,6 +98,7 @@ typedef struct {
 } cat_t;
 
 static cat_variant_t s_variant = CAT_VARIANT_ORANGE;
+static cat_t *s_cats;
 
 static const cat_part_pos_t *find_part(const char *part)
 {
@@ -243,13 +245,41 @@ static void on_timer(lv_timer_t *timer)
 static void on_delete(lv_event_t *e)
 {
     cat_t *c = lv_event_get_user_data(e);
+    for (cat_t **p = &s_cats; *p; p = &(*p)->next) {
+        if (*p == c) {
+            *p = c->next;
+            break;
+        }
+    }
     lv_timer_delete(c->timer);
     lv_free(c);
 }
 
 static cat_t *get(lv_obj_t *obj) { return (cat_t *)lv_obj_get_user_data(obj); }
 
-void cat_set_variant(cat_variant_t variant) { s_variant = variant < CAT_VARIANT_COUNT ? variant : CAT_VARIANT_ORANGE; }
+void cat_set_variant(cat_variant_t variant)
+{
+    const cat_variant_t v = variant < CAT_VARIANT_COUNT ? variant : CAT_VARIANT_ORANGE;
+    if (v == s_variant) {
+        return;
+    }
+    s_variant = v;
+    /* Every live cat of the chosen variant shows the new one at once: hide all its layers and forget what they
+     * showed, so apply() loads each visible part again under the new variant's name (a layer left visible with
+     * `shown` cleared would never hide again). */
+    for (cat_t *c = s_cats; c; c = c->next) {
+        if (c->palette) {
+            continue;
+        }
+        for (int l = 0; l < L_COUNT; l++) {
+            lv_obj_add_flag(c->img[l], LV_OBJ_FLAG_HIDDEN);
+            c->shown[l] = NULL;
+        }
+        apply(c);
+    }
+}
+
+const char *cat_variant_name(cat_variant_t v) { return VARIANT_NAME[v < CAT_VARIANT_COUNT ? v : CAT_VARIANT_ORANGE]; }
 
 lv_obj_t *cat_create_colored(lv_obj_t *parent, cat_scale_t scale, const char *palette)
 {
@@ -279,6 +309,8 @@ lv_obj_t *cat_create_colored(lv_obj_t *parent, cat_scale_t scale, const char *pa
         lv_obj_add_flag(c->img[l], LV_OBJ_FLAG_HIDDEN);
     }
     lv_obj_set_user_data(c->root, c);
+    c->next = s_cats;
+    s_cats = c;
     lv_obj_add_event_cb(c->root, on_delete, LV_EVENT_DELETE, c);
     apply(c);
     c->timer = lv_timer_create(on_timer, FRAME_MS, c);
