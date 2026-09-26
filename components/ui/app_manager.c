@@ -6,6 +6,7 @@
 #include "boot.h"
 #include "buttons.h"
 #include "deepsleep.h"
+#include "display.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "sensors.h"
@@ -74,6 +75,7 @@ static void sleep_again(void)
 {
     if (power_on_usb()) {
         ESP_LOGI(TAG, "USB power: starting instead of sleeping");
+        display_set_brightness(BRIGHTNESS_FULL); /* as a cold start: the night's 35 % would stay on the menu */
         boot_run(app_manager_start);
         return;
     }
@@ -102,6 +104,9 @@ bool app_manager_boot(void)
         s_started = true;
         break;
     case WAKE_HUNGRY:
+        if (bedtime_is_night()) {
+            display_set_brightness(BEDTIME_BRIGHTNESS); /* at night, as bright as the lock */
+        }
         overlay_show(OVERLAY_HUNGRY, sleep_again); /* the buttons stay ignored: s_started is false */
         break;
     default: boot_run(app_manager_start); break;

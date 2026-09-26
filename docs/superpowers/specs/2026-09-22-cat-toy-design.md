@@ -345,7 +345,8 @@ The design leaves these open for M7. Everything else follows the design, §3.7 a
     cat shows for 4 s first, from anywhere. While it sleeps for the battery, a touch or BOOT shows the
     hungry cat for 4 s and it sleeps again, and no timer wakes it. With USB power connected, the next
     touch wakes it normally. This keeps the clock (§3.2), which the AXP2101's own cut-off at empty
-    would lose.
+    would lose. At night (between bedtime and wake time) the hungry cat plays at the whisper's 30 %
+    and the panel stays at 35 %.
 - **Charging** (the design's eating cat: full bowl, filling green battery, "Njam njam!" and 2 s of
   munching): when USB power is connected and the gauge is available, it shows for 4 s over the menu
   or an open app, and then play resumes, as for low battery. Connecting USB counts as a touch, so a
@@ -513,7 +514,7 @@ Rules for apps:
 | --- | --- | --- |
 | LVGL | 1 | Owned by the board support package's LVGL port. All UI runs here. |
 | Audio | 0 | Mixes two channels: `fx` (one-shot; a new sound replaces the playing one) and `loop` (at most one looping sound, such as purr, rumble or munching, started and stopped by the app). Also records up to 5 s and runs `voice_fx`. |
-| Sensors | 0 | IMU at 50 Hz, buttons, battery every 5 s. Queues button and shake events and keeps the latest tilt; a 20 ms LVGL timer in `app_manager` drains them and routes them to the launcher or the current app (§3.10). |
+| Sensors | 0 | IMU at 50 Hz, buttons, USB power and the charger every 0.5 s, the battery percentage every 5 s. Queues button and shake events and keeps the latest tilt; a 20 ms LVGL timer in `app_manager` drains them and routes them to the launcher or the current app (§3.10). |
 
 - **Settings:** loaded once at boot. The parent area writes through `settings_set_*`, which
   persists to NVS immediately.

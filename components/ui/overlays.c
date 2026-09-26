@@ -1,6 +1,7 @@
 #include "overlays.h"
 #include <stddef.h>
 #include "audio.h"
+#include "bedtime.h"
 #include "cat.h"
 #include "esp_log.h"
 #include "tokens.h"
@@ -91,7 +92,12 @@ void overlay_show(overlay_kind_t kind, void (*done)(void))
         ui_image(s_root, "ui/batt_bolt", OVERLAY_BATT_X, OVERLAY_BATT_Y); /* over the fill */
     }
     audio_loop_stop(); /* a purr or rumble stops too: the app gets no touch or tilt meanwhile */
-    audio_play(hungry ? SND_HUNGRY : SND_CHARGING);
+    const sound_id_t sound = hungry ? SND_HUNGRY : SND_CHARGING;
+    if (bedtime_is_night()) {
+        audio_play_quiet(sound, BEDTIME_WHISPER_GAIN); /* at night, as quiet as the lock's whisper */
+    } else {
+        audio_play(sound);
+    }
     lv_display_trigger_activity(NULL);
     s_timer = lv_timer_create(timed_out, OVERLAY_MS, NULL);
     lv_timer_set_repeat_count(s_timer, 1);
